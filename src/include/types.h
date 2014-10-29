@@ -1,3 +1,6 @@
+// This is the cross-platform and cross-architecture standard types file. This
+// header is automatically included by CAHAL.h.
+
 #ifndef _TYPES_H_
 #define _TYPES_H_
 
