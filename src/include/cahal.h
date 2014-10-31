@@ -4,7 +4,7 @@
 #ifndef _CAHAL_H_
 #define _CAHAL_H_
 
-#include "types.h"
+#include "cpcommon.h"
 
 /**
  *  Returns the version of the library in a short. The top 8 MSBs are the major
@@ -25,3 +25,4 @@ UINT16 getVersion( void );
 CHAR* getVersionString( void );
 
 #endif /* _CAHAL_H_ */
+

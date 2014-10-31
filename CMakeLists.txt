@@ -1,79 +1,43 @@
 cmake_minimum_required( VERSION 3.0 )
 
-# Project name will be CAHAL
-project( CAHALLibStatic )
+set( PROJECT_NAME "cahal" )
 
-if( DEFINED ENV{SOURCE_DIRECTORY} AND IS_DIRECTORY $ENV{SOURCE_DIRECTORY} )
-  message( STATUS "Working with source directory: $ENV{SOURCE_DIRECTORY}" )
-  message (
-            STATUS
-            "Working with include directory: $ENV{SOURCE_DIRECTORY}/include"
-          )
-else()
-  message( FATAL_ERROR "No SOURCE_DIRECTORY environment variable set" )
-endif()
+project( ${PROJECT_NAME} )
 
-if( DEFINED ENV{BIN_DIRECTORY} )
-  message( STATUS "Working with bin directory: $ENV{BIN_DIRECTORY}" )
-else()
-  message( FATAL_ERROR "No BIN_DIRECTORY environment variable set" )
-endif()
+message( STATUS "Project: ${PROJECT_NAME}" )
+message( STATUS "Project directory: ${PROJECT_SOURCE_DIR}" )
 
-# Set the location of the source files
-set( CMAKE_SOURCE_DIR "$ENV{SOURCE_DIRECTORY}" )
-set( CMAKE_INCLUDE_DIR "$ENV{SOURCE_DIRECTORY}" )
+set( SOURCE_DIR "${PROJECT_SOURCE_DIR}/src" )
+set( INCLUDE_DIR "${SOURCE_DIR}/include" )
+set( INSTALL_DIR "${CMAKE_BINARY_DIR}/install" )
 
-# Set the location of the include files
-include_directories( "$ENV{SOURCE_DIRECTORY}/include" )
+message( STATUS "Source directory: ${SOURCE_DIR}" )
+message( STATUS "Include directory: ${INCLUDE_DIR}" )
+message( STATUS "Install directory: ${INSTALL_DIR}" )
 
-# Group the files together so they show up this way in editors
-source_group(
-              "common"
-              REGULAR_EXPRESSION
-              "$ENV{SOURCE_DIRECTORY}/common/*"
-            )
-source_group(
-              "include"
-              REGULAR_EXPRESSION
-              "$ENV{SOURCE_DIRECTORY}/include/*"
-            )
+set( SOURCES "${SOURCE_DIR}/common/cahal.c" )
 
-if( DEFINED CMAKE_SYSTEM_NAME AND CMAKE_SYSTEM_NAME STREQUAL "Darwin" )
-  message( STATUS "Working with system: Darwin" )
+set( HEADERS "${INCLUDE_DIR}/cahal.h" )
 
-  source_group(
-                "darwin"
-                REGULAR_EXPRESSION
-                "$ENV{SOURCE_DIRECTORY}/darwin/*"
-              )
+set( CPCOMMON_INCLUDE_DIR "${cpcommon_SOURCE_DIR}/src/include" )
 
-elseif( DEFINED CMAKE_SYSTEM_NAME AND CMAKE_SYSTEM_NAME STREQUAL "Windows" )
-  message( STATUS "Working with system: Windows" )
+message (
+  STATUS
+  "Working with cpcommon source directory: ${CPCOMMON_INCLUDE_DIR}"
+        )
 
-  source_group(
-                "windows"
-                REGULAR_EXPRESSION
-                "$ENV{SOURCE_DIRECTORY}/windows/*"
-              )
+include_directories( ${INCLUDE_DIR} )
+include_directories( ${CPCOMMON_INCLUDE_DIR} )
 
-elseif( DEFINED CMAKE_SYSTEM_NAME AND CMAKE_SYSTEM_NAME STREQUAL "Generic" )
-  message( STATUS "Working with system: Generic" )
+message( STATUS "C source files found: ${SOURCES}" )
+message( STATUS "C header files found: ${HEADERS}" )
 
-  source_group(
-                "generic"
-                REGULAR_EXPRESSION
-                "$ENV{SOURCE_DIRECTORY}/generic/*"
-              )
-endif()
+add_library( ${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS} )
 
-# Set the output location
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{BIN_DIRECTORY}" )
+target_link_libraries( ${PROJECT_NAME} cpcommon )
 
-# Look for all .h/.c files in the source directory
-file( GLOB_RECURSE TARGETS_SRC ${CMAKE_SOURCE_DIR}/*.c )
-file( GLOB_RECURSE TARGETS_INC ${CMAKE_SOURCE_DIR}/*.h )
+install( TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION "${INSTALL_DIR}/lib" )
+install( FILES ${HEADERS} DESTINATION "${INSTALL_DIR}/include/${PROJECT_NAME}" )
 
-message( STATUS "C source files found: ${TARGETS_SRC}" )
-message( STATUS "C header files found: ${TARGETS_INC}" )
-
-add_library( CAHAL STATIC ${TARGETS_SRC} ${TARGETS_INC} )
+# Build test suite as well
+add_subdirectory( test )

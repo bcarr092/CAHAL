@@ -1,9 +1,9 @@
-#include <cahal.h>
+#include "cahal.h"
 
 #define MAJOR_VERSION 1U
 #define MINOR_VERSION 0U
 
-#define LIBRARY_NAME  "CAHAL"
+#define LIBRARY_NAME  "cahal"
 
 UINT16 getVersion( void )
 {
@@ -15,16 +15,17 @@ UINT16 getVersion( void )
 
 CHAR* getVersionString( void )
 {
-  CHAR* version =
-    ( CHAR* ) malloc  ( sizeof( CHAR ) * ( strlen( LIBRARY_NAME ) + 8 ) );
+  CHAR *version = NULL;
   
-  sprintf (
-            version,
-            "%s v%.2d.%.2d",
-            LIBRARY_NAME,
-            MAJOR_VERSION,
-            MINOR_VERSION
-          );
+  cpc_snprintf  (
+                 &version,
+                 strlen( LIBRARY_NAME ) + 8,
+                 "%s  v%.2d.%.2d",
+                 LIBRARY_NAME,
+                 MAJOR_VERSION,
+                 MINOR_VERSION
+                );
   
   return( version );
 }
+
