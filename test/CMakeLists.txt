@@ -40,11 +40,38 @@ swig_add_module( ${PROJECT_NAME} python "${PROJECT_NAME}.i" )
 swig_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} cpcommon cahal )
 
 set( SCRIPTS "${PROJECT_SOURCE_DIR}/test.py" )
-LIST( APPEND SCRIPTS "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.py" )
+
+set( WRAPPERS "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.py" )
 
 message( STATUS "Copying scripts: ${SCRIPTS}" )
+message( STATUS "Copying wrappers: ${WRAPPERS}" )
+
+foreach( FILE_TO_COPY IN ITEMS ${SCRIPTS} )
+    message( STATUS "Copying script ${FILE_TO_COPY} to ${PROJECT_BINARY_DIR}" )
+    
+    add_custom_command( TARGET "_${PROJECT_NAME}" PRE_BUILD
+                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        "${FILE_TO_COPY}" "${PROJECT_BINARY_DIR}" )
+                        
+endforeach( FILE_TO_COPY )
 
 install(  TARGETS "_${PROJECT_NAME}" DESTINATION
           "${INSTALL_DIR}/tests/${PROJECT_NAME}" )
 install(  PROGRAMS ${SCRIPTS} DESTINATION
           "${INSTALL_DIR}/tests/${PROJECT_NAME}" )
+install(  FILES ${WRAPPERS} DESTINATION
+          "${INSTALL_DIR}/tests/${PROJECT_NAME}" )
+
+enable_testing()
+
+add_test( ${PROJECT_NAME} "${PROJECT_BINARY_DIR}/test.py" )
+
+# These are platform specific build instructions, this needs to be cleaned up
+find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )
+find_library( CORE_AUDIO_FRAMEWORK CoreAudio )
+
+set( EXTRA_LIBS ${CORE_FOUNDATION_FRAMEWORK} ${CORE_AUDIO_FRAMEWORK} )
+
+message( STATUS "Framework libraries: ${EXTRA_LIBS}" )
+
+swig_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )

@@ -5,7 +5,7 @@
 
 #define LIBRARY_NAME  "cahal"
 
-UINT16 getVersion( void )
+UINT16 get_version( void )
 {
   UINT16 version = ( ( MAJOR_VERSION & 0x000000FF ) << 8 )
                     | ( MINOR_VERSION & 0x000000FF );
@@ -13,7 +13,7 @@ UINT16 getVersion( void )
   return( version );
 }
 
-CHAR* getVersionString( void )
+CHAR* get_version_string( void )
 {
   CHAR *version = NULL;
   

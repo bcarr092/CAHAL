@@ -6,6 +6,11 @@
 
 #include "cpcommon.h"
 
+enum cahal_error_codes
+{
+  CAHAL_ERROR_NO_ERROR  = 0
+};
+
 /**
  *  Returns the version of the library in a short. The top 8 MSBs are the major
  *  version and the 8 LSBs are the minor version.
@@ -13,7 +18,7 @@
  *  @return A short containing the major and minor version (8 MSBs are major,
  *          8 LSBs are minor)
  */
-UINT16 getVersion( void );
+UINT16 get_version( void );
 
 /**
  *  Returns a string containing the library name followed by the version of the
@@ -22,7 +27,9 @@ UINT16 getVersion( void );
  *  @return A signed character array containing a string representation of the
  *          library with version. The caller must free the version string.
  */
-CHAR* getVersionString( void );
+CHAR* get_version_string( void );
+
+void list_devices( void );
 
 #endif /* _CAHAL_H_ */
 
