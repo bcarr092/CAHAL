@@ -1,59 +1,41 @@
-#include "cahal.h"
 #include "darwin/osx_cahal.h"
 
-void list_devices( void )
+cahal_device**
+get_device_list( void )
 {
-  AudioObjectID* device_list  = NULL;
+  AudioObjectID* device_ids   = NULL;
+  cahal_device** device_list  = NULL;
   UINT32 num_devices          = 0;
 
-  if( noErr == osx_get_audio_objects_handles( &device_list, &num_devices ) )
+  if( noErr == osx_get_audio_objects_handles( &device_ids, &num_devices ) )
   {
-    CFStringRef device_name;
-
+    OSStatus result = noErr;
+    device_list     =
+    ( cahal_device** ) malloc( ( num_devices + 1 ) * sizeof( cahal_device* ) );
+    
+    memset( device_list, 0, ( num_devices + 1 ) * sizeof( cahal_device* ) );
+    
     for( UINT32 i = 0; i < num_devices; i++ )
     {
-      UINT32 property_size = sizeof( CFStringRef );
-
-      AudioObjectPropertyAddress property_address =
+      device_list[ i ] = ( cahal_device* ) malloc( sizeof( cahal_device ) );
+      
+      result = osx_set_cahal_device_struct( device_ids[ i ], device_list[ i ] );
+      
+      if( ! result && cpc_log_get_current_log_level() <= CPC_LOG_LEVEL_DEBUG )
       {
-          kAudioObjectPropertyName,
-          kAudioObjectPropertyScopeGlobal,
-          kAudioObjectPropertyElementMaster
-      };
-
-      OSStatus result =
-          AudioObjectGetPropertyData  (
-              device_list[ i ],
-              &property_address,
-              0,
-              NULL,
-              &property_size,
-              &device_name
-                                      );
-
-      if( result )
-      {
-        cpc_log (
-            CPC_LOG_LEVEL_ERROR,
-            "Error in AudioObjectGetPropertyDataSize: %d\n",
-            result
-                );
-
-        osx_print_code( CPC_LOG_LEVEL_ERROR, result );
-      }
-      else
-      {
-        CFShow( device_name );
+        print_cahal_device( device_list[ i ] );
       }
     }
   }
+  
+  return( device_list );
 }
 
 OSStatus
-  osx_get_audio_objects_handles (
-      AudioObjectID** io_device_list,
-      UINT32*         out_num_devices
-                            )
+osx_get_audio_objects_handles (
+                               AudioObjectID** io_device_list,
+                               UINT32*         out_num_devices
+                               )
 {
   UINT32    property_size;
   OSStatus  result          = noErr;
@@ -68,49 +50,49 @@ OSStatus
     };
 
   result =
-        AudioObjectGetPropertyDataSize  (
-            kAudioObjectSystemObject,
-            &property_address,
-            0,
-            NULL,
-            &property_size
-                                        );
+  AudioObjectGetPropertyDataSize  (
+                                   kAudioObjectSystemObject,
+                                   &property_address,
+                                   0,
+                                   NULL,
+                                   &property_size
+                                   );
 
   if( result )
   {
     cpc_log (
         CPC_LOG_LEVEL_ERROR,
-        "Error in AudioObjectGetPropertyDataSize: %d\n",
+        "Error in AudioObjectGetPropertyDataSize: %d",
         result
             );
 
-    osx_print_code( CPC_LOG_LEVEL_ERROR, result );
+    darwin_print_code( CPC_LOG_LEVEL_ERROR, result );
   }
   else
   {
     *out_num_devices  = property_size / sizeof( AudioDeviceID );
     *io_device_list   =
-        ( AudioDeviceID* ) malloc( *out_num_devices * sizeof( AudioDeviceID ) );
+    ( AudioDeviceID* ) malloc( *out_num_devices * sizeof( AudioDeviceID ) );
 
     result =
-        AudioObjectGetPropertyData  (
-            kAudioObjectSystemObject,
-            &property_address,
-            0,
-            NULL,
-            &property_size,
-            *io_device_list
-                                    );
+    AudioObjectGetPropertyData  (
+                                 kAudioObjectSystemObject,
+                                 &property_address,
+                                 0,
+                                 NULL,
+                                 &property_size,
+                                 *io_device_list
+                                 );
 
     if( result )
     {
       cpc_log (
-          CPC_LOG_LEVEL_ERROR,
-          "Error in AudioObjectGetPropertyData: %d\n",
-          result
-              );
+               CPC_LOG_LEVEL_ERROR,
+               "Error in AudioObjectGetPropertyData: %d",
+               result
+               );
 
-      osx_print_code( CPC_LOG_LEVEL_ERROR, result );
+      darwin_print_code( CPC_LOG_LEVEL_ERROR, result );
 
       if( NULL != *io_device_list )
       {

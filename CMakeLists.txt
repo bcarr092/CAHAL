@@ -16,12 +16,14 @@ message( STATUS "Include directory: ${INCLUDE_DIR}" )
 message( STATUS "Install directory: ${INSTALL_DIR}" )
 
 set( SOURCES "${SOURCE_DIR}/common/cahal.c" )
+list( APPEND SOURCES "${SOURCE_DIR}/common/cahal_device.c" )
 list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal.c" )
-list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_log.c" )
+list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal_device.c" )
 
 set( HEADERS "${INCLUDE_DIR}/cahal.h" )
+list( APPEND HEADERS "${INCLUDE_DIR}/cahal_device.h" )
 list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal.h" )
-list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_log.h" )
+list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal_device.h" )
 
 set( CPCOMMON_INCLUDE_DIR "${cpcommon_SOURCE_DIR}/src/include" )
 
@@ -36,7 +38,7 @@ include_directories( ${CPCOMMON_INCLUDE_DIR} )
 message( STATUS "C source files found: ${SOURCES}" )
 message( STATUS "C header files found: ${HEADERS}" )
 
-add_library( ${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS} )
+add_library( ${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS} )
 
 target_link_libraries( ${PROJECT_NAME} cpcommon )
 
@@ -61,3 +63,14 @@ set( EXTRA_INCLUDES ${CORE_FOUNDATION_INCLUDES} ${CORE_AUDIO_INCLUDES} )
 message( STATUS "Framework include directories: ${EXTRA_INCLUDES}" )
 
 include_directories( ${EXTRA_INCLUDES} )
+
+set( DARWINHELPER_INCLUDE_DIR "${darwinhelper_SOURCE_DIR}/src/include" )
+
+message (
+  STATUS
+  "Working with darwinhelper source directory: ${DARWINHELPER_INCLUDE_DIR}"
+        )
+
+include_directories( ${DARWINHELPER_INCLUDE_DIR} )
+
+target_link_libraries( ${PROJECT_NAME} darwinhelper )

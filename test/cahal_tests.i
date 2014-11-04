@@ -4,6 +4,11 @@
 
 #include <cahal.h>
 
+cahal_device* cahal_device_list_get( cahal_device** device_list, int index )
+{
+  return( device_list[ index ] );
+}
+
 %}
 
 %apply char      { CHAR  }
@@ -35,4 +40,4 @@
 %apply size_t * { SIZE *  }
 
 %include <cahal.h>
-
+%include <cahal_device.h>

@@ -4,7 +4,9 @@
 #ifndef _CAHAL_H_
 #define _CAHAL_H_
 
-#include "cpcommon.h"
+#include <cpcommon.h>
+
+#include "cahal_device.h"
 
 enum cahal_error_codes
 {
@@ -29,7 +31,8 @@ UINT16 get_version( void );
  */
 CHAR* get_version_string( void );
 
-void list_devices( void );
+cahal_device**
+get_device_list( void );
 
 #endif /* _CAHAL_H_ */
 
