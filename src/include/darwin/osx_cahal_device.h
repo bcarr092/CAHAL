@@ -5,7 +5,7 @@
 #define __OSX_CAHAL_DEVICE_H__
 
 #include <CoreFoundation/CoreFoundation.h>
-#include <AudioToolbox/AudioToolbox.h>
+#include <CoreAudio/CoreAudio.h>
 
 #include <darwin_helper.h>
 
@@ -191,5 +191,21 @@ OSStatus
 osx_get_device_streams  (
                          cahal_device* io_device
                          );
+
+/*! \fn     OSStatus osx_get_number_of_channels  (
+              cahal_device* io_device
+            )
+    \brief  Populate the number of supported channels in the cahal_device. We
+            query a number of different properties to find the correct number of
+            channels supported by the device.
+    \param  io_device The number of channels supported by the device will be
+                      logged in the numeber_of_channels field of io_device.
+    \return Either noErr or an error code. The error code can be passed to
+            darwin_helper for printing.
+ */
+OSStatus
+osx_get_number_of_channels  (
+                             cahal_device* io_device
+                             );
 
 #endif /* __OSX_CAHAL_DEVICE_H__ */

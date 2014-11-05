@@ -27,11 +27,11 @@ get_device_list( void )
         print_cahal_device( device_list[ i ] );
       }
     }
-  }
-  
-  if( NULL != device_ids )
-  {
-    free( device_ids );
+    
+    if( NULL != device_ids )
+    {
+      free( device_ids );
+    }
   }
   
   return( device_list );
@@ -66,13 +66,12 @@ osx_get_audio_device_handles (
 
   if( result )
   {
-    CPC_LOG (
-        CPC_LOG_LEVEL_ERROR,
-        "Error in AudioObjectGetPropertyDataSize: %d",
-        result
-            );
+    CPC_ERROR (
+               "Error in AudioObjectGetPropertyDataSize: %d",
+               result
+               );
 
-    darwin_print_code( CPC_LOG_LEVEL_ERROR, result );
+    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
   }
   else
   {
@@ -92,13 +91,12 @@ osx_get_audio_device_handles (
 
     if( result )
     {
-      CPC_LOG (
-               CPC_LOG_LEVEL_ERROR,
-               "Error in AudioObjectGetPropertyData: %d",
-               result
-               );
+      CPC_ERROR (
+                 "Error in AudioObjectGetPropertyData: %d",
+                 result
+                 );
 
-      darwin_print_code( CPC_LOG_LEVEL_ERROR, result );
+      DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
 
       if( NULL != *io_device_list )
       {

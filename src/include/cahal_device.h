@@ -107,6 +107,11 @@ typedef struct cahal_device_t
    */
   cahal_device_stream** device_streams;
   
+  
+  /*! \var    number_of_channels
+      \brief  The number of channels that are supported by the device.
+   */
+  UINT32                number_of_channels;
 } cahal_device;
 
 /*! \fn     void print_cahal_device  (

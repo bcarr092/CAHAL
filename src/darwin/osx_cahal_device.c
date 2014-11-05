@@ -138,6 +138,104 @@ osx_set_cahal_device_struct(
              kAudioDevicePropertyStreams
              );
   }
+  
+  if( osx_get_number_of_channels( io_device ) )
+  {
+    CPC_LOG (
+             CPC_LOG_LEVEL_WARN,
+             "Could not read number of channels (0x%x)",
+             kAudioDevicePropertyPreferredChannelLayout
+             );
+  }
+}
+
+OSStatus
+osx_get_number_of_channels  (
+                             cahal_device* io_device
+                             )
+{
+  AudioChannelLayout layout_property;
+  
+  UINT32 property_size = sizeof( AudioChannelLayout );
+  
+  io_device->number_of_channels = 0;
+  
+  OSStatus result =
+  osx_get_device_property_value (
+                                 io_device->handle,
+                                 kAudioDevicePropertyPreferredChannelLayout,
+                                 property_size,
+                                 &layout_property
+                                 );
+  
+  if( noErr == result )
+  {
+    CPC_LOG (
+             CPC_LOG_LEVEL_TRACE,
+             "Channel layout tag: 0x%x.",
+             layout_property.mChannelLayoutTag
+             );
+    
+    if( layout_property.mChannelLayoutTag ==
+       kAudioChannelLayoutTag_UseChannelDescriptions )
+    {
+      io_device->number_of_channels =
+      layout_property.mNumberChannelDescriptions;
+    }
+    else if(  layout_property.mChannelLayoutTag !=
+            kAudioChannelLayoutTag_UseChannelBitmap )
+    {
+      //  Count the number of bits in the bit map to determine the number of
+      //  channels
+      
+      UINT32 channel_bitmap = layout_property.mChannelBitmap;
+      
+      for( UINT32 i = 0; i < sizeof( UINT32 ); i++ )
+      {
+        if( channel_bitmap & 0x0001 )
+        {
+          io_device->number_of_channels++;
+        }
+        
+        channel_bitmap >>= 1;
+      }
+    }
+    else
+    {
+      io_device->number_of_channels =
+      AudioChannelLayoutTag_GetNumberOfChannels (
+                                               layout_property.mChannelLayoutTag
+                                                 );
+    }
+  }
+  else
+  {
+    AudioObjectPropertyAddress property_address =
+    {
+      kAudioDevicePropertyPreferredChannelsForStereo,
+      kAudioObjectPropertyScopeGlobal,
+      kAudioObjectPropertyElementMaster
+    };
+    
+    if( ! AudioObjectHasProperty( io_device->handle, &property_address ) )
+    {
+      io_device->number_of_channels = 2;
+    }
+    else
+    {
+      result = kAudioHardwareUnknownPropertyError;
+      
+      CPC_LOG (
+               CPC_LOG_LEVEL_WARN,
+               "Property 0x%x is not supported.",
+               kAudioDevicePropertyPreferredChannelsForStereo
+               );
+      
+      DARWIN_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
+    }
+  }
+  
+  return( result );
 }
 
 OSStatus
@@ -156,52 +254,61 @@ osx_get_device_streams  (
                                            ( void** ) &available_streams
                                            );
   
-  UINT32 num_items = device_value_size / sizeof( AudioStreamID );
-  
-  CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x streams.", num_items );
-  
-  if( num_items > 0 )
+  if( noErr == result )
   {
-    io_device->device_streams =
-    ( cahal_device_stream ** ) malloc (
-                                       ( num_items + 1 )
-                                       * sizeof( cahal_device_stream* )
-                                       );
-    
-    memset  (
-             io_device->device_streams,
-             0,
-             ( num_items + 1 ) * sizeof( cahal_device_stream* )
-             );
+    UINT32 num_items = device_value_size / sizeof( AudioStreamID );
     
     CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x streams.", num_items );
     
-    for( UINT32 i = 0; i < num_items; i++ )
+    if( num_items > 0 && NULL != available_streams )
     {
-      UINT32 direction = 0;
+      io_device->device_streams =
+      ( cahal_device_stream ** ) malloc (
+                                         ( num_items + 1 )
+                                         * sizeof( cahal_device_stream* )
+                                         );
       
-      result = osx_get_device_uint32_property  (
-                                                 available_streams[ i ],
-                                                 kAudioStreamPropertyDirection,
-                                                 &direction
-                                                 );
+      memset  (
+               io_device->device_streams,
+               0,
+               ( num_items + 1 ) * sizeof( cahal_device_stream* )
+               );
       
-      CPC_LOG( CPC_LOG_LEVEL_TRACE, "Stream direction: 0x%x", direction );
+      CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x streams.", num_items );
       
-      io_device->device_streams[ i ] =
-      ( cahal_device_stream* ) malloc( sizeof( cahal_device_stream ) );
-      
-      io_device->device_streams[ i ]->handle = available_streams[ i ];
-      
-      if( 0 == direction )
+      for( UINT32 i = 0; i < num_items; i++ )
       {
-        io_device->device_streams[ i ]->direction = CAHAL_DEVICE_OUTPUT_STREAM;
-      }
-      else
-      {
-        io_device->device_streams[ i ]->direction = CAHAL_DEVICE_INPUT_STREAM;
+        UINT32 direction = 0;
+        
+        result = osx_get_device_uint32_property  (
+                                                   available_streams[ i ],
+                                                   kAudioStreamPropertyDirection,
+                                                   &direction
+                                                   );
+        
+        CPC_LOG( CPC_LOG_LEVEL_TRACE, "Stream direction: 0x%x", direction );
+        
+        io_device->device_streams[ i ] =
+        ( cahal_device_stream* ) malloc( sizeof( cahal_device_stream ) );
+        
+        io_device->device_streams[ i ]->handle = available_streams[ i ];
+        
+        if( 0 == direction )
+        {
+          io_device->device_streams[ i ]->direction =
+          CAHAL_DEVICE_OUTPUT_STREAM;
+        }
+        else
+        {
+          io_device->device_streams[ i ]->direction = CAHAL_DEVICE_INPUT_STREAM;
+        }
       }
     }
+  }
+  
+  if( NULL != available_streams )
+  {
+    free( available_streams );
   }
   
   return( result );
@@ -223,34 +330,42 @@ osx_get_device_supported_sample_rates (
                                ( void** ) &supported_sample_rates
                                            );
   
-  UINT32 num_items = device_value_size / sizeof( AudioValueRange );
-  
-  CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x sample rates.", num_items );
-  
-  if( num_items > 0 )
+  if( noErr == result )
   {
-    io_device->supported_sample_rates =
-    ( FLOAT64** ) malloc( ( num_items + 1 ) * sizeof( FLOAT64* ) );
+    UINT32 num_items = device_value_size / sizeof( AudioValueRange );
     
-    memset  (
-             io_device->supported_sample_rates,
-             0,
-             ( num_items + 1 ) * sizeof( FLOAT64* )
-             );
+    CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x sample rates.", num_items );
     
-    for( UINT32 i = 0; i < num_items; i++ )
+    if( num_items > 0 )
     {
-      AudioValueRange sample_rate = supported_sample_rates[ i ];
+      io_device->supported_sample_rates =
+      ( FLOAT64** ) malloc( ( num_items + 1 ) * sizeof( FLOAT64* ) );
       
-      CPC_LOG_STRING( CPC_LOG_LEVEL_TRACE, "Supported sample rate:" );
-      CPC_LOG( CPC_LOG_LEVEL_TRACE, "\tMin: %.2f", sample_rate.mMinimum );
-      CPC_LOG( CPC_LOG_LEVEL_TRACE, "\tMax: %.2f", sample_rate.mMaximum );
+      memset  (
+               io_device->supported_sample_rates,
+               0,
+               ( num_items + 1 ) * sizeof( FLOAT64* )
+               );
       
-      io_device->supported_sample_rates[ i ] =
-      ( FLOAT64* ) malloc( sizeof( FLOAT64 ) );
-      
-      *( io_device->supported_sample_rates[ i ] ) = sample_rate.mMinimum;
+      for( UINT32 i = 0; i < num_items; i++ )
+      {
+        AudioValueRange sample_rate = supported_sample_rates[ i ];
+        
+        CPC_LOG_STRING( CPC_LOG_LEVEL_TRACE, "Supported sample rate:" );
+        CPC_LOG( CPC_LOG_LEVEL_TRACE, "\tMin: %.2f", sample_rate.mMinimum );
+        CPC_LOG( CPC_LOG_LEVEL_TRACE, "\tMax: %.2f", sample_rate.mMaximum );
+        
+        io_device->supported_sample_rates[ i ] =
+        ( FLOAT64* ) malloc( sizeof( FLOAT64 ) );
+        
+        *( io_device->supported_sample_rates[ i ] ) = sample_rate.mMinimum;
+      }
     }
+  }
+  
+  if( NULL != supported_sample_rates )
+  {
+    free( supported_sample_rates );
   }
   
   return( result );
@@ -264,7 +379,8 @@ osx_get_device_property_value (
                    void*                        out_device_property_value
                                )
 {
-  UINT32 property_size = in_device_property_value_size;
+  OSStatus result       = noErr;
+  UINT32 property_size  = in_device_property_value_size;
   
   AudioObjectPropertyAddress property_address =
   {
@@ -273,25 +389,39 @@ osx_get_device_property_value (
     kAudioObjectPropertyElementMaster
   };
   
-  OSStatus result =
-  AudioObjectGetPropertyData  (
-                               in_device_id,
-                               &property_address,
-                               0,
-                               NULL,
-                               &property_size,
-                               out_device_property_value
-                               );
+  if( ! AudioObjectHasProperty( in_device_id, &property_address ) )
+  {
+    result = kAudioHardwareUnknownPropertyError;
+    
+    CPC_LOG (
+             CPC_LOG_LEVEL_WARN,
+             "Property 0x%x is not supported.",
+             in_property
+             );
+    
+    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
+  }
+  else
+  {
+    result =
+    AudioObjectGetPropertyData  (
+                                 in_device_id,
+                                 &property_address,
+                                 0,
+                                 NULL,
+                                 &property_size,
+                                 out_device_property_value
+                                 );
+  }
   
   if( result )
   {
-    CPC_LOG (
-             CPC_LOG_LEVEL_ERROR,
-             "Error in AudioObjectGetPropertyData: %d",
-             result
-             );
+    CPC_ERROR (
+               "Error in AudioObjectGetPropertyData: %d",
+               result
+               );
     
-    darwin_print_code( CPC_LOG_LEVEL_ERROR, result );
+    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
   }
   
   return( result );
@@ -323,13 +453,12 @@ osx_get_device_property_size_and_value (
   
   if( result )
   {
-    CPC_LOG (
-             CPC_LOG_LEVEL_ERROR,
-             "Error in AudioObjectGetPropertyDataSize: %d",
-             result
-             );
+    CPC_ERROR (
+               "Error in AudioObjectGetPropertyDataSize: %d",
+               result
+               );
     
-    darwin_print_code( CPC_LOG_LEVEL_ERROR, result );
+    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
   }
   else
   {
@@ -381,7 +510,7 @@ osx_get_device_uint32_property  (
             *out_device_property
             );
     
-    darwin_print_code( CPC_LOG_LEVEL_DEBUG, *out_device_property );
+    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_DEBUG, *out_device_property );
   }
   
   return( result );
@@ -412,7 +541,7 @@ osx_get_device_float64_property  (
             *out_device_property
             );
     
-    darwin_print_code( CPC_LOG_LEVEL_DEBUG, *out_device_property );
+    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_DEBUG, *out_device_property );
   }
   
   return( result );
@@ -439,13 +568,12 @@ osx_get_device_string_property  (
   
   if( result )
   {
-    CPC_LOG (
-             CPC_LOG_LEVEL_ERROR,
-             "Error in AudioObjectGetPropertyData: %d",
-             result
-             );
+    CPC_ERROR (
+               "Error in AudioObjectGetPropertyData: %d",
+               result
+               );
     
-    darwin_print_code( CPC_LOG_LEVEL_ERROR, result );
+    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
   }
   else
   {

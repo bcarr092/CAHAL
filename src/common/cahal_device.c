@@ -95,6 +95,12 @@ print_cahal_device  (
       device_stream = in_device->device_streams[ index++ ];
     }
   }
+  
+  CPC_LOG (
+           CPC_LOG_LEVEL_INFO,
+           "\tNumber of channels: %d",
+           in_device->number_of_channels
+           );
 }
 
 void
