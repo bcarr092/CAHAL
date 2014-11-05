@@ -9,7 +9,7 @@ message( STATUS "Project directory: ${PROJECT_SOURCE_DIR}" )
 
 set( SOURCE_DIR "${PROJECT_SOURCE_DIR}/src" )
 set( INCLUDE_DIR "${SOURCE_DIR}/include" )
-set( INSTALL_DIR "${CMAKE_BINARY_DIR}/install" )
+set( INSTALL_DIR "${CMAKE_INSTALL_PREFIX}" )
 
 message( STATUS "Source directory: ${SOURCE_DIR}" )
 message( STATUS "Include directory: ${INCLUDE_DIR}" )

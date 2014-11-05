@@ -74,6 +74,35 @@ class TestsCAHAL( unittest.TestCase ):
 
       device.handle
       device.device_name
+      device.handle                                              
+      device.device_name                                           
+      device.model                                               
+      device.manufacturer                                 
+      device.serial_number                                    
+      device.version                                           
+      device.device_uid                                     
+      device.model_uid                                       
+      device.preferred_sample_rate
+
+      sample_rate_index = 0                                                         
+      sample_rate       = cahal_tests.cahal_float_array_get( device.supported_sample_rates, sample_rate_index )
+                                                                                
+      while( sample_rate ):                                                         
+        cahal_tests.doubleP_value( sample_rate )                      
+                                                                                    
+        sample_rate_index += 1                                                      
+                                                                                
+        sample_rate = cahal_tests.cahal_float_array_get( device.supported_sample_rates, sample_rate_index )
+
+      stream_index  = 0                                                             
+      stream        = cahal_tests.cahal_device_stream_list_get( device.device_streams, stream_index )
+                                                                                
+      while( stream ):                                                              
+        stream.handle
+        stream.direction
+
+        stream_index += 1
+        stream        = cahal_tests.cahal_device_stream_list_get( device.device_streams, stream_index )
 
       index += 1                                                                    
 

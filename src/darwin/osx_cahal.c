@@ -7,10 +7,9 @@ get_device_list( void )
   cahal_device** device_list  = NULL;
   UINT32 num_devices          = 0;
 
-  if( noErr == osx_get_audio_objects_handles( &device_ids, &num_devices ) )
+  if( noErr == osx_get_audio_device_handles( &device_ids, &num_devices ) )
   {
-    OSStatus result = noErr;
-    device_list     =
+    device_list =
     ( cahal_device** ) malloc( ( num_devices + 1 ) * sizeof( cahal_device* ) );
     
     memset( device_list, 0, ( num_devices + 1 ) * sizeof( cahal_device* ) );
@@ -19,9 +18,11 @@ get_device_list( void )
     {
       device_list[ i ] = ( cahal_device* ) malloc( sizeof( cahal_device ) );
       
-      result = osx_set_cahal_device_struct( device_ids[ i ], device_list[ i ] );
+      memset( device_list[ i ], 0, sizeof( cahal_device ) );
       
-      if( ! result && cpc_log_get_current_log_level() <= CPC_LOG_LEVEL_DEBUG )
+      osx_set_cahal_device_struct( device_ids[ i ], device_list[ i ] );
+      
+      if( cpc_log_get_current_log_level() <= CPC_LOG_LEVEL_DEBUG )
       {
         print_cahal_device( device_list[ i ] );
       }
@@ -32,10 +33,10 @@ get_device_list( void )
 }
 
 OSStatus
-osx_get_audio_objects_handles (
-                               AudioObjectID** io_device_list,
-                               UINT32*         out_num_devices
-                               )
+osx_get_audio_device_handles (
+                              AudioObjectID** io_device_list,
+                              UINT32*         out_num_devices
+                              )
 {
   UINT32    property_size;
   OSStatus  result          = noErr;
@@ -60,7 +61,7 @@ osx_get_audio_objects_handles (
 
   if( result )
   {
-    cpc_log (
+    CPC_LOG (
         CPC_LOG_LEVEL_ERROR,
         "Error in AudioObjectGetPropertyDataSize: %d",
         result
@@ -86,7 +87,7 @@ osx_get_audio_objects_handles (
 
     if( result )
     {
-      cpc_log (
+      CPC_LOG (
                CPC_LOG_LEVEL_ERROR,
                "Error in AudioObjectGetPropertyData: %d",
                result
