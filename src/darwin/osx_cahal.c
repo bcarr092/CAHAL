@@ -29,6 +29,11 @@ get_device_list( void )
     }
   }
   
+  if( NULL != device_ids )
+  {
+    free( device_ids );
+  }
+  
   return( device_list );
 }
 

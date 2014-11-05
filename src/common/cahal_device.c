@@ -2,61 +2,65 @@
 
 void
 print_cahal_device  (
-                     cahal_device* device
+                     cahal_device* in_device
                      )
 {
-  if( NULL == device )
+  if( NULL == in_device )
   {
     return;
   }
   
   CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "CAHAL Device:" );
-  CPC_LOG( CPC_LOG_LEVEL_INFO, "\tID: 0x%x", device->handle );
+  CPC_LOG( CPC_LOG_LEVEL_INFO, "\tID: 0x%x", in_device->handle );
   
-  if( NULL != device->device_name )
+  if( NULL != in_device->device_name )
   {
-    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tDevice name: %s", device->device_name );
+    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tDevice name: %s", in_device->device_name );
   }
   
-  if( NULL != device->model )
+  if( NULL != in_device->model )
   {
-    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tModel: %s", device->model );  }
+    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tModel: %s", in_device->model );  }
   
-  if( NULL != device->manufacturer )
+  if( NULL != in_device->manufacturer )
   {
-    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tManufacturer: %s", device->manufacturer );
+    CPC_LOG (
+             CPC_LOG_LEVEL_INFO,
+             "\tManufacturer: %s",
+             in_device->manufacturer
+             );
   }
   
-  if( NULL != device->serial_number )
+  if( NULL != in_device->serial_number )
   {
-    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tSerial #: %s", device->serial_number );
+    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tSerial #: %s", in_device->serial_number );
   }
   
-  if( NULL != device->version )
+  if( NULL != in_device->version )
   {
-    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tVersion: %s", device->version );
+    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tVersion: %s", in_device->version );
   }
   
-  if( NULL != device->device_uid )
+  if( NULL != in_device->device_uid )
   {
-    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tDevice UID: %s", device->device_uid );
+    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tDevice UID: %s", in_device->device_uid );
   }
   
-  if( NULL != device->model_uid )
+  if( NULL != in_device->model_uid )
   {
-    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tModel UID: %s", device->model_uid );
+    CPC_LOG( CPC_LOG_LEVEL_INFO, "\tModel UID: %s", in_device->model_uid );
   }
   
   CPC_LOG (
            CPC_LOG_LEVEL_INFO,
            "\tPreferred sample rate: %.2f",
-           device->preferred_sample_rate
+           in_device->preferred_sample_rate
            );
   
-  if( NULL != device->supported_sample_rates )
+  if( NULL != in_device->supported_sample_rates )
   {
     UINT32 index          = 0;
-    FLOAT64* sample_rate  = device->supported_sample_rates[ index++ ];
+    FLOAT64* sample_rate  = in_device->supported_sample_rates[ index++ ];
     
     CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\tSupported sample rates:" );
     
@@ -64,14 +68,14 @@ print_cahal_device  (
     {
       CPC_LOG( CPC_LOG_LEVEL_INFO, "\t\t%.2f", *sample_rate );
       
-      sample_rate = device->supported_sample_rates[ index++ ];
+      sample_rate = in_device->supported_sample_rates[ index++ ];
     }
   }
   
-  if( NULL != device->device_streams )
+  if( NULL != in_device->device_streams )
   {
     UINT32 index                        = 0;
-    cahal_device_stream* device_stream  = device->device_streams[ index++ ];
+    cahal_device_stream* device_stream  = in_device->device_streams[ index++ ];
     
     CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\tAvailable streams:" );
     
@@ -88,24 +92,24 @@ print_cahal_device  (
         CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\t\tDirection: INTPUT" );
       }
       
-      device_stream = device->device_streams[ index++ ];
+      device_stream = in_device->device_streams[ index++ ];
     }
   }
 }
 
 void
 free_cahal_device_list (
-                        cahal_device** device_list
+                        cahal_device** in_device_list
                         )
 {
-  if( NULL == device_list )
+  if( NULL == in_device_list )
   {
     return;
   }
   else
   {
     UINT32 device_index   = 0;
-    cahal_device* device  = device_list[ 0 ];
+    cahal_device* device  = in_device_list[ 0 ];
     
     while( NULL != device )
     {
@@ -178,9 +182,9 @@ free_cahal_device_list (
       
       device_index++;
       
-      device = device_list[ device_index ];
+      device = in_device_list[ device_index ];
     }
     
-    free( device_list );
+    free( in_device_list );
   }
 }
