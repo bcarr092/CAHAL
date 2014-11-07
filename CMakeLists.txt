@@ -16,14 +16,30 @@ message( STATUS "Include directory: ${INCLUDE_DIR}" )
 message( STATUS "Install directory: ${INSTALL_DIR}" )
 
 set( SOURCES "${SOURCE_DIR}/common/cahal.c" )
+list( APPEND SOURCES "${SOURCE_DIR}/common/cahal_audio_format_description.c" )
 list( APPEND SOURCES "${SOURCE_DIR}/common/cahal_device.c" )
+list( APPEND SOURCES "${SOURCE_DIR}/common/cahal_device_stream.c" )
 list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal.c" )
+list(
+      APPEND
+      SOURCES
+      "${SOURCE_DIR}/darwin/osx_cahal_audio_format_description.c"
+    )
 list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal_device.c" )
+list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal_device_stream.c" )
 
 set( HEADERS "${INCLUDE_DIR}/cahal.h" )
+list( APPEND HEADERS "${INCLUDE_DIR}/cahal_audio_format_description.h" )
 list( APPEND HEADERS "${INCLUDE_DIR}/cahal_device.h" )
+list( APPEND HEADERS "${INCLUDE_DIR}/cahal_device_stream.h" )
 list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal.h" )
+list(
+      APPEND
+      HEADERS
+      "${INCLUDE_DIR}/darwin/osx_cahal_audio_format_description.h"
+    )
 list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal_device.h" )
+list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal_device_stream.h" )
 
 set( CPCOMMON_INCLUDE_DIR "${cpcommon_SOURCE_DIR}/src/include" )
 

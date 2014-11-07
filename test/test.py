@@ -48,6 +48,79 @@ class TestsCAHAL( unittest.TestCase ):
 
       device = cahal_tests.cahal_device_list_get( device_list, index )
 
+  def test_print_cahal_device_stream_list( self ):
+    cahal_tests.print_cahal_device_stream_list( None )
+
+    device_list = cahal_tests.get_device_list()
+    index       = 0;                                                                    
+    device      = cahal_tests.cahal_device_list_get( device_list, index )               
+                                                                                
+    while( device ):                                                                
+      self.assertNotEqual( device, None )
+
+      cahal_tests.print_cahal_device_stream_list( device.device_streams )
+
+      index += 1                                                                    
+
+      device = cahal_tests.cahal_device_list_get( device_list, index )
+
+  def test_convert_cahal_audio_format_to_cstring( self ):
+    format_cstring = cahal_tests.convert_cahal_audio_format_to_cstring( 0 )
+
+    print "Format as cstring:", format_cstring
+
+    device_list = cahal_tests.get_device_list()
+    index       = 0;                                                                    
+    device      = cahal_tests.cahal_device_list_get( device_list, index )               
+                                                                                
+    while( device ):                                                                
+      self.assertNotEqual( device, None )
+
+      stream_index  = 0                                                             
+      stream        = cahal_tests.cahal_device_stream_list_get( device.device_streams, stream_index )
+                                                                                
+      while( stream ):                                                              
+        format_cstring = cahal_tests.convert_cahal_audio_format_to_cstring( stream.preferred_format )
+
+        print "Format as cstring:", format_cstring
+
+        stream_index += 1
+        stream        = cahal_tests.cahal_device_stream_list_get( device.device_streams, stream_index )
+
+      index += 1                                                                    
+
+      device = cahal_tests.cahal_device_list_get( device_list, index )
+
+  def test_print_cahal_device_stream( self ):
+    cahal_tests.print_cahal_device_stream( None )
+
+    device_list = cahal_tests.get_device_list()
+    index       = 0;                                                                    
+    device      = cahal_tests.cahal_device_list_get( device_list, index )               
+                                                                                
+    while( device ):                                                                
+      self.assertNotEqual( device, None )
+
+      stream_index  = 0                                                             
+      stream        = cahal_tests.cahal_device_stream_list_get( device.device_streams, stream_index )
+                                                                                
+      while( stream ):                                                              
+        cahal_tests.print_cahal_device_stream( stream )
+
+        stream_index += 1
+        stream        = cahal_tests.cahal_device_stream_list_get( device.device_streams, stream_index )
+
+      index += 1                                                                    
+
+      device = cahal_tests.cahal_device_list_get( device_list, index )
+
+  def test_print_cahal_device_list( self ):
+    cahal_tests.print_cahal_device_list( None )
+
+    device_list = cahal_tests.get_device_list()
+
+    cahal_tests.print_cahal_device_list( device_list )
+
   def test_print_cahal_device( self ):
     cahal_tests.print_cahal_device( None )
 
@@ -83,6 +156,9 @@ class TestsCAHAL( unittest.TestCase ):
       device.device_uid                                     
       device.model_uid                                       
       device.preferred_sample_rate
+      device.number_of_channels
+      device.is_alive
+      device.is_running
 
       sample_rate_index = 0                                                         
       sample_rate       = cahal_tests.cahal_float_array_get( device.supported_sample_rates, sample_rate_index )
@@ -100,6 +176,7 @@ class TestsCAHAL( unittest.TestCase ):
       while( stream ):                                                              
         stream.handle
         stream.direction
+        stream.preferred_format
 
         stream_index += 1
         stream        = cahal_tests.cahal_device_stream_list_get( device.device_streams, stream_index )

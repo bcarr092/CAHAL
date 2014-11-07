@@ -7,41 +7,13 @@
 
 #include <cpcommon.h>
 
-#define CAHAL_DEVICE_OUTPUT_STREAM  0
-#define CAHAL_DEVICE_INPUT_STREAM   1
+#include "cahal_audio_format_description.h"
+#include "cahal_device_stream.h"
 
 /*! \var    cahal_device_handle
-    \brief  Type definition for device handles
+ \brief  Type definition for device handles
  */
 typedef UINT32 cahal_device_handle;
-
-/*! \var    cahal_device_stream_handle
-    \brief  Type definition for device stream handles
- */
-typedef UINT32 cahal_device_stream_handle;
-
-/*! \var    cahal_device_stream_direction
-    \brief  Type definition for device stream directions.
- */
-typedef UINT32 cahal_device_stream_direction;
-
-/*! \var    cahal_device_stream
-    \brief  Struct definition for device streams
- */
-typedef struct cahal_device_stream_t
-{
-  /*! \var    handle
-      \brief  OS-specific handle for the stream
-   */
-  cahal_device_stream_handle      handle;
-  
-  /*! \var    direction
-      \brief  Direction of the stream. Set to either CAHAL_DEVICE_OUTPUT_STREAM
-              or CAHAL_DEVICE_INPUT_STREAM.
-   */
-  cahal_device_stream_direction   direction;
-  
-} cahal_device_stream;
 
 /*! \var    cahal_device
     \brief  Struct definition for devices
@@ -112,6 +84,16 @@ typedef struct cahal_device_t
       \brief  The number of channels that are supported by the device.
    */
   UINT32                number_of_channels;
+  
+  /*! \var    is_alive
+      \brief  If 1, the device is ready to receive input/output. 0 otherwise.
+   */
+  UINT32                is_alive;
+  
+  /*! \var    is_running
+      \brief  If 1, another process is actively using the device. 0 otherwise.
+   */
+  UINT32                is_running;
 } cahal_device;
 
 /*! \fn     void print_cahal_device  (
@@ -125,6 +107,11 @@ void
 print_cahal_device  (
                      cahal_device* in_device
                      );
+
+void
+print_cahal_device_list (
+                         cahal_device** in_device_list
+                         );
 
 /*! \fn     void free_cahal_device_list (
               cahal_device** in_device_list

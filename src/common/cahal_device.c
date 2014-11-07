@@ -1,6 +1,25 @@
 #include "cahal_device.h"
 
 void
+print_cahal_device_list (
+                         cahal_device** in_device_list
+                         )
+{
+  if( NULL != in_device_list )
+  {
+    UINT32 index          = 0;
+    cahal_device* device  = in_device_list[ index++ ];
+    
+    while( NULL != device )
+    {
+      print_cahal_device( device );
+      
+      device  = in_device_list[ index++ ];
+    }
+  }
+}
+
+void
 print_cahal_device  (
                      cahal_device* in_device
                      )
@@ -74,26 +93,8 @@ print_cahal_device  (
   
   if( NULL != in_device->device_streams )
   {
-    UINT32 index                        = 0;
-    cahal_device_stream* device_stream  = in_device->device_streams[ index++ ];
-    
-    CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\tAvailable streams:" );
-    
-    while( NULL != device_stream )
-    {
-      CPC_LOG( CPC_LOG_LEVEL_INFO, "\t\tID: 0x%x", device_stream->handle );
-      
-      if( CAHAL_DEVICE_OUTPUT_STREAM == device_stream->direction )
-      {
-        CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\t\tDirection: OUTPUT" );
-      }
-      else
-      {
-        CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\t\tDirection: INTPUT" );
-      }
-      
-      device_stream = in_device->device_streams[ index++ ];
-    }
+    print_cahal_device_stream_list( in_device->device_streams );
+
   }
   
   CPC_LOG (
@@ -101,6 +102,18 @@ print_cahal_device  (
            "\tNumber of channels: %d",
            in_device->number_of_channels
            );
+  
+  CPC_LOG(
+          CPC_LOG_LEVEL_INFO,
+          "\tIs alive?: %d",
+          in_device->is_alive
+          );
+  
+  CPC_LOG(
+          CPC_LOG_LEVEL_INFO,
+          "\tIs running?: %d",
+          in_device->is_running
+          );
 }
 
 void
@@ -171,17 +184,7 @@ free_cahal_device_list (
       
       if( NULL != device->device_streams )
       {
-        UINT32 index                        = 0;
-        cahal_device_stream* device_stream  = device->device_streams[ index++ ];
-        
-        while( NULL != device_stream )
-        {
-          free( device_stream );
-          
-          device_stream = device->device_streams[ index++ ];
-        }
-        
-        free( device->device_streams );
+        free_cahal_device_stream_list( device->device_streams );
       }
       
       free( device );

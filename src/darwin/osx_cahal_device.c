@@ -121,6 +121,34 @@ osx_set_cahal_device_struct(
              );
   }
   
+  if( osx_get_device_uint32_property (
+                                      io_device->handle,
+                                      kAudioDevicePropertyDeviceIsAlive,
+                                      &io_device->is_alive
+                                      )
+     )
+  {
+    CPC_LOG (
+             CPC_LOG_LEVEL_WARN,
+             "Could not read is alive flag (0x%x)",
+             kAudioDevicePropertyDeviceIsAlive
+             );
+  }
+  
+  if( osx_get_device_uint32_property (
+                                      io_device->handle,
+                                      kAudioDevicePropertyDeviceIsRunning,
+                                      &io_device->is_running
+                                      )
+     )
+  {
+    CPC_LOG (
+             CPC_LOG_LEVEL_WARN,
+             "Could not read is running flag (0x%x)",
+             kAudioDevicePropertyDeviceIsRunning
+             );
+  }
+  
   if( osx_get_device_supported_sample_rates( io_device ) )
   {
     CPC_LOG (
@@ -233,82 +261,6 @@ osx_get_number_of_channels  (
       
       DARWIN_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
     }
-  }
-  
-  return( result );
-}
-
-OSStatus
-osx_get_device_streams  (
-                         cahal_device* io_device
-                         )
-{
-  UINT32 device_value_size          = 0;
-  AudioStreamID* available_streams  = NULL;
-  
-  OSStatus result =
-  osx_get_device_property_size_and_value  (
-                                           io_device->handle,
-                                           kAudioDevicePropertyStreams,
-                                           &device_value_size,
-                                           ( void** ) &available_streams
-                                           );
-  
-  if( noErr == result )
-  {
-    UINT32 num_items = device_value_size / sizeof( AudioStreamID );
-    
-    CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x streams.", num_items );
-    
-    if( num_items > 0 && NULL != available_streams )
-    {
-      io_device->device_streams =
-      ( cahal_device_stream ** ) malloc (
-                                         ( num_items + 1 )
-                                         * sizeof( cahal_device_stream* )
-                                         );
-      
-      memset  (
-               io_device->device_streams,
-               0,
-               ( num_items + 1 ) * sizeof( cahal_device_stream* )
-               );
-      
-      CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x streams.", num_items );
-      
-      for( UINT32 i = 0; i < num_items; i++ )
-      {
-        UINT32 direction = 0;
-        
-        result = osx_get_device_uint32_property  (
-                                                   available_streams[ i ],
-                                                   kAudioStreamPropertyDirection,
-                                                   &direction
-                                                   );
-        
-        CPC_LOG( CPC_LOG_LEVEL_TRACE, "Stream direction: 0x%x", direction );
-        
-        io_device->device_streams[ i ] =
-        ( cahal_device_stream* ) malloc( sizeof( cahal_device_stream ) );
-        
-        io_device->device_streams[ i ]->handle = available_streams[ i ];
-        
-        if( 0 == direction )
-        {
-          io_device->device_streams[ i ]->direction =
-          CAHAL_DEVICE_OUTPUT_STREAM;
-        }
-        else
-        {
-          io_device->device_streams[ i ]->direction = CAHAL_DEVICE_INPUT_STREAM;
-        }
-      }
-    }
-  }
-  
-  if( NULL != available_streams )
-  {
-    free( available_streams );
   }
   
   return( result );

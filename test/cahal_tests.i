@@ -4,14 +4,31 @@
 
 #include <cahal.h>
 
-cahal_device* cahal_device_list_get( cahal_device** device_list, int index )
+cahal_device*
+cahal_device_list_get (
+                        cahal_device** device_list,
+                        int index
+                      )
 {
   return( device_list[ index ] );
 }
 
-cahal_device_stream* cahal_device_stream_list_get( cahal_device_stream** stream_list, int index )
+cahal_device_stream*
+cahal_device_stream_list_get  (
+                                cahal_device_stream** stream_list,
+                                int index
+                              )
 {
   return( stream_list[ index ] );
+}
+
+cahal_audio_format_description*
+cahal_audio_format_description_list_get (
+                            cahal_audio_format_description** description_list,
+                            int index
+                                        )
+{
+  return( description_list[ index ] );
 }
 
 double* cahal_float_array_get( FLOAT64** array, int index )
@@ -54,7 +71,9 @@ double* cahal_float_array_get( FLOAT64** array, int index )
 %apply size_t * { SIZE *  }
 
 %include <cahal.h>
+%include <cahal_audio_format_description.h>
 %include <cahal_device.h>
+%include <cahal_device_stream.h>
 
 %include <cpointer.i>
 %pointer_functions( double, doubleP )
