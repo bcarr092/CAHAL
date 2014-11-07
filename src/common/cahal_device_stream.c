@@ -101,5 +101,7 @@ free_cahal_device_stream_list (
     }
     
     free( in_device_stream_list );
+    
+    in_device_stream_list = NULL;
   }
 }

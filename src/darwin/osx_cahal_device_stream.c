@@ -22,10 +22,7 @@ osx_set_cahal_device_stream_struct(
              );
   }
   
-  if( osx_get_device_stream_supported_physical_formats  (
-                                                         io_device_stream
-                                                         )
-     )
+  if( osx_get_device_stream_supported_formats( io_device_stream ) )
   {
     CPC_LOG (
              CPC_LOG_LEVEL_WARN,
@@ -33,24 +30,12 @@ osx_set_cahal_device_stream_struct(
              kAudioStreamPropertyPhysicalFormat
              );
   }
-  
-  if( osx_get_device_stream_supported_virtual_formats  (
-                                                        io_device_stream
-                                                        )
-     )
-  {
-    CPC_LOG (
-             CPC_LOG_LEVEL_WARN,
-             "Could not get stream's virtual formats (0x%x)",
-             kAudioStreamPropertyVirtualFormat
-             );
-  }
 }
 
 OSStatus
-osx_get_device_stream_supported_physical_formats (
-                                           cahal_device_stream* io_device_stream
-                                                 )
+osx_get_device_stream_supported_formats (
+                                         cahal_device_stream* io_device_stream
+                                         )
 {
   UINT32 property_size                            =
   sizeof( AudioStreamBasicDescription );
@@ -60,41 +45,6 @@ osx_get_device_stream_supported_physical_formats (
   osx_get_device_property_size_and_value  (
                                            io_device_stream->handle,
                                            kAudioStreamPropertyPhysicalFormat,
-                                           &property_size,
-                                           ( void** ) &format_description
-                                           );
-  
-  if( noErr == result )
-  {
-    UINT32 format = format_description->mFormatID;
-    
-    io_device_stream->preferred_format = format;
-    
-    osx_set_cahal_audio_format_description_list( io_device_stream );
-    
-  }
-  
-  if( NULL != format_description )
-  {
-    free( format_description );
-  }
-  
-  return( result );
-}
-
-OSStatus
-osx_get_device_stream_supported_virtual_formats (
-                                           cahal_device_stream* io_device_stream
-                                                 )
-{
-  UINT32 property_size                            =
-  sizeof( AudioStreamBasicDescription );
-  AudioStreamBasicDescription* format_description = NULL;
-  
-  OSStatus result =
-  osx_get_device_property_size_and_value  (
-                                           io_device_stream->handle,
-                                           kAudioStreamPropertyVirtualFormat,
                                            &property_size,
                                            ( void** ) &format_description
                                            );

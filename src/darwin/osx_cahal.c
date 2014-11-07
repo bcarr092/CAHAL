@@ -71,7 +71,7 @@ osx_get_audio_device_handles (
                result
                );
 
-    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
   }
   else
   {
@@ -96,7 +96,7 @@ osx_get_audio_device_handles (
                  result
                  );
 
-      DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+      CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
 
       if( NULL != *io_device_list )
       {

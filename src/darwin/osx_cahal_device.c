@@ -186,7 +186,7 @@ osx_get_number_of_channels  (
   
   UINT32 property_size = sizeof( AudioChannelLayout );
   
-  io_device->number_of_channels = 0;
+  io_device->preferred_number_of_channels = 0;
   
   OSStatus result =
   osx_get_device_property_value (
@@ -207,7 +207,7 @@ osx_get_number_of_channels  (
     if( layout_property.mChannelLayoutTag ==
        kAudioChannelLayoutTag_UseChannelDescriptions )
     {
-      io_device->number_of_channels =
+      io_device->preferred_number_of_channels =
       layout_property.mNumberChannelDescriptions;
     }
     else if(  layout_property.mChannelLayoutTag !=
@@ -222,7 +222,7 @@ osx_get_number_of_channels  (
       {
         if( channel_bitmap & 0x0001 )
         {
-          io_device->number_of_channels++;
+          io_device->preferred_number_of_channels++;
         }
         
         channel_bitmap >>= 1;
@@ -230,7 +230,7 @@ osx_get_number_of_channels  (
     }
     else
     {
-      io_device->number_of_channels =
+      io_device->preferred_number_of_channels =
       AudioChannelLayoutTag_GetNumberOfChannels (
                                                layout_property.mChannelLayoutTag
                                                  );
@@ -247,7 +247,7 @@ osx_get_number_of_channels  (
     
     if( ! AudioObjectHasProperty( io_device->handle, &property_address ) )
     {
-      io_device->number_of_channels = 2;
+      io_device->preferred_number_of_channels = 2;
     }
     else
     {
@@ -259,7 +259,7 @@ osx_get_number_of_channels  (
                kAudioDevicePropertyPreferredChannelsForStereo
                );
       
-      DARWIN_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
+      CPC_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
     }
   }
   
@@ -291,7 +291,10 @@ osx_get_device_supported_sample_rates (
     if( num_items > 0 )
     {
       io_device->supported_sample_rates =
-      ( FLOAT64** ) malloc( ( num_items + 1 ) * sizeof( FLOAT64* ) );
+      ( cahal_sample_rate_range** ) malloc  (
+                                           ( num_items + 1 )
+                                           * sizeof( cahal_sample_rate_range* )
+                                             );
       
       memset  (
                io_device->supported_sample_rates,
@@ -308,9 +311,13 @@ osx_get_device_supported_sample_rates (
         CPC_LOG( CPC_LOG_LEVEL_TRACE, "\tMax: %.2f", sample_rate.mMaximum );
         
         io_device->supported_sample_rates[ i ] =
-        ( FLOAT64* ) malloc( sizeof( FLOAT64 ) );
+        ( cahal_sample_rate_range* ) malloc( sizeof( cahal_sample_rate_range ) );
         
-        *( io_device->supported_sample_rates[ i ] ) = sample_rate.mMinimum;
+        io_device->supported_sample_rates[ i ]->minimum_rate =
+        sample_rate.mMinimum;
+        
+        io_device->supported_sample_rates[ i ]->maximum_rate =
+        sample_rate.mMaximum;
       }
     }
   }
@@ -351,7 +358,7 @@ osx_get_device_property_value (
              in_property
              );
     
-    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
   }
   else
   {
@@ -373,7 +380,7 @@ osx_get_device_property_value (
                result
                );
     
-    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
   }
   
   return( result );
@@ -410,7 +417,7 @@ osx_get_device_property_size_and_value (
                result
                );
     
-    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
   }
   else
   {
@@ -462,7 +469,7 @@ osx_get_device_uint32_property  (
             *out_device_property
             );
     
-    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_DEBUG, *out_device_property );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_DEBUG, *out_device_property );
   }
   
   return( result );
@@ -493,7 +500,7 @@ osx_get_device_float64_property  (
             *out_device_property
             );
     
-    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_DEBUG, *out_device_property );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_DEBUG, *out_device_property );
   }
   
   return( result );
@@ -525,7 +532,7 @@ osx_get_device_string_property  (
                result
                );
     
-    DARWIN_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
   }
   else
   {

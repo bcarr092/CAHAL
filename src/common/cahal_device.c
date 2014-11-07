@@ -78,14 +78,27 @@ print_cahal_device  (
   
   if( NULL != in_device->supported_sample_rates )
   {
-    UINT32 index          = 0;
-    FLOAT64* sample_rate  = in_device->supported_sample_rates[ index++ ];
+    UINT32 index                          = 0;
+    cahal_sample_rate_range* sample_rate  =
+    in_device->supported_sample_rates[ index++ ];
     
     CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\tSupported sample rates:" );
     
     while( NULL != sample_rate )
     {
-      CPC_LOG( CPC_LOG_LEVEL_INFO, "\t\t%.2f", *sample_rate );
+      CPC_LOG( CPC_LOG_LEVEL_INFO, "\t\tSample rate range %d", index );
+      
+      CPC_LOG (
+               CPC_LOG_LEVEL_INFO,
+               "\t\t\tMinimum> %.2f",
+               sample_rate->minimum_rate
+               );
+      
+      CPC_LOG (
+               CPC_LOG_LEVEL_INFO,
+               "\t\t\tMaximum> %.2f",
+               sample_rate->maximum_rate
+               );
       
       sample_rate = in_device->supported_sample_rates[ index++ ];
     }
@@ -99,8 +112,8 @@ print_cahal_device  (
   
   CPC_LOG (
            CPC_LOG_LEVEL_INFO,
-           "\tNumber of channels: %d",
-           in_device->number_of_channels
+           "\tPreferred number of channels: %d",
+           in_device->preferred_number_of_channels
            );
   
   CPC_LOG(
@@ -169,8 +182,9 @@ free_cahal_device_list (
       
       if( NULL != device->supported_sample_rates )
       {
-        UINT32 index          = 0;
-        FLOAT64* sample_rate  = device->supported_sample_rates[ index++ ];
+        UINT32 index                          = 0;
+        cahal_sample_rate_range* sample_rate  =
+        device->supported_sample_rates[ index++ ];
         
         while( NULL != sample_rate )
         {
@@ -195,5 +209,7 @@ free_cahal_device_list (
     }
     
     free( in_device_list );
+    
+    in_device_list = NULL;
   }
 }

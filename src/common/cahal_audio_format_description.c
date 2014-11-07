@@ -4,10 +4,11 @@ void
 log_cahal_audio_format_id  (
                             CPC_LOG_LEVEL          in_log_level,
                             CHAR*                  in_label,
-                            cahal_audio_format_id  in_format
+                            cahal_audio_format_id  in_format_id
                             )
 {
-  CHAR* format_cstring = convert_cahal_audio_format_to_cstring( in_format );
+  CHAR* format_cstring =
+  convert_cahal_audio_format_id_to_cstring( in_format_id );
   
   if( NULL != format_cstring )
   {
@@ -56,8 +57,14 @@ print_cahal_audio_format_description  (
     
     CPC_LOG (
              CPC_LOG_LEVEL_INFO,
-             "\t\t\t\tSample rate: %.2f",
-             in_audio_format_description->sample_rate
+             "\t\t\t\tMinimum supported sample rate: %.2f",
+             in_audio_format_description->sample_rate_range.minimum_rate
+             );
+    
+    CPC_LOG (
+             CPC_LOG_LEVEL_INFO,
+             "\t\t\t\tMaximum supported sample rate: %.2f",
+             in_audio_format_description->sample_rate_range.maximum_rate
              );
   }
 }

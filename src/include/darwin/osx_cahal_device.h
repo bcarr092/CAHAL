@@ -72,7 +72,7 @@ OSStatus
 osx_get_device_float64_property (
                                AudioObjectID                in_device_id,
                                AudioObjectPropertySelector  in_property,
-                               FLOAT64*                      out_device_property
+                               FLOAT64*                     out_device_property
                                  );
 
 /*! \fn     OSStatus osx_get_device_string_property  (

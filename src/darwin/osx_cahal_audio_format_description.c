@@ -1,11 +1,11 @@
 #include "darwin/osx_cahal_device_stream.h"
 
 CHAR*
-convert_cahal_audio_format_to_cstring  (
+convert_cahal_audio_format_id_to_cstring  (
                                         cahal_audio_format_id in_audio_format_id
                                         )
 {
-  CHAR* format_cstring = darwin_convert_code_to_cstring( in_audio_format_id );
+  CHAR* format_cstring = cpc_convert_code_to_cstring( in_audio_format_id );
   
   return( format_cstring );
 }
@@ -17,7 +17,7 @@ log_cahal_audio_format  (
                          cahal_audio_format_id  in_format
                          )
 {
-  CHAR* format_cstring = convert_cahal_audio_format_to_cstring( in_format );
+  CHAR* format_cstring = convert_cahal_audio_format_id_to_cstring( in_format );
   
   if( NULL != format_cstring )
   {
@@ -92,8 +92,24 @@ osx_set_cahal_audio_format_description_list  (
       io_device_stream->supported_formats[ i ]->number_of_channels =
       stream_description_list[ i ].mFormat.mChannelsPerFrame;
       
-      io_device_stream->supported_formats[ i ]->sample_rate =
-      stream_description_list[ i ].mSampleRateRange.mMinimum;
+      if( kAudioStreamAnyRate ==
+         stream_description_list[ i ].mFormat.mSampleRate
+         )
+      {
+        io_device_stream->supported_formats[ i ]->sample_rate_range.minimum_rate
+        = stream_description_list[ i ].mSampleRateRange.mMinimum;
+        
+        io_device_stream->supported_formats[ i ]->sample_rate_range.maximum_rate
+        = stream_description_list[ i ].mSampleRateRange.mMaximum;
+      }
+      else
+      {
+        io_device_stream->supported_formats[ i ]->sample_rate_range.minimum_rate
+        = stream_description_list[ i ].mFormat.mSampleRate;
+        
+        io_device_stream->supported_formats[ i ]->sample_rate_range.maximum_rate
+        = stream_description_list[ i ].mFormat.mSampleRate;
+      }
       
     }
   }

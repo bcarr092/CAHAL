@@ -31,6 +31,16 @@ cahal_audio_format_description_list_get (
   return( description_list[ index ] );
 }
 
+cahal_sample_rate_range*
+cahal_sample_rate_range_list_get  (
+                                    cahal_sample_rate_range**
+                                      sample_rate_range_list,
+                                    int index
+)
+{
+  return( sample_rate_range_list[ index ] );
+}
+
 double* cahal_float_array_get( FLOAT64** array, int index )
 {
   return( array[ index ] );
