@@ -154,9 +154,9 @@ typedef struct cahal_audio_format_description_t
     \return A newly created string representation of the input audio format id.
  */
 CHAR*
-convert_cahal_audio_format_id_to_cstring  (
-                                        cahal_audio_format_id in_audio_format_id
-                                        );
+cahal_convert_audio_format_id_to_cstring  (
+                                       cahal_audio_format_id in_audio_format_id
+                                           );
 
 /*! \fn     void print_cahal_audio_format_description  (
               cahal_audio_format_description* in_audio_format_description
@@ -167,7 +167,7 @@ convert_cahal_audio_format_id_to_cstring  (
                                         to a string and logged.
  */
 void
-print_cahal_audio_format_description  (
+cahal_print_audio_format_description  (
                      cahal_audio_format_description* in_audio_format_description
                                        );
 
@@ -184,7 +184,7 @@ print_cahal_audio_format_description  (
     \param  in_format_id  The format identifier to be logged.
  */
 void
-print_cahal_audio_format_id (
+cahal_print_audio_format_id (
                              CHAR*                  in_label,
                              cahal_audio_format_id  in_format_id
                              );

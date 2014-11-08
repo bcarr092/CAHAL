@@ -7,7 +7,7 @@ import types
 
 class TestsCAHALDevice( unittest.TestCase ):
   def test_get_device_list( self ):
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
 
     self.assertNotEqual( device_list, None )
 
@@ -22,39 +22,39 @@ class TestsCAHALDevice( unittest.TestCase ):
       device = cahal_tests.cahal_device_list_get( device_list, index )
 
   def test_free_cahal_device_list( self ):
-    cahal_tests.free_cahal_device_list( None )
+    cahal_tests.cahal_free_device_list( None )
 
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
 
     self.assertNotEqual( device_list, None )
 
-    cahal_tests.free_cahal_device_list( device_list )
+    cahal_tests.cahal_free_device_list( device_list )
 
   def test_print_cahal_device_list( self ):
-    cahal_tests.print_cahal_device_list( None )
+    cahal_tests.cahal_print_device_list( None )
 
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
 
-    cahal_tests.print_cahal_device_list( device_list )
+    cahal_tests.cahal_print_device_list( device_list )
 
   def test_print_cahal_device( self ):
-    cahal_tests.print_cahal_device( None )
+    cahal_tests.cahal_print_device( None )
 
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
     index       = 0;                                                                    
     device      = cahal_tests.cahal_device_list_get( device_list, index )               
                                                                                 
     while( device ):                                                                
       self.assertNotEqual( device, None )
 
-      cahal_tests.print_cahal_device( device )
+      cahal_tests.cahal_print_device( device )
 
       index += 1                                                                    
 
       device = cahal_tests.cahal_device_list_get( device_list, index )
 
   def test_access_cahal_device_members( self ):
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
     index       = 0;                                                                    
     device      = cahal_tests.cahal_device_list_get( device_list, index )               
                                                                                 

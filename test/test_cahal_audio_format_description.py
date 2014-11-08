@@ -7,40 +7,40 @@ import types
 
 class TestsCAHALAudioFormatDescription( unittest.TestCase ):
   def test_convert_cahal_audio_format_id_to_cstring( self ):
-    cahal_tests.convert_cahal_audio_format_id_to_cstring( 0 )
+    cahal_tests.cahal_convert_audio_format_id_to_cstring( 0 )
 
-    cahal_tests.convert_cahal_audio_format_id_to_cstring  ( \
+    cahal_tests.cahal_convert_audio_format_id_to_cstring  ( \
       int( cahal_tests.CAHAL_AUDIO_FORMAT_MACE6 )           \
                                                           ) \
 
-    cahal_tests.convert_cahal_audio_format_id_to_cstring  ( \
+    cahal_tests.cahal_convert_audio_format_id_to_cstring  ( \
       int( cahal_tests.CAHAL_AUDIO_FORMAT_LINEARPCM )       \
                                                           ) \
 
-    cahal_tests.convert_cahal_audio_format_id_to_cstring  (       \
+    cahal_tests.cahal_convert_audio_format_id_to_cstring  (       \
       int( cahal_tests.CAHAL_AUDIO_FORMAT_PARAMETERVALUESTREAM )  \
                                                           )
 
   def test_print_cahal_audio_format_id( self ):
-    cahal_tests.print_cahal_audio_format_id( None, 0 )
+    cahal_tests.cahal_print_audio_format_id( None, 0 )
 
-    cahal_tests.print_cahal_audio_format_id  (    \
+    cahal_tests.cahal_print_audio_format_id  (    \
       None,                                       \
       int( cahal_tests.CAHAL_AUDIO_FORMAT_MACE6 ) \
                                              )
 
-    cahal_tests.print_cahal_audio_format_id  (        \
+    cahal_tests.cahal_print_audio_format_id  (        \
       "Format:",                                      \
       int( cahal_tests.CAHAL_AUDIO_FORMAT_LINEARPCM ) \
                                              )        \
 
-    cahal_tests.print_cahal_audio_format_id  (                    \
+    cahal_tests.cahal_print_audio_format_id  (                    \
       "",                                                         \
       int( cahal_tests.CAHAL_AUDIO_FORMAT_PARAMETERVALUESTREAM )  \
                                              )
 
   def test_print_cahal_audio_format_description( self ):
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
     index       = 0;                                                                    
     device      = cahal_tests.cahal_device_list_get( device_list, index )               
                                                                                 
@@ -61,7 +61,7 @@ class TestsCAHALAudioFormatDescription( unittest.TestCase ):
                                                               )
 
         while( format_description ):
-          cahal_tests.print_cahal_audio_format_description  ( \
+          cahal_tests.cahal_print_audio_format_description  ( \
             format_description                                \
                                                             )
 

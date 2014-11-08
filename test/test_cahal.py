@@ -7,7 +7,7 @@ import types
 
 class TestsCAHAL( unittest.TestCase ):
   def test_get_version( self ):
-    version = cahal_tests.get_version() 
+    version = cahal_tests.cahal_get_version() 
 
     self.assertIsInstance( version, types.LongType )
     self.assertEqual( version, 256 )
@@ -19,7 +19,7 @@ class TestsCAHAL( unittest.TestCase ):
     self.assertEqual( minor, 0 )
     
   def test_get_version_string( self ):
-    version = cahal_tests.get_version_string()
+    version = cahal_tests.cahal_get_version_string()
     
     self.assertIsInstance( version, types.StringType )
     self.assertNotEqual( version, '' )

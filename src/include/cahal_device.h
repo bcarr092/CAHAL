@@ -106,7 +106,7 @@ typedef struct cahal_device_t
     \param  in_device The device to print.
  */
 void
-print_cahal_device  (
+cahal_print_device  (
                      cahal_device* in_device
                      );
 
@@ -119,7 +119,7 @@ print_cahal_device  (
                             is logged at the CPC_LOG_LEVEL_INFO level.
  */
 void
-print_cahal_device_list (
+cahal_print_device_list (
                          cahal_device** in_device_list
                          );
 
@@ -132,7 +132,7 @@ print_cahal_device_list (
             freed by the caller.
  */
 cahal_device**
-get_device_list( void );
+cahal_get_device_list( void );
 
 /*! \fn     void free_cahal_device_list (
               cahal_device** in_device_list
@@ -143,8 +143,13 @@ get_device_list( void );
     \param  in_device_list  The device list to free
  */
 void
-free_cahal_device_list (
+cahal_free_device_list (
                         cahal_device** in_device_list
                         );
+
+void
+cahal_set_default_input_device (
+                                 cahal_device* in_device
+                                 );
 
 #endif  /*  _CAHAL_DEVICE_H__ */

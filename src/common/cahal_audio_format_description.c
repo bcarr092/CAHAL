@@ -31,13 +31,13 @@ log_cahal_audio_format  (
            CPC_LOG_LEVEL_INFO,
            "%s %s",
            in_label,
-           convert_cahal_audio_format_id_to_cstring( in_format_id )
+           cahal_convert_audio_format_id_to_cstring( in_format_id )
            );
 }
 
 
 CHAR*
-convert_cahal_audio_format_id_to_cstring  (
+cahal_convert_audio_format_id_to_cstring  (
                                        cahal_audio_format_id in_audio_format_id
                                            )
 {
@@ -119,7 +119,7 @@ convert_cahal_audio_format_id_to_cstring  (
 }
 
 void
-print_cahal_audio_format_id (
+cahal_print_audio_format_id (
                              CHAR*                  in_label,
                              cahal_audio_format_id  in_format_id
                              )
@@ -132,7 +132,7 @@ print_cahal_audio_format_id (
 }
 
 void
-print_cahal_audio_format_description  (
+cahal_print_audio_format_description  (
                      cahal_audio_format_description* in_audio_format_description
                                        )
 {

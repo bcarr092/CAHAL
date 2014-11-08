@@ -1,7 +1,7 @@
 #include "darwin/osx_cahal.h"
 
 cahal_device**
-get_device_list( void )
+cahal_get_device_list( void )
 {
   AudioObjectID* device_ids   = NULL;
   cahal_device** device_list  = NULL;
@@ -24,7 +24,7 @@ get_device_list( void )
       
       if( cpc_log_get_current_log_level() <= CPC_LOG_LEVEL_DEBUG )
       {
-        print_cahal_device( device_list[ i ] );
+        cahal_print_device( device_list[ i ] );
       }
     }
     

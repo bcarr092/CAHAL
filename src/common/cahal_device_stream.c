@@ -1,7 +1,7 @@
 #include "cahal_device_stream.h"
 
 void
-print_cahal_device_stream_list (
+cahal_print_device_stream_list (
                                 cahal_device_stream** in_device_stream_list
                                 )
 {
@@ -14,7 +14,7 @@ print_cahal_device_stream_list (
     
     while( NULL != device_stream )
     {
-      print_cahal_device_stream( device_stream );
+      cahal_print_device_stream( device_stream );
       
       device_stream = in_device_stream_list[ index++ ];
     }
@@ -22,7 +22,7 @@ print_cahal_device_stream_list (
 }
 
 void
-print_cahal_device_stream (
+cahal_print_device_stream (
                            cahal_device_stream* in_device_stream
                            )
 {
@@ -39,7 +39,7 @@ print_cahal_device_stream (
       CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\t\tDirection: INTPUT" );
     }
     
-    print_cahal_audio_format_id (
+    cahal_print_audio_format_id (
                                  "\t\tPreferred physical format:",
                                  in_device_stream->preferred_format
                                  );
@@ -57,7 +57,7 @@ print_cahal_device_stream (
       
       while( NULL != supported_format )
       {
-        print_cahal_audio_format_description( supported_format );
+        cahal_print_audio_format_description( supported_format );
         
         supported_format =
         in_device_stream->supported_formats[ index++ ];
@@ -67,7 +67,7 @@ print_cahal_device_stream (
 }
 
 void
-free_cahal_device_stream_list (
+cahal_free_device_stream_list (
                                cahal_device_stream** in_device_stream_list
                                )
 {

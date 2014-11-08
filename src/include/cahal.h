@@ -19,7 +19,7 @@
             8 LSBs are minor)
  */
 UINT16
-get_version( void );
+cahal_get_version( void );
 
 /*! \fn     CHAR* get_version_string( void )
     \brief  Returns a string containing the library name followed by the version
@@ -29,7 +29,7 @@ get_version( void );
             library with version. The caller must free the version string.
  */
 CHAR*
-get_version_string( void );
+cahal_get_version_string( void );
 
 #endif /* _CAHAL_H_ */
 

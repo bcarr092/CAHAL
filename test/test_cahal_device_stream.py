@@ -7,25 +7,25 @@ import types
 
 class TestsCAHALDeviceStream( unittest.TestCase ):
   def test_print_cahal_device_stream_list( self ):
-    cahal_tests.print_cahal_device_stream_list( None )
+    cahal_tests.cahal_print_device_stream_list( None )
 
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
     index       = 0;                                                                    
     device      = cahal_tests.cahal_device_list_get( device_list, index )               
                                                                                 
     while( device ):                                                                
       self.assertNotEqual( device, None )
 
-      cahal_tests.print_cahal_device_stream_list( device.device_streams )
+      cahal_tests.cahal_print_device_stream_list( device.device_streams )
 
       index += 1                                                                    
 
       device = cahal_tests.cahal_device_list_get( device_list, index )
 
   def test_print_cahal_device_stream( self ):
-    cahal_tests.print_cahal_device_stream( None )
+    cahal_tests.cahal_print_device_stream( None )
 
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
     index       = 0;                                                                    
     device      = cahal_tests.cahal_device_list_get( device_list, index )               
                                                                                 
@@ -40,7 +40,7 @@ class TestsCAHALDeviceStream( unittest.TestCase ):
                                                   )
                                                                                 
       while( stream ):                                                              
-        cahal_tests.print_cahal_device_stream( stream )
+        cahal_tests.cahal_print_device_stream( stream )
 
         stream_index += 1
         stream        =                               \
@@ -54,9 +54,9 @@ class TestsCAHALDeviceStream( unittest.TestCase ):
       device = cahal_tests.cahal_device_list_get( device_list, index )
 
   def test_free_cahal_device_stream_list( self ):
-    cahal_tests.free_cahal_device_stream_list( None )
+    cahal_tests.cahal_free_device_stream_list( None )
 
-    device_list = cahal_tests.get_device_list()
+    device_list = cahal_tests.cahal_get_device_list()
 
     index       = 0;                                                                    
     device      = cahal_tests.cahal_device_list_get( device_list, index )               
@@ -64,7 +64,7 @@ class TestsCAHALDeviceStream( unittest.TestCase ):
     while( device ):                                                                
       self.assertNotEqual( device, None )
 
-      cahal_tests.free_cahal_device_stream_list( device.device_streams )
+      cahal_tests.cahal_free_device_stream_list( device.device_streams )
 
       index += 1                                                                    
 

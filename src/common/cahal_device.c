@@ -1,7 +1,7 @@
 #include "cahal_device.h"
 
 void
-print_cahal_device_list (
+cahal_print_device_list (
                          cahal_device** in_device_list
                          )
 {
@@ -12,7 +12,7 @@ print_cahal_device_list (
     
     while( NULL != device )
     {
-      print_cahal_device( device );
+      cahal_print_device( device );
       
       device  = in_device_list[ index++ ];
     }
@@ -20,7 +20,7 @@ print_cahal_device_list (
 }
 
 void
-print_cahal_device  (
+cahal_print_device  (
                      cahal_device* in_device
                      )
 {
@@ -106,7 +106,7 @@ print_cahal_device  (
   
   if( NULL != in_device->device_streams )
   {
-    print_cahal_device_stream_list( in_device->device_streams );
+    cahal_print_device_stream_list( in_device->device_streams );
 
   }
   
@@ -130,7 +130,7 @@ print_cahal_device  (
 }
 
 void
-free_cahal_device_list (
+cahal_free_device_list (
                         cahal_device** in_device_list
                         )
 {
@@ -198,7 +198,7 @@ free_cahal_device_list (
       
       if( NULL != device->device_streams )
       {
-        free_cahal_device_stream_list( device->device_streams );
+        cahal_free_device_stream_list( device->device_streams );
       }
       
       free( device );
@@ -211,5 +211,15 @@ free_cahal_device_list (
     free( in_device_list );
     
     in_device_list = NULL;
+  }
+}
+
+void
+cahal_set_default_input_device (
+                                 cahal_device* in_device
+                                 )
+{
+  if( NULL != in_device )
+  {
   }
 }

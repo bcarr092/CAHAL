@@ -66,7 +66,7 @@ typedef struct cahal_device_stream
                                   print using the logger.
  */
 void
-print_cahal_device_stream_list (
+cahal_print_device_stream_list (
                                 cahal_device_stream** in_device_stream_list
                                 );
 
@@ -79,7 +79,7 @@ print_cahal_device_stream_list (
     \param  in_device_stream  The stream to log using the logger.
  */
 void
-print_cahal_device_stream (
+cahal_print_device_stream (
                            cahal_device_stream* in_device_stream
                            );
 
@@ -94,7 +94,7 @@ print_cahal_device_stream (
                                   well.
  */
 void
-free_cahal_device_stream_list (
+cahal_free_device_stream_list (
                                cahal_device_stream** in_device_stream_list
                                );
 
