@@ -85,5 +85,9 @@ double* cahal_float_array_get( FLOAT64** array, int index )
 %include <cahal_device.h>
 %include <cahal_device_stream.h>
 
+%include <error_codes.h>
+%include <log_definitions.h>
+%include <log_functions.h>
+
 %include <cpointer.i>
 %pointer_functions( double, doubleP )

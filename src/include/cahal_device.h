@@ -15,7 +15,7 @@
  */
 typedef UINT32 cahal_device_handle;
 
-/*! \var    cahal_device_t
+/*! \var    cahal_device
     \brief  Struct definition for devices
  */
 typedef struct cahal_device_t
@@ -78,7 +78,7 @@ typedef struct cahal_device_t
       \brief  Array of streams supported by the device. This is a null-
               terminated list.
    */
-  cahal_device_stream** device_streams;
+  cahal_device_stream**     device_streams;
   
   
   /*! \var    preferred_number_of_channels
@@ -122,6 +122,17 @@ void
 print_cahal_device_list (
                          cahal_device** in_device_list
                          );
+
+/*! \fn     cahal_device** get_device_list( void )
+    \brief  Instantiate a list of audio input/output devices in a platform-
+            agnostic way.
+
+    \return A list of devices that can be used to interact with the OS'
+            audio hardware. The device list is platform agnostic and must be
+            freed by the caller.
+ */
+cahal_device**
+get_device_list( void );
 
 /*! \fn     void free_cahal_device_list (
               cahal_device** in_device_list

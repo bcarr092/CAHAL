@@ -39,11 +39,10 @@ print_cahal_device_stream (
       CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\t\tDirection: INTPUT" );
     }
     
-    log_cahal_audio_format  (
-                             CPC_LOG_LEVEL_INFO,
-                             "\t\tPreferred physical format:",
-                             in_device_stream->preferred_format
-                             );
+    print_cahal_audio_format_id (
+                                 "\t\tPreferred physical format:",
+                                 in_device_stream->preferred_format
+                                 );
     
     if( NULL != in_device_stream->supported_formats )
     {

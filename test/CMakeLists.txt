@@ -39,7 +39,13 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 swig_add_module( ${PROJECT_NAME} python "${PROJECT_NAME}.i" )
 swig_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} cpcommon cahal )
 
-set( SCRIPTS "${PROJECT_SOURCE_DIR}/test.py" )
+set( SCRIPTS "${PROJECT_SOURCE_DIR}/test_driver.py" )
+list( APPEND SCRIPTS "${PROJECT_SOURCE_DIR}/test_cahal.py" )
+list( APPEND SCRIPTS "${PROJECT_SOURCE_DIR}/test_cahal_device.py" )
+list( APPEND SCRIPTS "${PROJECT_SOURCE_DIR}/test_cahal_device_stream.py" )
+list( APPEND SCRIPTS
+      "${PROJECT_SOURCE_DIR}/test_cahal_audio_format_description.py"
+    )
 
 set( WRAPPERS "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.py" )
 
@@ -64,7 +70,7 @@ install(  FILES ${WRAPPERS} DESTINATION
 
 enable_testing()
 
-add_test( ${PROJECT_NAME} "${PROJECT_BINARY_DIR}/test.py" )
+add_test( ${PROJECT_NAME} "${PROJECT_BINARY_DIR}/test_driver.py" )
 
 # These are platform specific build instructions, this needs to be cleaned up
 find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )

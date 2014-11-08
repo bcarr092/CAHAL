@@ -51,7 +51,10 @@ osx_get_device_stream_supported_formats (
   
   if( noErr == result )
   {
-    UINT32 format = format_description->mFormatID;
+    UINT32 format =
+    osx_convert_core_audio_format_id_to_cahal_audio_format_id (
+                                                   format_description->mFormatID
+                                                               );
     
     io_device_stream->preferred_format = format;
     

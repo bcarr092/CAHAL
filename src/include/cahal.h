@@ -31,16 +31,5 @@ get_version( void );
 CHAR*
 get_version_string( void );
 
-/*! \fn     cahal_device** get_device_list( void )
-    \brief  Instantiate a list of audio input/output devices in a platform-
-            agnostic way.
- 
-    \return A list of devices that can be used to interact with the OS'
-            audio hardware. The device list is platform agnostic and must be
-            freed by the caller.
- */
-cahal_device**
-get_device_list( void );
-
 #endif /* _CAHAL_H_ */
 

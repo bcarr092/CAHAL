@@ -28,7 +28,7 @@ typedef UINT32 cahal_device_stream_direction;
             specific format. Note that a device can have multiple streams, e.g.
             a USB headset with a speaker and microphone.
  */
-typedef struct cahal_device_stream_t
+typedef struct cahal_device_stream
 {
   /*! \var    handle
       \brief  OS-specific handle for the stream

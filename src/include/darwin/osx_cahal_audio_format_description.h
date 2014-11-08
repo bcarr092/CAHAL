@@ -13,6 +13,8 @@
 
 #include "cahal_audio_format_description.h"
 
+#include "darwin/osx_cahal_device_stream.h"
+
 /*! \fn     OSStatus osx_set_cahal_audio_format_description_list  (
               cahal_device_stream* io_device_stream
             )
@@ -32,5 +34,22 @@ OSStatus
 osx_set_cahal_audio_format_description_list  (
                                           cahal_device_stream* io_device_stream
                                               );
+
+/*! \fn     cahal_audio_format_id osx_convert_core_audio_format_id_to_cahal_audio_format_id (
+              UINT32 core_audio_format_id
+            )
+    \brief  This function bridges the core audio format constants to the cahal
+            format constants. It takes as input a core audio format id and
+            returns a cahal format id.
+ 
+    \param  core_audio_format_id  The core audio format id to convert to a cahal
+                                  format id.
+    \return The equivalent cahal audio format id for the given core audio format
+            id.
+ */
+cahal_audio_format_id
+osx_convert_core_audio_format_id_to_cahal_audio_format_id (
+                                                     UINT32 core_audio_format_id
+                                                           );
 
 #endif /* __OSX_CAHAL_AUDIO_FORMAT_H__ */
