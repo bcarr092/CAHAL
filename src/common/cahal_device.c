@@ -214,12 +214,41 @@ cahal_free_device_list (
   }
 }
 
-void
-cahal_set_default_input_device (
-                                 cahal_device* in_device
-                                 )
+BOOL
+cahal_test_device_direction_support  (
+                                      cahal_device*                 in_device,
+                                      cahal_device_stream_direction in_direction
+                                      )
 {
+  BOOL result = FALSE;
+  
   if( NULL != in_device )
   {
+    UINT32 index                = 0;
+    cahal_device_stream* stream = in_device->device_streams[ index++ ];
+    
+    while( NULL != stream && ! result )
+    {
+      if( in_direction == stream->direction )
+      {
+        result = TRUE;
+      }
+      
+      stream = in_device->device_streams[ index++ ];
+    }
+    
+    CPC_LOG (
+             CPC_LOG_LEVEL_TRACE,
+             "Testing direction %d on device %d: %d",
+             in_direction,
+             in_device->handle,
+             result
+             );
   }
+  else
+  {
+    CPC_ERROR( "Attempting to set direction %d on null device", in_direction );
+  }
+  
+  return( result );
 }

@@ -10,6 +10,8 @@
 #include <darwin_helper.h>
 
 #include "cahal.h"
+#include "cahal_device.h"
+#include "cahal_device_stream.h"
 
 #include "osx_cahal_device_stream.h"
 

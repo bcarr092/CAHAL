@@ -9,18 +9,25 @@
 
 #include "cahal_audio_format_description.h"
 
-#define CAHAL_DEVICE_OUTPUT_STREAM  0
-#define CAHAL_DEVICE_INPUT_STREAM   1
+/*! \enum   cahal_device_stream_direction
+    \brief  Enum of the different directions supported in streams. Input is for
+            recording (e.g. microphone), output is for playback (e.g. speaker).
+ */
+enum cahal_device_stream_directions
+{
+  CAHAL_DEVICE_OUTPUT_STREAM  = 0,
+  CAHAL_DEVICE_INPUT_STREAM
+};
+
+/*! \var    cahal_device_stream_direction
+ \brief  Type definition for device stream directions.
+ */
+typedef UINT32 cahal_device_stream_direction;
 
 /*! \var    cahal_device_stream_handle
     \brief  Type definition for device stream handles
  */
 typedef UINT32 cahal_device_stream_handle;
-
-/*! \var    cahal_device_stream_direction
-    \brief  Type definition for device stream directions.
- */
-typedef UINT32 cahal_device_stream_direction;
 
 /*! \var    cahal_device_stream_t
     \brief  Struct definition for device streams. A device stream represents

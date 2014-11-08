@@ -147,9 +147,16 @@ cahal_free_device_list (
                         cahal_device** in_device_list
                         );
 
-void
-cahal_set_default_input_device (
-                                 cahal_device* in_device
-                                 );
+BOOL
+cahal_set_default_device (
+                          cahal_device*                 in_device,
+                          cahal_device_stream_direction in_direction
+                          );
+
+BOOL
+cahal_test_device_direction_support  (
+                                      cahal_device*                 in_device,
+                                      cahal_device_stream_direction in_direction
+                                      );
 
 #endif  /*  _CAHAL_DEVICE_H__ */

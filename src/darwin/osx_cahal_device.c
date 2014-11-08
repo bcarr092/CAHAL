@@ -558,3 +558,97 @@ osx_get_device_string_property  (
   
   return( result );
 }
+
+BOOL
+cahal_set_default_device (
+                          cahal_device*                 in_device,
+                          cahal_device_stream_direction in_direction
+                          )
+{
+  BOOL return_value = TRUE;
+  
+  if(
+     NULL != in_device
+     && cahal_test_device_direction_support  (
+                                              in_device,
+                                              in_direction
+                                              )
+     )
+  {
+    UINT32 osx_property = 0;
+    
+    CPC_LOG(
+            CPC_LOG_LEVEL_TRACE,
+            "Setting device (0x%x:%s) as default device for direction %d.",
+            in_device->handle,
+            in_device->device_name,
+            in_direction
+            );
+    
+    switch( in_direction )
+    {
+      case CAHAL_DEVICE_INPUT_STREAM:
+        osx_property = kAudioHardwarePropertyDefaultInputDevice;
+        break;
+      case CAHAL_DEVICE_OUTPUT_STREAM:
+        osx_property = kAudioHardwarePropertyDefaultOutputDevice;
+        break;
+      default:
+        CPC_ERROR( "Unknown direction %d.", in_direction );
+        
+        return_value = FALSE;
+        
+        break;
+    }
+    
+    if( return_value )
+    {
+      CPC_LOG(
+              CPC_LOG_LEVEL_TRACE,
+              "Setting default device, direction=%d (0x%x), to 0x%x",
+              in_direction,
+              osx_property,
+              in_device->handle
+              );
+      
+      AudioObjectPropertyAddress property_address =
+      {
+        osx_property,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMaster
+      };
+      
+      OSStatus result =
+      AudioObjectSetPropertyData (
+                                  kAudioObjectSystemObject,
+                                  &property_address,
+                                  0,
+                                  NULL,
+                                  sizeof( in_device->handle ),
+                                  &( in_device->handle )
+                                  );
+      
+      if( result )
+      {
+        CPC_LOG(
+                CPC_LOG_LEVEL_DEBUG,
+      "Could not set default device (%d:0x%x) on object 0x%x to device 0x%x.",
+                in_direction,
+                osx_property,
+                kAudioObjectSystemObject,
+                in_device->handle
+                );
+        
+        CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+        
+        return_value = FALSE;
+      }
+    }
+  }
+  else
+  {
+    return_value = FALSE;
+  }
+  
+  return( return_value );
+}

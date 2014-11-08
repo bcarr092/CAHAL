@@ -6,6 +6,155 @@ import string
 import types
 
 class TestsCAHALDevice( unittest.TestCase ):
+  def test_cahal_set_default_device( self ):
+    self.assertFalse(                                  \
+      cahal_tests.cahal_set_default_device( None, 0 )  \
+                    )
+
+    device_list = cahal_tests.cahal_get_device_list()
+    index       = 0;                                                                    
+    device      = cahal_tests.cahal_device_list_get( device_list, index )               
+                                                                                
+    while( device ):                                                                
+      stream_index  = 0                                                             
+      stream        =                               \
+        cahal_tests.cahal_device_stream_list_get  ( \
+          device.device_streams,                    \
+          stream_index                              \
+                                                  )
+      self.assertFalse(                                    \
+        cahal_tests.cahal_set_default_device( device, 2 )  \
+                      )
+
+      self.assertFalse(                                      \
+        cahal_tests.cahal_set_default_device( device, 20 )   \
+                      )
+                                                                               
+      supports_input  = False
+      supports_output = False
+
+      while( stream ):                                                              
+        if( cahal_tests.CAHAL_DEVICE_OUTPUT_STREAM == stream.direction ):
+          self.assertTrue (                           \
+            cahal_tests.cahal_set_default_device  (   \
+              device,                                 \
+              cahal_tests.CAHAL_DEVICE_OUTPUT_STREAM  \
+                                                  )   \
+                          )
+
+          supports_output = True
+
+        if( cahal_tests.CAHAL_DEVICE_INPUT_STREAM == stream.direction ):
+          self.assertTrue (                         \
+            cahal_tests.cahal_set_default_device (  \
+              device,                               \
+              cahal_tests.CAHAL_DEVICE_INPUT_STREAM \
+                                                 )  \
+                          )
+
+          supports_input = True
+
+        stream_index += 1
+        stream        =                               \
+          cahal_tests.cahal_device_stream_list_get  ( \
+            device.device_streams,                    \
+            stream_index                              \
+                                                    )
+
+      if( not supports_input ):
+        self.assertFalse (                         \
+          cahal_tests.cahal_set_default_device (   \
+            device,                                \
+            cahal_tests.CAHAL_DEVICE_INPUT_STREAM  \
+                                               )   \
+                          )       
+
+      if( not supports_output ):
+        self.assertFalse  (                        \
+          cahal_tests.cahal_set_default_device (   \
+            device,                                \
+            cahal_tests.CAHAL_DEVICE_OUTPUT_STREAM \
+                                               )   \
+                          )
+
+      index   += 1
+      device  = cahal_tests.cahal_device_list_get( device_list, index )
+
+"""
+  def test_cahal_test_device_direction_support( self ):
+    self.assertFalse(                                             \
+      cahal_tests.cahal_test_device_direction_support( None, 0 )  \
+                    )
+
+    device_list = cahal_tests.cahal_get_device_list()
+    index       = 0;                                                                    
+    device      = cahal_tests.cahal_device_list_get( device_list, index )               
+                                                                                
+    while( device ):                                                                
+      stream_index  = 0                                                             
+      stream        =                               \
+        cahal_tests.cahal_device_stream_list_get  ( \
+          device.device_streams,                    \
+          stream_index                              \
+                                                  )
+      self.assertFalse(                                               \
+        cahal_tests.cahal_test_device_direction_support( device, 2 )  \
+                      )
+
+      self.assertFalse(                                                 \
+        cahal_tests.cahal_test_device_direction_support( device, 20 )   \
+                      )
+                                                                               
+      supports_input  = False
+      supports_output = False
+
+      while( stream ):                                                              
+        if( cahal_tests.CAHAL_DEVICE_OUTPUT_STREAM == stream.direction ):
+          self.assertTrue (                                   \
+            cahal_tests.cahal_test_device_direction_support ( \
+              device,                                         \
+              cahal_tests.CAHAL_DEVICE_OUTPUT_STREAM          \
+                                                            ) \
+                          )
+
+          supports_output = True
+
+        if( cahal_tests.CAHAL_DEVICE_INPUT_STREAM == stream.direction ):
+          self.assertTrue (                                   \
+            cahal_tests.cahal_test_device_direction_support ( \
+              device,                                         \
+              cahal_tests.CAHAL_DEVICE_INPUT_STREAM           \
+                                                            ) \
+                          )
+
+          supports_input = True
+
+        stream_index += 1
+        stream        =                               \
+          cahal_tests.cahal_device_stream_list_get  ( \
+            device.device_streams,                    \
+            stream_index                              \
+                                                    )
+
+      if( not supports_input ):
+        self.assertFalse (                                    \
+          cahal_tests.cahal_test_device_direction_support (   \
+            device,                                           \
+            cahal_tests.CAHAL_DEVICE_INPUT_STREAM             \
+                                                          )   \
+                          )       
+
+      if( not supports_output ):
+        self.assertFalse  (                                   \
+          cahal_tests.cahal_test_device_direction_support (   \
+            device,                                           \
+            cahal_tests.CAHAL_DEVICE_OUTPUT_STREAM            \
+                                                          )   \
+                          )
+
+      index   += 1
+      device  = cahal_tests.cahal_device_list_get( device_list, index )
+
   def test_get_device_list( self ):
     device_list = cahal_tests.cahal_get_device_list()
 
@@ -140,6 +289,9 @@ class TestsCAHALDevice( unittest.TestCase ):
       index += 1                                                                    
 
       device = cahal_tests.cahal_device_list_get( device_list, index )
+"""
 
 if __name__ == '__main__':
-    unittest.main()
+  #cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_NO_LOGGING )
+
+  unittest.main()
