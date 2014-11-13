@@ -6,29 +6,36 @@ osx_set_cahal_device_stream_struct(
                                    cahal_device_stream*   io_device_stream
                                    )
 {
-  io_device_stream->handle = in_device_stream_id;
-  
-  if( osx_get_device_uint32_property  (
-                                       in_device_stream_id,
-                                       kAudioStreamPropertyDirection,
-                                       &( io_device_stream->direction )
-                                       )
-     )
+  if( NULL != io_device_stream )
   {
-    CPC_LOG (
-             CPC_LOG_LEVEL_WARN,
-             "Could not get stream's direction (0x%x)",
-             kAudioStreamPropertyDirection
-             );
+    io_device_stream->handle = in_device_stream_id;
+    
+    if( osx_get_device_uint32_property  (
+                                         in_device_stream_id,
+                                         kAudioStreamPropertyDirection,
+                                         &( io_device_stream->direction )
+                                         )
+       )
+    {
+      CPC_LOG (
+               CPC_LOG_LEVEL_WARN,
+               "Could not get stream's direction (0x%x)",
+               kAudioStreamPropertyDirection
+               );
+    }
+    
+    if( osx_get_device_stream_supported_formats( io_device_stream ) )
+    {
+      CPC_LOG (
+               CPC_LOG_LEVEL_WARN,
+               "Could not get stream's physical formats (0x%x)",
+               kAudioStreamPropertyPhysicalFormat
+               );
+    }
   }
-  
-  if( osx_get_device_stream_supported_formats( io_device_stream ) )
+  else
   {
-    CPC_LOG (
-             CPC_LOG_LEVEL_WARN,
-             "Could not get stream's physical formats (0x%x)",
-             kAudioStreamPropertyPhysicalFormat
-             );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Null device stream object." );
   }
 }
 
@@ -37,33 +44,39 @@ osx_get_device_stream_supported_formats (
                                          cahal_device_stream* io_device_stream
                                          )
 {
-  UINT32 property_size                            =
-  sizeof( AudioStreamBasicDescription );
-  AudioStreamBasicDescription* format_description = NULL;
+  OSStatus result = kAudioHardwareUnspecifiedError;
   
-  OSStatus result =
-  osx_get_device_property_size_and_value  (
-                                           io_device_stream->handle,
-                                           kAudioStreamPropertyPhysicalFormat,
-                                           &property_size,
-                                           ( void** ) &format_description
-                                           );
-  
-  if( noErr == result )
+  if( NULL != io_device_stream )
   {
-    UINT32 format =
-    osx_convert_core_audio_format_id_to_cahal_audio_format_id (
+    UINT32 property_size                            =
+    sizeof( AudioStreamBasicDescription );
+    AudioStreamBasicDescription* format_description = NULL;
+    
+    result =
+    osx_get_device_property_size_and_value  (
+                                             io_device_stream->handle,
+                                             kAudioStreamPropertyPhysicalFormat,
+                                             &property_size,
+                                             ( void** ) &format_description
+                                             );
+    
+    if( noErr == result && NULL != format_description )
+    {
+      UINT32 format =
+      osx_convert_core_audio_format_id_to_cahal_audio_format_id (
                                                    format_description->mFormatID
-                                                               );
+                                                                 );
+      
+      io_device_stream->preferred_format = format;
+      
+      result = osx_set_cahal_audio_format_description_list( io_device_stream );
+    }
     
-    io_device_stream->preferred_format = format;
-    
-    result = osx_set_cahal_audio_format_description_list( io_device_stream );
+    cpc_safe_free( ( void** ) &format_description );
   }
-  
-  if( NULL != format_description )
+  else
   {
-    free( format_description );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Null device stream." );
   }
   
   return( result );
@@ -76,61 +89,72 @@ osx_get_device_streams  (
 {
   UINT32 device_value_size          = 0;
   AudioStreamID* available_streams  = NULL;
+  OSStatus result                   = kAudioHardwareUnspecifiedError;
   
-  OSStatus result =
-  osx_get_device_property_size_and_value  (
-                                           io_device->handle,
-                                           kAudioDevicePropertyStreams,
-                                           &device_value_size,
-                                           ( void** ) &available_streams
-                                           );
-  
-  if( noErr == result )
+  if( NULL != io_device )
   {
-    UINT32 num_items = device_value_size / sizeof( AudioStreamID );
+    result =
+    osx_get_device_property_size_and_value  (
+                                             io_device->handle,
+                                             kAudioDevicePropertyStreams,
+                                             &device_value_size,
+                                             ( void** ) &available_streams
+                                             );
     
-    CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x streams.", num_items );
-    
-    if( num_items > 0 && NULL != available_streams )
+    if( noErr == result )
     {
-      io_device->device_streams =
-      ( cahal_device_stream ** ) malloc (
-                                         ( num_items + 1 )
-                                         * sizeof( cahal_device_stream* )
-                                         );
-      
-      memset  (
-               io_device->device_streams,
-               0,
-               ( num_items + 1 ) * sizeof( cahal_device_stream* )
-               );
+      UINT32 num_items = device_value_size / sizeof( AudioStreamID );
       
       CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x streams.", num_items );
       
-      for( UINT32 i = 0; i < num_items; i++ )
+      if( num_items > 0 && NULL != available_streams )
       {
-        io_device->device_streams[ i ] =
-        ( cahal_device_stream* ) malloc( sizeof( cahal_device_stream ) );
+        io_device->device_streams = NULL;
         
-        memset  (
-                 io_device->device_streams[ i ],
-                 0,
-                 sizeof( cahal_device_stream )
-                 );
-        
-        
-        osx_set_cahal_device_stream_struct  (
+        if  ( CPC_ERROR_CODE_NO_ERROR
+              == cpc_safe_malloc (
+                             ( void ** ) &( io_device->device_streams ),
+                             ( num_items + 1 ) * sizeof( cahal_device_stream* )
+                                 )
+             )
+        {
+          CPC_LOG( CPC_LOG_LEVEL_TRACE, "Found 0x%x streams.", num_items );
+          
+          for( UINT32 i = 0; i < num_items; i++ )
+          {
+            if  ( CPC_ERROR_CODE_NO_ERROR
+                 == cpc_safe_malloc (
+                               ( void ** ) &( io_device->device_streams[ i ] ),
+                               sizeof( cahal_device_stream )
+                                     )
+                 )
+            {
+              osx_set_cahal_device_stream_struct  (
                                              available_streams[ i ],
                                              io_device->device_streams[ i ]
-                                             );
+                                                   );
+            }
+            else
+            {
+              result = kAudioHardwareUnspecifiedError;
+              
+              break;
+            }
+          }
+        }
+        else
+        {
+          result = kAudioHardwareUnspecifiedError;
+        }
       }
     }
   }
-  
-  if( NULL != available_streams )
+  else
   {
-    free( available_streams );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Null device." );
   }
+  
+  cpc_safe_free( ( void** ) &available_streams );
   
   return( result );
 }

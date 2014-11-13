@@ -73,34 +73,31 @@ cahal_free_device_stream_list (
 {
   if( NULL != in_device_stream_list )
   {
-    UINT32 index                        = 0;
-    cahal_device_stream* device_stream  = in_device_stream_list[ index++ ];
+    UINT32 stream_index                 = 0;
+    cahal_device_stream* device_stream  =
+    in_device_stream_list[ stream_index++ ];
     
     while( NULL != device_stream )
     {
       if( NULL != device_stream->supported_formats )
       {
-        UINT32 index = 0;
+        UINT32 format_index = 0;
         cahal_audio_format_description* format =
-        device_stream->supported_formats[ index++ ];
+        device_stream->supported_formats[ format_index++ ];
         
         while( NULL != format )
         {
-          free( format );
+          cpc_safe_free( ( void** ) &format );
           
-          format = device_stream->supported_formats[ index++ ];
+          format = device_stream->supported_formats[ format_index++ ];
         }
         
-        free( device_stream->supported_formats);
+        cpc_safe_free( ( void** ) &device_stream->supported_formats );
       }
       
-      free( device_stream );
+      cpc_safe_free( ( void** ) &device_stream );
       
-      device_stream = in_device_stream_list[ index++ ];
+      device_stream = in_device_stream_list[ stream_index++ ];
     }
-    
-    free( in_device_stream_list );
-    
-    in_device_stream_list = NULL;
   }
 }

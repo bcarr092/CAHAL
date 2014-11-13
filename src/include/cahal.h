@@ -10,6 +10,9 @@
 #include <cpcommon.h>
 
 #include "cahal_device.h"
+#include "cahal_device_stream.h"
+#include "cahal_audio_format_flags.h"
+#include "cahal_audio_format_description.h"
 
 /*! \fn     UINT16 get_version( void )
     \brief  Returns the version of the library in a SHORT. The top 8 MSBs are
@@ -30,6 +33,9 @@ cahal_get_version( void );
  */
 CHAR*
 cahal_get_version_string( void );
+
+void
+test( void );
 
 #endif /* _CAHAL_H_ */
 

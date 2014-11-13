@@ -29,3 +29,20 @@ CHAR* cahal_get_version_string( void )
   return( version );
 }
 
+void
+test( void )
+{
+  CHAR* buffer = NULL;
+  
+  cpc_safe_malloc( ( void** ) &buffer, 10 );
+  
+  for( UINT32 i = 0; i < 10; i++ )
+  {
+    if( buffer[ i ] != '\0' )
+    {
+      exit( -1 );
+    }
+  }
+  
+  cpc_safe_free( ( void** )   &buffer );
+}

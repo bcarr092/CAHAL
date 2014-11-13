@@ -145,40 +145,22 @@ cahal_free_device_list (
     
     while( NULL != device )
     {
-      if( NULL != device->device_name )
-      {
-        free( device->device_name );
-      }
+      CPC_LOG_BUFFER  (
+                       CPC_LOG_LEVEL_ERROR,
+                       "device",
+                       ( UCHAR* ) device,
+                       sizeof( cahal_device ),
+                       8
+                       );
       
-      if( NULL != device->model )
-      {
-        free( device->model );
-      }
+      cpc_safe_free( ( void** ) &( device->device_name ) );
+      cpc_safe_free( ( void** ) &( device->model ) );
+      cpc_safe_free( ( void** ) &( device->manufacturer ) );
+      cpc_safe_free( ( void** ) &( device->serial_number ) );
+      cpc_safe_free( ( void** ) &( device->version ) );
+      cpc_safe_free( ( void** ) &( device->device_uid ) );
+      cpc_safe_free( ( void** ) &( device->model_uid ) );
       
-      if( NULL != device->manufacturer )
-      {
-        free( device->manufacturer );
-      }
-      
-      if( NULL != device->serial_number )
-      {
-        free( device->serial_number );
-      }
-      
-      if( NULL != device->version )
-      {
-        free( device->version );
-      }
-      
-      if( NULL != device->device_uid )
-      {
-        free( device->device_uid );
-      }
-      
-      if( NULL != device->model_uid )
-      {
-        free( device->model_uid );
-      }
       
       if( NULL != device->supported_sample_rates )
       {
@@ -188,29 +170,36 @@ cahal_free_device_list (
         
         while( NULL != sample_rate )
         {
-          free( sample_rate );
+          cpc_safe_free( ( void** ) &( sample_rate ) );
           
           sample_rate = device->supported_sample_rates[ index++ ];
         }
         
-        free( device->supported_sample_rates );
+        cpc_safe_free( ( void** ) &( device->supported_sample_rates ) );
       }
       
       if( NULL != device->device_streams )
       {
         cahal_free_device_stream_list( device->device_streams );
+        
+        cpc_safe_free( ( void** ) &( device->device_streams ) );
       }
       
-      free( device );
+      CPC_LOG_BUFFER  (
+                       CPC_LOG_LEVEL_ERROR, "device",
+                       ( UCHAR* ) device,
+                       sizeof( cahal_device ),
+                       8
+                       );
+      
+      cpc_safe_free( ( void** ) &( device ) );
       
       device_index++;
       
       device = in_device_list[ device_index ];
     }
     
-    free( in_device_list );
-    
-    in_device_list = NULL;
+    cpc_safe_free( ( void** ) &( in_device_list ) );
   }
 }
 
@@ -247,7 +236,7 @@ cahal_test_device_direction_support  (
   }
   else
   {
-    CPC_ERROR( "Attempting to set direction %d on null device", in_direction );
+    CPC_ERROR( "Attempting to test direction %d on null device", in_direction );
   }
   
   return( result );

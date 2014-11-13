@@ -4,8 +4,133 @@ import cahal_tests
 import unittest
 import string
 import types
+import struct
+
+def recorder( in_device, in_buffer, in_buffer_length ):
+  print "Received recorder callback! Length of samples: 0x{:02X}==0x{:02X}" \
+          .format( in_buffer_length, len( in_buffer ) )
+
+def playback( in_device, in_buffer_length ):
+  print "Received playback callback! Length of buffer: 0x{:02X}" \
+          .format( in_buffer_length )
+
+  buffer = struct.pack( 'ccccc', 'a', '\0', 'c', '\0', 'e' ) 
+
+  return( buffer )
 
 class TestsCAHALDevice( unittest.TestCase ):
+  def test_cahal_start_playback( self ):
+    device_list = cahal_tests.cahal_get_device_list()
+
+    self.assertIsNotNone( device_list )
+
+    index       = 0;                                                                    
+    device      = cahal_tests.cahal_device_list_get( device_list, index )               
+
+    while( device ):
+      self.assertIsNotNone( device )
+
+      stream_index  = 0                                                             
+      stream        =                               \
+        cahal_tests.cahal_device_stream_list_get  ( \
+          device.device_streams,                    \
+          stream_index                              \
+                                                  )
+
+      playback_stream   = None
+      supports_playback = False
+                                                                                
+      while( stream and not supports_playback ):                                                              
+        self.assertIsNotNone( stream )
+
+        if( cahal_tests.CAHAL_DEVICE_OUTPUT_STREAM == stream.direction ):
+          supports_playback = True
+          playback_stream   = stream
+
+        stream_index += 1
+        stream        =                               \
+          cahal_tests.cahal_device_stream_list_get  ( \
+            device.device_streams,                    \
+            stream_index                              \
+                                                    )
+
+      if( supports_playback ):
+        print device.device_name
+        print playback_stream.handle
+
+        result =                                  \
+          cahal_tests.start_playback (            \
+            device,                               \
+            playback_stream.preferred_format,     \
+            device.preferred_number_of_channels,  \
+            device.preferred_sample_rate,         \
+            32,                                   \
+            playback,                             \
+            cahal_tests.CAHAL_AUDIO_FORMAT_FLAGISFLOAT |  \
+            cahal_tests.CAHAL_AUDIO_FORMAT_FLAGISPACKED,  \
+            2                                     \
+                                      )
+
+        self.assertTrue( result )
+
+      index   += 1
+      device  = cahal_tests.cahal_device_list_get( device_list, index )
+
+  def test_cahal_start_recording( self ):
+    device_list = cahal_tests.cahal_get_device_list()
+
+    self.assertIsNotNone( device_list )
+
+    index       = 0;                                                                    
+    device      = cahal_tests.cahal_device_list_get( device_list, index )               
+
+    while( device ):
+      self.assertIsNotNone( device )
+
+      stream_index  = 0                                                             
+      stream        =                               \
+        cahal_tests.cahal_device_stream_list_get  ( \
+          device.device_streams,                    \
+          stream_index                              \
+                                                  )
+
+      recording_stream    = None
+      supports_recording  = False
+                                                                                
+      while( stream and not supports_recording ):                                                              
+        self.assertIsNotNone( stream )
+
+        if( cahal_tests.CAHAL_DEVICE_INPUT_STREAM == stream.direction ):
+          supports_recording  = True
+          
+          recording_stream    = stream
+
+        stream_index += 1
+        stream        =                               \
+          cahal_tests.cahal_device_stream_list_get  ( \
+            device.device_streams,                    \
+            stream_index                              \
+                                                    )
+
+      if( supports_recording ):
+        result =                                  \
+          cahal_tests.start_recording (           \
+            device,                               \
+            recording_stream.preferred_format,    \
+            device.preferred_number_of_channels,  \
+            device.preferred_sample_rate,         \
+            32,                                   \
+            recorder,
+            cahal_tests.CAHAL_AUDIO_FORMAT_FLAGISFLOAT |  \
+            cahal_tests.CAHAL_AUDIO_FORMAT_FLAGISPACKED,  \
+            2                                     \
+                                      )
+
+        self.assertTrue( result )
+
+      index   += 1
+      device  = cahal_tests.cahal_device_list_get( device_list, index )
+
   def test_cahal_set_default_device( self ):
     self.assertFalse(                                  \
       cahal_tests.cahal_set_default_device( None, 0 )  \
@@ -80,7 +205,6 @@ class TestsCAHALDevice( unittest.TestCase ):
       index   += 1
       device  = cahal_tests.cahal_device_list_get( device_list, index )
 
-"""
   def test_cahal_test_device_direction_support( self ):
     self.assertFalse(                                             \
       cahal_tests.cahal_test_device_direction_support( None, 0 )  \
@@ -289,7 +413,6 @@ class TestsCAHALDevice( unittest.TestCase ):
       index += 1                                                                    
 
       device = cahal_tests.cahal_device_list_get( device_list, index )
-"""
 
 if __name__ == '__main__':
   #cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_NO_LOGGING )

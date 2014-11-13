@@ -10,14 +10,14 @@
             string representation of in_format_id before logging.
 
     \param  in_log_level  The log level to log in_label and a string
-            representation of in_format_id.
+                          representation of in_format_id.
     \param  in_label  The label to prepend to the string representation of
-            in_format_id.
+                      in_format_id.
     \param  in_format_id  The format identifier to be logged.
  */
 void
 log_cahal_audio_format  (
-                           CPC_LOG_LEVEL          in_log_level,
+                           cpc_log_level          in_log_level,
                            CHAR*                  in_label,
                            cahal_audio_format_id  in_format_id
                          )
@@ -28,7 +28,7 @@ log_cahal_audio_format  (
   }
   
   CPC_LOG (
-           CPC_LOG_LEVEL_INFO,
+           in_log_level,
            "%s %s",
            in_label,
            cahal_convert_audio_format_id_to_cstring( in_format_id )

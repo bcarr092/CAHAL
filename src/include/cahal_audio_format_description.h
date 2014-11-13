@@ -50,7 +50,8 @@ typedef UINT32 cahal_audio_format_id;
 
 /*! \enum   cahal_audio_format_ids
     \brief  These are the recognized audio format constants in their string
-            representation form.
+            representation form. These are platform agnostic flags and are to be
+            used whenever CAHAL functions are called.
  */
 enum cahal_audio_format_ids
 {
@@ -95,7 +96,8 @@ enum cahal_audio_format_ids
 /*! \var    cahal_sample_rate_range
     \brief  This struct is used to represent the sample rate ranges supported
             by various audio IO hardware devices. Sample rates are generally
-            defined in the form of ranges.
+            defined in the form of ranges. Note that for devices that only
+            support a single sample rate minimum_rate will equal maximum_rate.
  */
 typedef struct cahal_sample_rate_range_t
 {
@@ -115,18 +117,27 @@ typedef struct cahal_sample_rate_range_t
 
 /*! \var    cahal_audio_format_description
     \brief  Struct used to model the configuration parameters for an audio
-            stream, both input and output. This struct captures the minimum
-            parameters required to define when establishing an audio stream.
+            stream, both input and output. This struct captures stream specific
+            parameters that can be used when openning a stream for input/output.
+            These parameters are supported by the corresponding audio device in
+            hardware.
  */
 typedef struct cahal_audio_format_description_t
 {
+  /*! \var    sample_rate_range
+      \brief  The range of sample rates supported in this configuration.
+   */
+  cahal_sample_rate_range sample_rate_range;
+  
   /*! \var    format_id
-      \brief  Constant defining the audio format in this description.
+      \brief  Platform agnostic CAHAL constant defining an audio format
+              supported by the corresponding audio device.
    */
   cahal_audio_format_id   format_id;
   
   /*! \var    number_of_channels
-      \brief  The number of channels supported in this configuration.
+      \brief  The number of channels supported in this configuration by the
+              corresponding audio device.
    */
   UINT32                  number_of_channels;
   
@@ -135,19 +146,14 @@ typedef struct cahal_audio_format_description_t
    */
   UINT32                  bit_depth;
   
-  /*! \var    sample_rate_range
-      \brief  The range of sample rates supported in this configuration.
-   */
-  cahal_sample_rate_range sample_rate_range;
-  
 } cahal_audio_format_description;
 
 /*! \fn      CHAR* convert_cahal_audio_format_id_to_cstring  (
               cahal_audio_format_id in_audio_format_id
             )
-    \brief  Converts in_audio_format_id to a string representation and returns
+    \brief  Converts in_audio_format_id to its string representation and returns
             the newly created string. The caller does not need to free the
-            returned string.
+            returned string as the strings are defined constants.
  
     \param  in_audio_format_id  The audio format identifier whose string
                                 representation is to be returned.
@@ -161,7 +167,9 @@ cahal_convert_audio_format_id_to_cstring  (
 /*! \fn     void print_cahal_audio_format_description  (
               cahal_audio_format_description* in_audio_format_description
             )
-    \brief  Logs a string representation of in_audio_format_description.
+    \brief  Logs a string representation of in_audio_format_description by
+            printing all of its properties. The string is logged using the
+            logger.
  
     \param  in_audio_format_description The format description to be converted
                                         to a string and logged.
@@ -180,8 +188,9 @@ cahal_print_audio_format_description  (
             string representation of in_format_id before logging.
  
     \param  in_label  The label to prepend to the string representation of
-            in_format_id.
-    \param  in_format_id  The format identifier to be logged.
+                      in_format_id.
+    \param  in_format_id  The format identifier to be logged. This is a platform
+                          agnostic CAHAL constant.
  */
 void
 cahal_print_audio_format_id (

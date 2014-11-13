@@ -75,8 +75,12 @@ add_test( ${PROJECT_NAME} "${PROJECT_BINARY_DIR}/test_driver.py" )
 # These are platform specific build instructions, this needs to be cleaned up
 find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )
 find_library( CORE_AUDIO_FRAMEWORK CoreAudio )
+find_library( AUDIO_TOOLBOX_FRAMEWORK AudioToolbox )
 
-set( EXTRA_LIBS ${CORE_FOUNDATION_FRAMEWORK} ${CORE_AUDIO_FRAMEWORK} )
+set ( EXTRA_LIBS
+      ${CORE_FOUNDATION_FRAMEWORK} ${CORE_AUDIO_FRAMEWORK}
+      ${AUDIO_TOOLBOX_FRAMEWORK}
+    )
 
 message( STATUS "Framework libraries: ${EXTRA_LIBS}" )
 

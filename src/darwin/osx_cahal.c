@@ -9,30 +9,62 @@ cahal_get_device_list( void )
 
   if( noErr == osx_get_audio_device_handles( &device_ids, &num_devices ) )
   {
-    device_list =
-    ( cahal_device** ) malloc( ( num_devices + 1 ) * sizeof( cahal_device* ) );
+    CPC_LOG_BUFFER  (
+                     CPC_LOG_LEVEL_TRACE,
+                     "ObjectIDs",
+                     ( UCHAR* ) device_ids,
+                     sizeof( AudioObjectID ) * num_devices,
+                     8
+                     );
     
-    memset( device_list, 0, ( num_devices + 1 ) * sizeof( cahal_device* ) );
-    
-    for( UINT32 i = 0; i < num_devices; i++ )
+    if  ( CPC_ERROR_CODE_NO_ERROR
+         == cpc_safe_malloc (
+                             ( void ** ) &( device_list ),
+                             ( num_devices + 1 ) * sizeof( cahal_device* )
+                             )
+         )
     {
-      device_list[ i ] = ( cahal_device* ) malloc( sizeof( cahal_device ) );
-      
-      memset( device_list[ i ], 0, sizeof( cahal_device ) );
-      
-      osx_set_cahal_device_struct( device_ids[ i ], device_list[ i ] );
-      
-      if( cpc_log_get_current_log_level() <= CPC_LOG_LEVEL_DEBUG )
+      for( UINT32 i = 0; i < num_devices; i++ )
       {
-        cahal_print_device( device_list[ i ] );
+        if  ( CPC_ERROR_CODE_NO_ERROR
+             == cpc_safe_malloc (
+                                 ( void ** ) &( device_list[ i ] ),
+                                 sizeof( cahal_device )
+                                 )
+             )
+        {
+          CPC_LOG_BUFFER  (
+                           CPC_LOG_LEVEL_TRACE,
+                           "Device",
+                           ( UCHAR* ) device_list[ i ],
+                           sizeof( cahal_device ),
+                           8
+                           );
+          
+          osx_set_cahal_device_struct( device_ids[ i ], device_list[ i ] );
+          
+          if( cpc_log_get_current_log_level() <= CPC_LOG_LEVEL_DEBUG )
+          {
+            cahal_print_device( device_list[ i ] );
+          }
+          
+          CPC_LOG_BUFFER  (
+                           CPC_LOG_LEVEL_TRACE,
+                           "Device",
+                           ( UCHAR* ) device_list[ i ],
+                           sizeof( cahal_device ),
+                           8
+                           );
+        }
+        else
+        {
+          break;
+        }
       }
     }
-    
-    if( NULL != device_ids )
-    {
-      free( device_ids );
-    }
   }
+  
+  cpc_safe_free( ( void** ) &device_ids );
   
   return( device_list );
 }
@@ -44,67 +76,81 @@ osx_get_audio_device_handles (
                               )
 {
   UINT32    property_size;
-  OSStatus  result          = noErr;
+  OSStatus  result          = kAudioHardwareUnspecifiedError;
 
-  *io_device_list = NULL;
-
-  AudioObjectPropertyAddress property_address =
-    {
-        kAudioHardwarePropertyDevices,
-        kAudioObjectPropertyScopeGlobal,
-        kAudioObjectPropertyElementMaster
-    };
-
-  result =
-  AudioObjectGetPropertyDataSize  (
-                                   kAudioObjectSystemObject,
-                                   &property_address,
-                                   0,
-                                   NULL,
-                                   &property_size
-                                   );
-
-  if( result )
+  if( NULL != io_device_list )
   {
-    CPC_ERROR (
-               "Error in AudioObjectGetPropertyDataSize: %d",
-               result
-               );
+    *io_device_list = NULL;
 
-    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
-  }
-  else
-  {
-    *out_num_devices  = property_size / sizeof( AudioDeviceID );
-    *io_device_list   =
-    ( AudioDeviceID* ) malloc( *out_num_devices * sizeof( AudioDeviceID ) );
+    AudioObjectPropertyAddress property_address =
+      {
+          kAudioHardwarePropertyDevices,
+          kAudioObjectPropertyScopeGlobal,
+          kAudioObjectPropertyElementMaster
+      };
 
     result =
-    AudioObjectGetPropertyData  (
-                                 kAudioObjectSystemObject,
-                                 &property_address,
-                                 0,
-                                 NULL,
-                                 &property_size,
-                                 *io_device_list
-                                 );
+    AudioObjectGetPropertyDataSize  (
+                                     kAudioObjectSystemObject,
+                                     &property_address,
+                                     0,
+                                     NULL,
+                                     &property_size
+                                     );
 
     if( result )
     {
       CPC_ERROR (
-                 "Error in AudioObjectGetPropertyData: %d",
+                 "Error in AudioObjectGetPropertyDataSize: %d",
                  result
                  );
 
       CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
-
-      if( NULL != *io_device_list )
-      {
-        free( *io_device_list );
-      }
-
-      *out_num_devices = 0;
     }
+    else
+    {
+      *out_num_devices  = property_size / sizeof( AudioDeviceID );
+      
+      if  ( CPC_ERROR_CODE_NO_ERROR
+           == cpc_safe_malloc (
+                               ( void ** ) &( *io_device_list ),
+                               *out_num_devices * sizeof( AudioDeviceID )
+                               )
+           )
+      {
+        result =
+        AudioObjectGetPropertyData  (
+                                     kAudioObjectSystemObject,
+                                     &property_address,
+                                     0,
+                                     NULL,
+                                     &property_size,
+                                     *io_device_list
+                                     );
+
+        if( result )
+        {
+          CPC_ERROR (
+                     "Error in AudioObjectGetPropertyData: %d",
+                     result
+                     );
+
+          CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+          
+          cpc_safe_free( ( void** ) &( *io_device_list ) );
+
+          *out_num_devices = 0;
+        }
+      }
+      else
+      {
+        result = kAudioHardwareUnspecifiedError;
+      }
+    }
+  }
+  else
+  {
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Null device list." );
   }
 
   return( result );
