@@ -374,12 +374,13 @@ osx_get_device_property_value (
   
   if( result )
   {
-    CPC_ERROR (
-               "Error in AudioObjectGetPropertyData: %d",
-               result
-               );
+    CPC_LOG (
+             CPC_LOG_LEVEL_WARN,
+             "Error in AudioObjectGetPropertyData: %d",
+             result
+             );
     
-    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
   }
   
   return( result );
@@ -411,12 +412,13 @@ osx_get_device_property_size_and_value (
   
   if( result )
   {
-    CPC_ERROR (
-               "Error in AudioObjectGetPropertyDataSize: %d",
-               result
-               );
+    CPC_LOG (
+             CPC_LOG_LEVEL_WARN,
+             "Error in AudioObjectGetPropertyDataSize: %d",
+             result
+             );
     
-    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
   }
   else
   {
@@ -532,12 +534,13 @@ osx_get_device_string_property  (
   
   if( result )
   {
-    CPC_ERROR (
-               "Error in AudioObjectGetPropertyData: %d",
-               result
-               );
+    CPC_LOG (
+             CPC_LOG_LEVEL_WARN,
+             "Error in AudioObjectGetPropertyData: %d",
+             result
+             );
     
-    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
   }
   else
   {
@@ -644,7 +647,7 @@ cahal_set_default_device (
                 in_device->handle
                 );
         
-        CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+        CPC_PRINT_CODE( CPC_LOG_LEVEL_DEBUG, result );
         
         return_value = FALSE;
       }
@@ -689,8 +692,32 @@ osx_playback_callback (
                                        )
          )
     {
-    
+      CPC_LOG (
+               CPC_LOG_LEVEL_TRACE,
+               "Number of bytes is 0x%x.",
+               number_of_bytes
+               );
+      
       in_buffer->mAudioDataByteSize = number_of_bytes;
+      
+      if( 0 != number_of_bytes)
+      {
+        CPC_LOG_BUFFER  (
+                         CPC_LOG_LEVEL_TRACE,
+                         "Playback buffer",
+                         in_buffer->mAudioData,
+                         80,
+                         8
+                         );
+      }
+      else
+      {
+        CPC_MEMSET  (
+                     in_buffer->mAudioData,
+                     0,
+                     in_buffer->mAudioDataBytesCapacity
+                     );
+      }
       
       OSStatus result =
       AudioQueueEnqueueBuffer( in_queue, in_buffer, 0, NULL );
@@ -708,7 +735,7 @@ osx_playback_callback (
       {
         CPC_LOG (
                  CPC_LOG_LEVEL_TRACE,
-                 "Received 0x%x bytes of data.",
+                 "Played back 0x%x bytes of data.",
                  number_of_bytes
                  );
       }
@@ -749,73 +776,56 @@ osx_recorder_callback  (
     {
       if( NULL != in_queue )
       {
-        AudioStreamBasicDescription recorder_format;
-        
-        UINT32 property_size  = sizeof( AudioStreamBasicDescription );
-        
-        memset( &recorder_format, 0, sizeof( AudioStreamBasicDescription ) );
-        
-        OSStatus result =
-        AudioQueueGetProperty (
-                               in_queue,
-                               kAudioConverterCurrentInputStreamDescription,
-                               &recorder_format,
-                               &property_size
-                               );
-        
-        if( noErr == result )
+        if( NULL != in_user_data )
         {
-          UINT32 buffer_size =
-          in_number_of_packets * recorder_format.mBytesPerPacket;
+          UCHAR* buffer                       = NULL;
+          cahal_recorder_info* recorder_info  =
+          ( cahal_recorder_info* ) in_user_data;
           
-          if( NULL != in_user_data )
+          if  ( CPC_ERROR_CODE_NO_ERROR
+               == cpc_safe_malloc (
+                                 ( void ** ) &( buffer ),
+                                 sizeof( UCHAR ) * in_buffer->mAudioDataByteSize
+                                   )
+               )
           {
+            CPC_LOG (
+                     CPC_LOG_LEVEL_TRACE,
+                     "Calling function at location 0x%x with user data 0x%x.",
+                     recorder_info->recording_callback,
+                     recorder_info->user_data
+                     );
             
-            UCHAR* buffer                       = NULL;
-            cahal_recorder_info* recorder_info  =
-            ( cahal_recorder_info* ) in_user_data;
+            memcpy  (
+                     buffer,
+                     in_buffer->mAudioData,
+                     in_buffer->mAudioDataByteSize
+                     );
             
-            if  ( CPC_ERROR_CODE_NO_ERROR
-                 == cpc_safe_malloc (
-                                     ( void ** ) &( buffer ),
-                                     sizeof( UCHAR ) * buffer_size
-                                     )
+            CPC_LOG_BUFFER  (
+                             CPC_LOG_LEVEL_TRACE,
+                             "Recorded buffer",
+                             in_buffer->mAudioData,
+                             80,
+                             8
+                             );
+            
+            if  (
+                 ! recorder_info->recording_callback (
+                                              recorder_info->recording_device,
+                                              buffer,
+                                              in_buffer->mAudioDataByteSize,
+                                              recorder_info->user_data
+                                                      )
                  )
             {
-              CPC_LOG (
-                       CPC_LOG_LEVEL_TRACE,
-                       "Calling function at location 0x%x with user data 0x%x.",
-                       recorder_info->recording_callback,
-                       recorder_info->user_data
-                       );
-              
-              if  (
-                   ! recorder_info->recording_callback (
-                                                recorder_info->recording_device,
-                                                buffer,
-                                                buffer_size,
-                                                recorder_info->user_data
-                                                        )
-                   )
-              {
-                CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Error returning buffer." );
-              }
+              CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Error returning buffer." );
             }
-          }
-          else
-          {
-            CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Null in_user_data!" );
           }
         }
         else
         {
-          CPC_ERROR (
-                     "Invalid property request (0x%x) for audio queue: 0x%x",
-                     kAudioConverterCurrentInputStreamDescription,
-                     result
-                     );
-          
-          CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+          CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Null in_user_data!" );
         }
       }
     }
@@ -887,6 +897,18 @@ cahal_start_playback  (
       {
         AudioQueueRef audio_queue = NULL;
         
+        CPC_LOG (
+                 CPC_LOG_LEVEL_TRACE,
+                 "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+                 ", bpp=0x%x, fpp=0x%x",
+                 playback_description.mSampleRate,
+                 playback_description.mChannelsPerFrame,
+                 playback_description.mBitsPerChannel,
+                 playback_description.mBytesPerFrame,
+                 playback_description.mBytesPerPacket,
+                 playback_description.mFramesPerPacket
+                 );
+        
         result =
         osx_configure_output_audio_queue  (
                                            in_device,
@@ -903,6 +925,18 @@ cahal_start_playback  (
                                                    playback,
                                                    audio_queue
                                                    );
+          
+          CPC_LOG (
+                   CPC_LOG_LEVEL_TRACE,
+                   "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+                   ", bpp=0x%x, fpp=0x%x",
+                   playback_description.mSampleRate,
+                   playback_description.mChannelsPerFrame,
+                   playback_description.mBitsPerChannel,
+                   playback_description.mBytesPerFrame,
+                   playback_description.mBytesPerPacket,
+                   playback_description.mFramesPerPacket
+                   );
           
           if( noErr == result )
           {
@@ -1017,6 +1051,18 @@ cahal_start_recording (
       {
         AudioQueueRef audio_queue = NULL;
         
+        CPC_LOG (
+                 CPC_LOG_LEVEL_TRACE,
+                 "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+                 ", bpp=0x%x, fpp=0x%x",
+                 recorder_desciption.mSampleRate,
+                 recorder_desciption.mChannelsPerFrame,
+                 recorder_desciption.mBitsPerChannel,
+                 recorder_desciption.mBytesPerFrame,
+                 recorder_desciption.mBytesPerPacket,
+                 recorder_desciption.mFramesPerPacket
+                 );
+        
         result =
         osx_configure_input_audio_queue (
                                          in_device,
@@ -1024,6 +1070,18 @@ cahal_start_recording (
                                          &recorder_desciption,
                                          &audio_queue
                                          );
+        
+        CPC_LOG (
+                 CPC_LOG_LEVEL_TRACE,
+                 "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+                 ", bpp=0x%x, fpp=0x%x",
+                 recorder_desciption.mSampleRate,
+                 recorder_desciption.mChannelsPerFrame,
+                 recorder_desciption.mBitsPerChannel,
+                 recorder_desciption.mBytesPerFrame,
+                 recorder_desciption.mBytesPerPacket,
+                 recorder_desciption.mFramesPerPacket
+                 );
         
         if( noErr == result )
         {
@@ -1109,6 +1167,12 @@ osx_configure_input_audio_queue_buffer  (
                                    CAHAL_QUEUE_BUFFER_DURATION,
                                    &bytes_per_buffer
                                    );
+    
+    CPC_LOG (
+             CPC_LOG_LEVEL_TRACE,
+             "Bytes per AudioQueue buffer is 0x%x",
+             bytes_per_buffer
+             );
     
     if( noErr == result )
     {
@@ -1405,7 +1469,7 @@ osx_configure_input_audio_queue (
         result =
         AudioQueueGetProperty (
                                *out_audio_queue,
-                               kAudioConverterCurrentInputStreamDescription,
+                               kAudioConverterCurrentOutputStreamDescription,
                                io_asbd,
                                &property_size
                                );
@@ -1469,6 +1533,18 @@ osx_configure_asbd  (
     out_asbd->mFormatID         =
     osx_convert_cahal_audio_format_id_to_core_audio_format_id( in_format_id );
     
+    CPC_LOG (
+             CPC_LOG_LEVEL_TRACE,
+             "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+             ", bpp=0x%x, fpp=0x%x",
+             out_asbd->mSampleRate,
+             out_asbd->mChannelsPerFrame,
+             out_asbd->mBitsPerChannel,
+             out_asbd->mBytesPerFrame,
+             out_asbd->mBytesPerPacket,
+             out_asbd->mFramesPerPacket
+             );
+    
     result =
     AudioFormatGetProperty  (
                              kAudioFormatProperty_FormatInfo,
@@ -1477,6 +1553,18 @@ osx_configure_asbd  (
                              &property_size,
                              out_asbd
                              );
+    
+    CPC_LOG (
+             CPC_LOG_LEVEL_TRACE,
+             "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+             ", bpp=0x%x, fpp=0x%x",
+             out_asbd->mSampleRate,
+             out_asbd->mChannelsPerFrame,
+             out_asbd->mBitsPerChannel,
+             out_asbd->mBytesPerFrame,
+             out_asbd->mBytesPerPacket,
+             out_asbd->mFramesPerPacket
+             );
 
     if( result )
     {

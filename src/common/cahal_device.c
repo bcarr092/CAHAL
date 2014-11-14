@@ -146,7 +146,7 @@ cahal_free_device_list (
     while( NULL != device )
     {
       CPC_LOG_BUFFER  (
-                       CPC_LOG_LEVEL_ERROR,
+                       CPC_LOG_LEVEL_TRACE,
                        "device",
                        ( UCHAR* ) device,
                        sizeof( cahal_device ),
@@ -186,7 +186,7 @@ cahal_free_device_list (
       }
       
       CPC_LOG_BUFFER  (
-                       CPC_LOG_LEVEL_ERROR, "device",
+                       CPC_LOG_LEVEL_TRACE, "device",
                        ( UCHAR* ) device,
                        sizeof( cahal_device ),
                        8

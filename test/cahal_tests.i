@@ -21,6 +21,8 @@
                             length is in_data_buffer_length in bytes.
     \param  in_data_buffer_length The length (in bytes) of in_data_buffer.
     \param  in_user_data  A function pointer to the Python callback.
+    \return True iff the callback was succesfully called and succesfully
+            executed.
   */
 BOOL
 python_recorder_callback  (
@@ -30,6 +32,29 @@ python_recorder_callback  (
                             void*         in_user_data
                           );
 
+/*! \fn     void python_playback_callback (
+                            cahal_device* in_playback_device,
+                            UCHAR*        out_data_buffer,
+                            UINT32*       io_data_buffer_length,
+                            void*         in_user_data
+                                          )
+    \brief  This is the trampoline callback function that is called from the
+            CAHAL library. It is responsible for converting the input
+            parameters to Python objects and calling the python callback
+            function.
+
+    \param  in_playback_defivce The playback device being used to play
+                                audio samples.
+    \param  in_data_buffer  The data buffer that is to populated with audio
+                            samples. Its maximum capacity is
+                            io_data_buffer_length in bytes.
+    \param  io_data_buffer_length The capacity (in bytes) of in_data_buffer.
+                                  This value is to be set in this function to
+                                  the number of bytes placed in in_data_buffer.
+    \param  in_user_data  A function pointer to the Python callback.
+    \return True iff the callback was succesfully called and succesfully
+            executed.
+  */
 BOOL
 python_playback_callback  (
                             cahal_device* in_playback_device,
@@ -145,13 +170,14 @@ cahal_float_array_get (
 }
 
 /*! \fn     void start_recording (
-                  cahal_device*            in_device,
+                  cahal_device*         in_device,
                   int                   in_format_id,
                   int                   in_number_of_channels,
-                  double                  in_sample_rate,
+                  double                in_sample_rate,
                   int                   in_bit_depth,
-                  PyObject*                    in_callback_function,
+                  PyObject*             in_callback_function,
                   int                   in_format_flags
+                  int                   in_record_time
                                   )
     \brief  Wrapper function that passes the trampoline callback 
             python_recorder_callback as the intermediate callback to the
@@ -165,11 +191,14 @@ cahal_float_array_get (
     \param  in_number_of_channels The number of channels requested in the
                                   recording.
     \param  in_sample_rate  The desired sample rate to use in the recording.
+    \param  in_bit_depth  The quantization level, i.e. number of bits per
+                          sample, to use in the recording.
     \param  in_callback_function  The Python callback function to be called
                                   by the trampoline callback function when
                                   buffers of audio data are made available.
     \param  in_format_flags The format flag bitmask indicating the cahal
                             flags to use in the recording.
+    \param  in_record_time  The number of seconds to record for.
     \return Returns the result of cahal_start_recording, which is a boolean.
   */
 PyObject*
@@ -263,7 +292,38 @@ python_recorder_callback  (
 
   return( return_value );
 }
+/*! \fn     void start_playback (
+                  cahal_device*         in_device,
+                  int                   in_format_id,
+                  int                   in_number_of_channels,
+                  double                in_sample_rate,
+                  int                   in_bit_depth,
+                  PyObject*             in_callback_function,
+                  int                   in_format_flags
+                  int                   in_playback_time
+                                  )
+    \brief  Wrapper function that passes the trampoline callback 
+            python_playback_callback as the intermediate callback to the
+            cahal library. The actual Python callback is passed as an
+            additional parameter to be used by the trampoline callback.
 
+    \param  in_device The device to use in the playback. This object is passed
+                      back by the cahal library in the callback.
+    \param  in_format_id  The desired format (e.g. lpcm). This is a cahal
+                          flag.
+    \param  in_number_of_channels The number of channels requested in the
+                                  playback stream.
+    \param  in_sample_rate  The desired sample rate to use in the playback.
+    \param  in_bit_depth  The quantization level, i.e. number of bits per
+                          sample, to use in the playback.
+    \param  in_callback_function  The Python callback function to be called
+                                  by the trampoline callback function when
+                                  buffers of audio data are made available.
+    \param  in_format_flags The format flag bitmask indicating the cahal
+                            flags to use in the playback.
+    \param  in_record_time  The number of seconds to playback for.
+    \return Returns the result of cahal_start_playback, which is a boolean.
+  */
 PyObject*
 start_playback (
                   cahal_device* in_device,
@@ -331,7 +391,7 @@ python_playback_callback  (
       Py_ssize_t length = PyString_Size( result );
       char* buffer      = PyString_AsString( result );
 
-      if( length < *io_data_buffer_length )
+      if( length <= *io_data_buffer_length )
       {
         *io_data_buffer_length = length;
 
