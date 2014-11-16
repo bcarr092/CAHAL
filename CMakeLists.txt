@@ -20,30 +20,67 @@ list( APPEND SOURCES "${SOURCE_DIR}/common/cahal_audio_format_flags.c" )
 list( APPEND SOURCES "${SOURCE_DIR}/common/cahal_audio_format_description.c" )
 list( APPEND SOURCES "${SOURCE_DIR}/common/cahal_device.c" )
 list( APPEND SOURCES "${SOURCE_DIR}/common/cahal_device_stream.c" )
-list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal.c" )
-list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal_audio_format_flags.c" )
-list(
-      APPEND
-      SOURCES
-      "${SOURCE_DIR}/darwin/osx_cahal_audio_format_description.c"
-    )
-list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal_device.c" )
-list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx_cahal_device_stream.c" )
 
 set( HEADERS "${INCLUDE_DIR}/cahal.h" )
 list( APPEND HEADERS "${INCLUDE_DIR}/cahal_audio_format_flags.h" )
 list( APPEND HEADERS "${INCLUDE_DIR}/cahal_audio_format_description.h" )
 list( APPEND HEADERS "${INCLUDE_DIR}/cahal_device.h" )
 list( APPEND HEADERS "${INCLUDE_DIR}/cahal_device_stream.h" )
-list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal.h" )
-list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal_audio_format_flags.h" )
-list(
-      APPEND
-      HEADERS
-      "${INCLUDE_DIR}/darwin/osx_cahal_audio_format_description.h"
-    )
-list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal_device.h" )
-list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx_cahal_device_stream.h" )
+
+if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
+  find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )
+  find_library( CORE_AUDIO_FRAMEWORK CoreAudio )
+
+  set( EXTRA_LIBS ${CORE_FOUNDATION_FRAMEWORK} ${CORE_AUDIO_FRAMEWORK} )
+
+  message( STATUS "Framework libraries: ${EXTRA_LIBS}" )
+
+  find_path( AUDIO_TOOLBOX_INCLUDES   "AudioToolbox/AudioToolbox.h" )
+  find_path( CORE_FOUNDATION_INCLUDES "CoreFoundation/CoreFoundation.h" )
+
+  set ( EXTRA_INCLUDES
+        ${CORE_FOUNDATION_INCLUDES} ${CORE_AUDIO_INCLUDES}
+        ${AUDIO_TOOLBOX_INCLUDES}
+      )
+  
+  message( STATUS "Framework include directories: ${EXTRA_INCLUDES}" )
+
+  include_directories( ${EXTRA_INCLUDES} )
+
+  set( DARWINHELPER_INCLUDE_DIR "${darwinhelper_SOURCE_DIR}/src/include" )
+
+  message (
+    STATUS
+    "Working with darwinhelper source directory: ${DARWINHELPER_INCLUDE_DIR}"
+          )
+
+  include_directories( ${DARWINHELPER_INCLUDE_DIR} )
+
+  if( ${PLATFORM} STREQUAL "iPhoneOS" )
+  elseif( ${PLATFORM} STREQUAL "MacOSX" )
+    list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal_audio_format_flags.c" )
+    list(
+          APPEND
+          SOURCES
+          "${SOURCE_DIR}/osx/osx_cahal_audio_format_description.c"
+        )
+    list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal_device.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal_device_stream.c" )
+
+    list( APPEND HEADERS "${INCLUDE_DIR}/osx/osx_cahal.h" )
+    list( APPEND HEADERS "${INCLUDE_DIR}/osx/osx_cahal_audio_format_flags.h" )
+    list(
+          APPEND
+          HEADERS
+          "${INCLUDE_DIR}/osx/osx_cahal_audio_format_description.h"
+        )
+    list( APPEND HEADERS "${INCLUDE_DIR}/osx/osx_cahal_device.h" )
+    list( APPEND HEADERS "${INCLUDE_DIR}/osx/osx_cahal_device_stream.h" )
+  endif()
+else()
+  message( FATAL "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
+endif()
 
 set( CPCOMMON_INCLUDE_DIR "${cpcommon_SOURCE_DIR}/src/include" )
 
@@ -61,6 +98,11 @@ message( STATUS "C header files found: ${HEADERS}" )
 add_library( ${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS} )
 
 target_link_libraries( ${PROJECT_NAME} cpcommon )
+
+if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
+  target_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
+  target_link_libraries( ${PROJECT_NAME} darwinhelper )
+endif()
 
 install (
           TARGETS ${PROJECT_NAME}
@@ -95,28 +137,3 @@ if( DOXYGEN_FOUND )
   file( MAKE_DIRECTORY ${DOXYGEN_OUTPUT} )
 
 endif(DOXYGEN_FOUND)
-
-# These are platform specific build instructions, this needs to be cleaned up
-find_path( AUDIO_TOOLBOX_INCLUDES   "AudioToolbox/AudioToolbox.h" )
-find_path( CORE_FOUNDATION_INCLUDES "CoreFoundation/CoreFoundation.h" )
-find_path( CORE_AUDIO_INCLUDES      "CoreAudio/CoreAudio.h" )
-
-set ( EXTRA_INCLUDES
-      ${CORE_FOUNDATION_INCLUDES} ${CORE_AUDIO_INCLUDES}
-      ${AUDIO_TOOLBOX_INCLUDES}
-    )
-
-message( STATUS "Framework include directories: ${EXTRA_INCLUDES}" )
-
-include_directories( ${EXTRA_INCLUDES} )
-
-set( DARWINHELPER_INCLUDE_DIR "${darwinhelper_SOURCE_DIR}/src/include" )
-
-message (
-  STATUS
-  "Working with darwinhelper source directory: ${DARWINHELPER_INCLUDE_DIR}"
-        )
-
-include_directories( ${DARWINHELPER_INCLUDE_DIR} )
-
-target_link_libraries( ${PROJECT_NAME} darwinhelper )

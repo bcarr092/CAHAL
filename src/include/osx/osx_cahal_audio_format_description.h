@@ -7,13 +7,13 @@
 #define __OSX_CAHAL_AUDIO_FORMAT_H__
 
 #include <CoreFoundation/CoreFoundation.h>
-#include <CoreAudio/CoreAudio.h>
+#include <AudioToolbox/AudioToolbox.h>
 
 #include <darwin_helper.h>
 
 #include "cahal_audio_format_description.h"
 
-#include "darwin/osx_cahal_device_stream.h"
+#include "osx/osx_cahal_device_stream.h"
 
 /*! \fn     OSStatus osx_set_cahal_audio_format_description_list  (
               cahal_device_stream* io_device_stream

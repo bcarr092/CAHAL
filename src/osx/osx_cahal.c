@@ -1,4 +1,4 @@
-#include "darwin/osx_cahal.h"
+#include "osx/osx_cahal.h"
 
 cahal_device**
 cahal_get_device_list( void )

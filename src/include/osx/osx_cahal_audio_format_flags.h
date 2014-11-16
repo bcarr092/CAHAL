@@ -6,7 +6,7 @@
 #define __OSX_CAHAL_AUDIO_FORMAT_FLAGS_H__
 
 #include <CoreFoundation/CoreFoundation.h>
-#include <CoreAudio/CoreAudio.h>
+#include <AudioToolbox/AudioToolbox.h>
 
 #include <darwin_helper.h>
 

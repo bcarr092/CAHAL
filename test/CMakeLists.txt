@@ -20,7 +20,7 @@ set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH )
 set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH )
 
 find_package( SWIG REQUIRED )
-find_package( PythonLibs REQUIRED )
+#find_package( PythonLibs REQUIRED )
 
 set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
 set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
@@ -31,10 +31,16 @@ include( ${SWIG_USE_FILE} )
 set( CPCOMMON_INCLUDE_DIRECTORY "${cpcommon_SOURCE_DIR}/src/include" )
 set( CAHAL_INCLUDE_DIRECTORY "${cahal_SOURCE_DIR}/src/include" )
 
+set( PYTHON_INCLUDE_PATH "/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/include" )
+set( PYTHON_LIBRARIES "/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/lib/libpython.dylib" )
+
 include_directories( ${CPCOMMON_INCLUDE_DIRECTORY} )
 include_directories( ${CAHAL_INCLUDE_DIRECTORY} )
 include_directories( ${PYTHON_INCLUDE_PATH} )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
+
+message( STATUS "Python library: ${PYTHON_LIBRARIES}" )
+message( STATUS "Python includes: ${PYTHON_INCLUDE_PATH}" )
 
 swig_add_module( ${PROJECT_NAME} python "${PROJECT_NAME}.i" )
 swig_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} cpcommon cahal )

@@ -1,4 +1,4 @@
-#include "darwin/osx_cahal_device_stream.h"
+#include "osx/osx_cahal_device_stream.h"
 
 void
 osx_set_cahal_device_stream_struct(
