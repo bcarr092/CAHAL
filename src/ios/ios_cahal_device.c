@@ -115,12 +115,21 @@ ios_set_device_stream (
                              )
          )
     {
-      io_device->device_streams[ 0 ]->direction         = in_direction;
-      io_device->device_streams[ 0 ]->handle            =
-      IOS_DEVICE_STREAM_DEFAULT_HANDLE;
+      if  (
+            CPC_ERROR_CODE_NO_ERROR
+           == cpc_safe_malloc (
+                               ( void** ) &( io_device->device_streams[ 0 ] ),
+                               sizeof( cahal_device_stream )
+                               )
+          )
+      {
+        io_device->device_streams[ 0 ]->direction         = in_direction;
+        io_device->device_streams[ 0 ]->handle            =
+        IOS_DEVICE_STREAM_DEFAULT_HANDLE;
 
-      io_device->device_streams[ 0 ]->preferred_format  =
-      CAHAL_AUDIO_FORMAT_LINEARPCM;
+        io_device->device_streams[ 0 ]->preferred_format  =
+        CAHAL_AUDIO_FORMAT_LINEARPCM;
+      }
     }
   }
   else
@@ -188,18 +197,18 @@ ios_get_output_device_info (
 
 BOOL
 ios_get_input_device_info (
-                           cahal_device* io_input_device
+                           cahal_device* out_input_device
                            )
 {
   BOOL initialized_input        = TRUE;
   
-  io_input_device->handle   = IOS_DEVICE_HANDLE_INPUT;
-  io_input_device->is_alive = 1;
+  out_input_device->handle   = IOS_DEVICE_HANDLE_INPUT;
+  out_input_device->is_alive = 1;
   
   if  (
        ios_get_device_name  (
                              kAudioSession_AudioRouteKey_Inputs,
-                             &io_input_device->device_name
+                             &out_input_device->device_name
                              )
        )
   {
@@ -210,7 +219,7 @@ ios_get_input_device_info (
   
   if( ios_get_device_uint32_property (
                     kAudioSessionProperty_CurrentHardwareInputNumberChannels,
-                    &io_input_device->preferred_number_of_channels
+                    &out_input_device->preferred_number_of_channels
                                       )
      )
   {
@@ -224,7 +233,7 @@ ios_get_input_device_info (
   
   if( ios_get_device_float64_property (
                              kAudioSessionProperty_CurrentHardwareSampleRate,
-                             &io_input_device->preferred_sample_rate
+                             &out_input_device->preferred_sample_rate
                                        )
      )
   {
@@ -396,68 +405,6 @@ ios_get_device_float64_property (
   
   return( result );
 }
-
-OSStatus
-ios_get_device_property_size_and_value (
-                        AudioSessionPropertyID  in_property,
-                        UINT32*                 out_device_property_value_size,
-                        void**                  out_device_property_value
-                                        )
-{
-  CPC_ERROR( "Querying property 0x%x.", in_property );
-  
-  OSStatus result =
-  AudioSessionGetPropertySize (
-                               in_property,
-                               out_device_property_value_size
-                               );
-  
-  CPC_ERROR( "Property queried 0x%x: 0x%x.", in_property, result );
-  
-  if( noErr == result )
-  {
-    CPC_LOG (
-             CPC_LOG_LEVEL_ERROR,
-             "Property 0x%x has size 0x%x.",
-             in_property,
-             *out_device_property_value_size
-             );
-    
-    if  ( CPC_ERROR_CODE_NO_ERROR
-         == cpc_safe_malloc (
-                             ( void ** ) out_device_property_value,
-                             *out_device_property_value_size
-                             )
-         )
-    {
-      printf( "Malloc'd successfully!\n" );
-      
-      result =
-      ios_get_device_property_value (
-                                     in_property,
-                                     out_device_property_value_size,
-                                     *out_device_property_value
-                                     );
-      
-      printf( "Got value!\n" );
-    }
-  }
-  else
-  {
-    CPC_ERROR (
-               "Could not query the size of property 0x%x: 0x%x.",
-               in_property,
-               result
-               );
-    
-    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
-  }
-  
-  printf( "Returning!\n" );
-  
-  return( result );
-}
-
 OSStatus
 ios_get_device_property_value (
                            AudioSessionPropertyID in_property,
