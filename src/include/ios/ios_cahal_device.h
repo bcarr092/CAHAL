@@ -11,9 +11,19 @@
 #include "cahal_device_stream.h"
 #include "cahal_audio_format_flags.h"
 
-#define IOS_DEVICE_HANDLE_INPUT   1
-#define IOS_DEVICE_HANDLE_OUTPUT  2
+/*! \def    IOS_DEVICE_HANDLE_OUTPUT
+    \brief  The default device handle used to keep track of the output device.
+ */
+#define IOS_DEVICE_HANDLE_OUTPUT  1
 
+/*! \def    IOS_DEVICE_HANDLE_INPUT
+    \brief  The default device handle used to keep track of the input device.
+ */
+#define IOS_DEVICE_HANDLE_INPUT   2
+
+/*! \def    IOS_DEVICE_STREAM_DEFAULT_HANDLE
+    \brief  The default device handle used to keep track of device streams.
+ */
 #define IOS_DEVICE_STREAM_DEFAULT_HANDLE  1
 
 /*! \fn     cahal_device** ios_set_cahal_device_struct( void )
