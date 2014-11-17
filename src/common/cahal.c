@@ -20,7 +20,7 @@ CHAR* cahal_get_version_string( void )
   cpc_snprintf  (
                  &version,
                  strlen( LIBRARY_NAME ) + 8,
-                 "%s  v%.2d.%.2d",
+                 "%s v%.2d.%.2d",
                  LIBRARY_NAME,
                  MAJOR_VERSION,
                  MINOR_VERSION

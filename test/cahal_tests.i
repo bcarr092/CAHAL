@@ -404,7 +404,7 @@ python_playback_callback  (
         fprintf (
                   stderr,
                   "Buffer is too small (size=%d) for data (size=%zd)\n",
-                  *io_data_buffer_length,
+                  ( unsigned int ) *io_data_buffer_length,
                   length
                 );
       }

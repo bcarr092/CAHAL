@@ -57,6 +57,11 @@ if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
   include_directories( ${DARWINHELPER_INCLUDE_DIR} )
 
   if( ${PLATFORM} STREQUAL "iPhoneOS" )
+    list( APPEND SOURCES "${SOURCE_DIR}/ios/ios_cahal.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/ios/ios_cahal_device.c" )
+
+    list( APPEND HEADERS "${INCLUDE_DIR}/ios/ios_cahal.h" )
+    list( APPEND HEADERS "${INCLUDE_DIR}/ios/ios_cahal_device.h" )
   elseif( ${PLATFORM} STREQUAL "MacOSX" )
     list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal.c" )
     list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal_audio_format_flags.c" )
