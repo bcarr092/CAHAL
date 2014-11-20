@@ -196,6 +196,10 @@ ios_set_device_stream (
                        cahal_device_stream_direction in_direction
                        );
 
+/*! \fn     void ios_initialize_recording( void )
+    \brief  Initializes the AVAudioSession to the appropriate category and mode
+            so that input and output are possible.
+ */
 void
 ios_initialize_recording( void );
 

@@ -34,6 +34,11 @@ cahal_get_version( void );
 CHAR*
 cahal_get_version_string( void );
 
+/*! \fn     void cahal_initialize( void )
+    \brief  Entry point for the library. This must be the first function that
+            external libraries call. If not, the system will not be 
+            appropriately initialized.
+ */
 void
 cahal_initialize( void );
 

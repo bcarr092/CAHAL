@@ -9,6 +9,10 @@
 
 @interface ios_cahal_initialize : NSObject
 
+/*  \fn     (void) ios_initialize_recording
+    \brief  Performs the ios-specific initialization of the hardware. Ensures
+            that the system has the appropriate permissions to record as well.
+ */
 + (void) ios_initialize_recording;
 
 @end
