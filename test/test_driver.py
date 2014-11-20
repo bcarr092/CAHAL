@@ -1,5 +1,3 @@
-#!/usr/local/bin/python -W error
-
 import cahal_tests                                                              
 import unittest                                                                 
                                                                                 
@@ -10,6 +8,8 @@ from test_cahal_audio_format_description  import  \
   TestsCAHALAudioFormatDescription
 
 cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_NO_LOGGING )
+
+cahal_tests.cahal_initialize()
 
 alltests = unittest.TestSuite ( [                                                   \
  unittest.TestLoader().loadTestsFromTestCase( TestsCAHAL ),                         \

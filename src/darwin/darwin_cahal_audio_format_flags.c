@@ -1,7 +1,7 @@
-#include "osx/osx_cahal_audio_format_flags.h"
+#include "darwin/darwin_cahal_audio_format_flags.h"
 
 cahal_audio_format_flag
-osx_convert_core_audio_format_flags_to_cahal_audio_format_flags (
+darwin_convert_core_audio_format_flags_to_cahal_audio_format_flags (
                                                  UINT32 core_audio_format_flags
                                                                  )
 {
@@ -59,7 +59,7 @@ osx_convert_core_audio_format_flags_to_cahal_audio_format_flags (
 }
 
 UINT32
-osx_convert_cahal_audio_format_flags_to_core_audio_format_flags (
+darwin_convert_cahal_audio_format_flags_to_core_audio_format_flags (
                                          cahal_audio_format_flag in_format_flags
                                                                  )
 {

@@ -24,7 +24,7 @@
     \return True iff the callback was succesfully called and succesfully
             executed.
   */
-BOOL
+CPC_BOOL
 python_recorder_callback  (
                             cahal_device* in_recording_device,
                             UCHAR*        in_data_buffer,
@@ -55,7 +55,7 @@ python_recorder_callback  (
     \return True iff the callback was succesfully called and succesfully
             executed.
   */
-BOOL
+CPC_BOOL
 python_playback_callback  (
                             cahal_device* in_playback_device,
                             UCHAR*        out_data_buffer,
@@ -80,7 +80,14 @@ cahal_device_list_get (
                         int             in_index
                       )
 {
-  return( in_device_list[ in_index ] );
+  if( NULL == in_device_list )
+  {
+    return( NULL );
+  }
+  else
+  {
+    return( in_device_list[ in_index ] );
+  }
 }
 
 /*! \fn     cahal_device_stream* cahal_device_stream_list_get (
@@ -100,7 +107,14 @@ cahal_device_stream_list_get  (
                                 int                   in_index
                               )
 {
-  return( in_stream_list[ in_index ] );
+  if( NULL == in_stream_list )
+  {
+    return( NULL );
+  }
+  else
+  {
+    return( in_stream_list[ in_index ] );
+  }
 }
 
 /*! \fn     cahal_audio_format_description* cahal_audio_format_description_list_get (
@@ -122,7 +136,14 @@ cahal_audio_format_description_list_get (
                             int                               in_index
                                         )
 {
-  return( in_description_list[ in_index ] );
+  if( NULL == in_description_list )
+  {
+    return( NULL );
+  }
+  else
+  {
+    return( in_description_list[ in_index ] );
+  }
 }
 
 /*! \fn     cahal_sample_rate_range* cahal_sample_rate_range_list_get (
@@ -146,7 +167,14 @@ cahal_sample_rate_range_list_get  (
                                     int                         in_index
                                   )
 {
-  return( in_sample_rate_range_list[ in_index ] );
+  if( NULL == in_sample_rate_range_list )
+  {
+    return( NULL );
+  }
+  else
+  {
+    return( in_sample_rate_range_list[ in_index ] );
+  }
 }
 
 /*! \fn     double* cahal_float_array_get (
@@ -166,7 +194,14 @@ cahal_float_array_get (
                         int       in_index
                       )
 {
-  return( in_array[ in_index ] );
+  if( NULL == in_array )
+  {
+    return( NULL );
+  }
+  else
+  {
+    return( in_array[ in_index ] );
+  }
 }
 
 /*! \fn     void start_recording (
@@ -235,7 +270,7 @@ start_recording (
   }
 }
 
-BOOL
+CPC_BOOL
 python_recorder_callback  (
                             cahal_device* in_recording_device,
                             UCHAR*        in_data_buffer,
@@ -243,7 +278,7 @@ python_recorder_callback  (
                             void*         in_user_data
                           )
 {
-  BOOL return_value = FALSE;
+  CPC_BOOL return_value = CPC_FALSE;
 
   PyObject *python_callback;
   PyObject *result;
@@ -280,7 +315,7 @@ python_recorder_callback  (
     }
     else
     {
-      return_value = TRUE;
+      return_value = CPC_TRUE;
     }
 
     Py_XDECREF( result );
@@ -358,7 +393,7 @@ start_playback (
   }
 }
 
-BOOL
+CPC_BOOL
 python_playback_callback  (
                             cahal_device* in_playback_device,
                             UCHAR*        out_data_buffer,
@@ -366,7 +401,7 @@ python_playback_callback  (
                             void*         in_user_data
                           )
 {
-  BOOL return_value = FALSE;
+  CPC_BOOL return_value = CPC_FALSE;
 
   PyObject *python_callback;
   PyObject *result;
@@ -397,7 +432,7 @@ python_playback_callback  (
 
         memcpy( out_data_buffer, buffer, length );
 
-        return_value = TRUE;
+        return_value = CPC_TRUE;
       }
       else
       {
@@ -458,6 +493,8 @@ python_playback_callback  (
 
 %apply unsigned int { cahal_audio_format_id }
 %apply unsigned int { cahal_audio_format_flag }
+
+%apply unsigned char { CPC_BOOL }
 
 %apply size_t * { SIZE *  }
 

@@ -35,7 +35,7 @@ CHAR*
 cahal_get_version_string( void );
 
 void
-test( void );
+cahal_initialize( void );
 
 #endif /* _CAHAL_H_ */
 

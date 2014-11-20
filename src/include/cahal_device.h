@@ -18,7 +18,7 @@
     \brief  The amount of time (in seconds) to buffer samples for in each queued
             buffer.
  */
-#define CAHAL_QUEUE_BUFFER_DURATION           1.0
+#define CAHAL_QUEUE_BUFFER_DURATION           1
 
 /*! \def    CAHAL_QUEUE_NUMBER_OF_QUEUES
     \brief  The number of queued objects to store in the buffer queue (input and
@@ -150,7 +150,7 @@ typedef struct cahal_device_t
     \param  in_client_data  User-supplied information that is passed back to the
                             caller unmodified.
  */
-typedef BOOL (*cahal_recorder_callback) (
+typedef CPC_BOOL (*cahal_recorder_callback) (
   cahal_device* in_recording_device,
   UCHAR*        in_data_buffer,
   UINT32        in_data_buffer_length,
@@ -191,7 +191,7 @@ typedef BOOL (*cahal_recorder_callback) (
     \param  in_client_data  User-supplied information that is passed back to the
                             caller unmodified.
  */
-typedef BOOL (*cahal_playback_callback) (
+typedef CPC_BOOL (*cahal_playback_callback) (
   cahal_device* in_playback_device,
   UCHAR*        out_data_buffer,
   UINT32*       io_data_buffer_length,
@@ -277,7 +277,7 @@ cahal_free_device_list (
                         cahal_device** in_device_list
                         );
 
-/*! \fn     BOOL cahal_set_default_device (
+/*! \fn     CPC_BOOL cahal_set_default_device (
               cahal_device*                 in_device,
               cahal_device_stream_direction in_direction
             )
@@ -290,13 +290,13 @@ cahal_free_device_list (
     \return True iff in_device has been made the default device for the
             direction specified in in_direction, flase otherwise.
  */
-BOOL
+CPC_BOOL
 cahal_set_default_device (
                           cahal_device*                 in_device,
                           cahal_device_stream_direction in_direction
                           );
 
-/*! \fn     BOOL cahal_test_device_direction_support  (
+/*! \fn     CPC_BOOL cahal_test_device_direction_support  (
               cahal_device*                 in_device,
               cahal_device_stream_direction in_direction
             )
@@ -313,13 +313,13 @@ cahal_set_default_device (
     \return True iff in_device supports audio communication in the direction of
             in_direction, false otherwise.
  */
-BOOL
+CPC_BOOL
 cahal_test_device_direction_support  (
                                       cahal_device*                 in_device,
                                       cahal_device_stream_direction in_direction
                                       );
 
-/*! \fn     BOOL cahal_start_recording (
+/*! \fn     CPC_BOOL cahal_start_recording (
               cahal_device*            in_device,
               cahal_audio_format_id    in_format_id,
               UINT32                   in_number_of_channels,
@@ -358,7 +358,7 @@ cahal_test_device_direction_support  (
     \param  in_recording_time Temporary value passed in for testing purposes.
     \return True iff recording has been start on in_device, false otherwise.
  */
-BOOL
+CPC_BOOL
 cahal_start_recording (
                        cahal_device*            in_device,
                        cahal_audio_format_id    in_format_id,
@@ -371,7 +371,7 @@ cahal_start_recording (
                        UINT32                   in_recording_time
                        );
 
-/*! \fn     BOOL cahal_start_playback (
+/*! \fn     CPC_BOOL cahal_start_playback (
               cahal_device*            in_device,
               cahal_audio_format_id    in_format_id,
               UINT32                   in_number_of_channels,
@@ -410,7 +410,7 @@ cahal_start_recording (
     \param  in_playback_time Temporary value passed in for testing purposes.
     \return True iff playback has been start on in_device, false otherwise.
  */
-BOOL
+CPC_BOOL
 cahal_start_playback  (
                        cahal_device*            in_device,
                        cahal_audio_format_id    in_format_id,

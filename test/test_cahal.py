@@ -1,5 +1,3 @@
-#!/usr/local/bin/python -W error
-
 import cahal_tests
 import unittest
 import string
@@ -9,7 +7,11 @@ class TestsCAHAL( unittest.TestCase ):
   def test_get_version( self ):
     version = cahal_tests.cahal_get_version() 
 
-    self.assertIsInstance( version, types.LongType )
+    try:
+      self.assertIsInstance( version, types.LongType )
+    except AttributeError:
+      pass
+
     self.assertEqual( version, 256 )
 
     major = ( version >> 8 ) & 0x00FF
@@ -21,8 +23,16 @@ class TestsCAHAL( unittest.TestCase ):
   def test_get_version_string( self ):
     version = cahal_tests.cahal_get_version_string()
     
-    self.assertIsInstance( version, types.StringType )
+    try:
+      self.assertIsInstance( version, types.StringType )
+    except AttributeError:
+      pass
+
     self.assertNotEqual( version, '' )
 
 if __name__ == '__main__':
-    unittest.main()
+  cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
+
+  cahal_tests.cahal_initialize()
+
+  unittest.main()

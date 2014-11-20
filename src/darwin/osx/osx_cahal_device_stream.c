@@ -1,4 +1,4 @@
-#include "osx/osx_cahal_device_stream.h"
+#include "darwin/osx/osx_cahal_device_stream.h"
 
 void
 osx_set_cahal_device_stream_struct(
@@ -63,9 +63,9 @@ osx_get_device_stream_supported_formats (
     if( noErr == result && NULL != format_description )
     {
       UINT32 format =
-      osx_convert_core_audio_format_id_to_cahal_audio_format_id (
+      darwin_convert_core_audio_format_id_to_cahal_audio_format_id  (
                                                    format_description->mFormatID
-                                                                 );
+                                                                    );
       
       io_device_stream->preferred_format = format;
       

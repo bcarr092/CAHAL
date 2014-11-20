@@ -1,12 +1,12 @@
-#include "ios/ios_cahal_device.h"
+#include "darwin/ios/ios_cahal_device.h"
 
-BOOL
+CPC_BOOL
 cahal_set_default_device (
                           cahal_device*                 in_device,
                           cahal_device_stream_direction in_direction
                           )
 {
-  BOOL return_value = TRUE;
+  CPC_BOOL return_value = CPC_TRUE;
   
   if(
      NULL != in_device
@@ -25,7 +25,12 @@ cahal_set_default_device (
   }
   else
   {
-    return_value = FALSE;
+    CPC_LOG_STRING  (
+                     CPC_LOG_LEVEL_ERROR,
+                     "Device is null or direction not supported."
+                     );
+    
+    return_value = CPC_FALSE;
   }
   
   return( return_value );
@@ -34,9 +39,9 @@ cahal_set_default_device (
 cahal_device**
 ios_set_cahal_device_struct( void )
 {
-  BOOL initialized_device_aray  = TRUE;
-  UINT32 num_devices            = 1;
-  cahal_device** device_list    = NULL;
+  CPC_BOOL initialized_device_aray  = CPC_TRUE;
+  UINT32 num_devices                = 1;
+  cahal_device** device_list        = NULL;
   
   if( ios_query_input_support() )
   {
@@ -59,7 +64,7 @@ ios_set_cahal_device_struct( void )
                                )
          )
       {
-        initialized_device_aray = FALSE;
+        initialized_device_aray = CPC_FALSE;
         
         break;
       }
@@ -97,13 +102,13 @@ ios_set_cahal_device_struct( void )
   return( device_list );
 }
 
-BOOL
+CPC_BOOL
 ios_set_device_stream (
                        cahal_device* io_device,
                        cahal_device_stream_direction in_direction
 )
 {
-  BOOL result = TRUE;
+  CPC_BOOL result = CPC_TRUE;
   
   if( NULL != io_device )
   {
@@ -136,18 +141,18 @@ ios_set_device_stream (
   {
     CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Null device." );
     
-    result = FALSE;
+    result = CPC_FALSE;
   }
   
   return( result );
 }
 
-BOOL
+CPC_BOOL
 ios_get_output_device_info (
                            cahal_device* io_output_device
                            )
 {
-  BOOL initialized_output       = TRUE;
+  CPC_BOOL initialized_output = CPC_TRUE;
   
   io_output_device->handle    = IOS_DEVICE_HANDLE_OUTPUT;
   io_output_device->is_alive  = 1;
@@ -161,7 +166,7 @@ ios_get_output_device_info (
   {
     CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Could not get name." );
     
-    initialized_output = FALSE;
+    initialized_output = CPC_FALSE;
   }
   
   if( ios_get_device_uint32_property (
@@ -175,7 +180,7 @@ ios_get_output_device_info (
              kAudioSessionProperty_CurrentHardwareOutputNumberChannels
              );
     
-    initialized_output = FALSE;
+    initialized_output = CPC_FALSE;
   }
   
   if( ios_get_device_float64_property (
@@ -189,18 +194,18 @@ ios_get_output_device_info (
              kAudioSessionProperty_CurrentHardwareSampleRate
              );
     
-    initialized_output = FALSE;
+    initialized_output = CPC_FALSE;
   }
   
   return( initialized_output );
 }
 
-BOOL
+CPC_BOOL
 ios_get_input_device_info (
                            cahal_device* out_input_device
                            )
 {
-  BOOL initialized_input        = TRUE;
+  CPC_BOOL initialized_input = CPC_TRUE;
   
   out_input_device->handle   = IOS_DEVICE_HANDLE_INPUT;
   out_input_device->is_alive = 1;
@@ -214,7 +219,7 @@ ios_get_input_device_info (
   {
     CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Could not get name." );
     
-    initialized_input = FALSE;
+    initialized_input = CPC_FALSE;
   }
   
   if( ios_get_device_uint32_property (
@@ -228,7 +233,7 @@ ios_get_input_device_info (
              kAudioSessionProperty_CurrentHardwareInputNumberChannels
              );
     
-    initialized_input = FALSE;
+    initialized_input = CPC_FALSE;
   }
   
   if( ios_get_device_float64_property (
@@ -242,7 +247,7 @@ ios_get_input_device_info (
              kAudioSessionProperty_CurrentHardwareSampleRate
                );
     
-    initialized_input = FALSE;
+    initialized_input = CPC_FALSE;
   }
   
   return( initialized_input );
@@ -274,40 +279,52 @@ ios_get_device_name (
                            in_route_direction
                            );
     
-    UINT32 num_routes = CFArrayGetCount( routes );
-    
-    CPC_LOG (
-             CPC_LOG_LEVEL_TRACE,
-             "Found 0x%x routes",
-             num_routes
-             );
-    
-    if( 1 == num_routes )
+    if( NULL != routes )
     {
-      CFDictionaryRef input_dictionary =
-      CFArrayGetValueAtIndex( routes, 0 );
-      
-      CFStringRef device_type =
-      CFDictionaryGetValue  (
-                             input_dictionary,
-                             kAudioSession_AudioRouteKey_Type
-                             );
-      
-      *out_device_label = darwin_convert_cfstring_to_char_string( device_type );
+      UINT32 num_routes = CFArrayGetCount( routes );
       
       CPC_LOG (
-               CPC_LOG_LEVEL_DEBUG,
-               "Found device with label: %s.",
-               *out_device_label
+               CPC_LOG_LEVEL_TRACE,
+               "Found 0x%x routes",
+               num_routes
                );
+      
+      if( 1 == num_routes )
+      {
+        CFDictionaryRef input_dictionary =
+        CFArrayGetValueAtIndex( routes, 0 );
+        
+        CFStringRef device_type =
+        CFDictionaryGetValue  (
+                               input_dictionary,
+                               kAudioSession_AudioRouteKey_Type
+                               );
+        
+        *out_device_label = darwin_convert_cfstring_to_char_string( device_type );
+        
+        CPC_LOG (
+                 CPC_LOG_LEVEL_DEBUG,
+                 "Found device with label: %s.",
+                 *out_device_label
+                 );
+      }
+      else
+      {
+        CPC_ERROR( "Found 0x%x devices. Expecting 1.", num_routes );
+        
+        result = kAudioSessionUnspecifiedError;
+        
+        *out_device_label = NULL;
+      }
     }
     else
     {
-      CPC_ERROR( "Found 0x%x devices. Expecting 1.", num_routes );
+      CHAR* direction =
+      darwin_convert_cfstring_to_char_string( in_route_direction );
       
-      result = kAudioSessionUnspecifiedError;
-      
-      *out_device_label = NULL;
+      CPC_ERROR( "Received null route for direction %s.", direction );
+                     
+      cpc_safe_free( ( void** ) &direction );
     }
   }
   else
@@ -320,11 +337,11 @@ ios_get_device_name (
   return( result );
 }
 
-BOOL
+CPC_BOOL
 ios_query_input_support( void )
 {
-  BOOL input_supported  = FALSE;
-  UINT32 audio_support  = 0;
+  CPC_BOOL input_supported  = CPC_FALSE;
+  UINT32 audio_support      = 0;
   
   OSStatus result =
   ios_get_device_uint32_property  (
@@ -340,7 +357,7 @@ ios_query_input_support( void )
              audio_support
              );
     
-    input_supported = TRUE;
+    input_supported = CPC_TRUE;
   }
   else
   {

@@ -1,12 +1,15 @@
-#!/usr/local/bin/python -W error
-
 import cahal_tests
 import unittest
 import string
 import types
 import struct
+import platform
+import re
 
 recorded_samples  = []
+
+global_input_device_name  = None
+global_output_device_name = None
 
 def recorder( in_device, in_buffer, in_buffer_length ):
   recorded_samples.append( in_buffer )
@@ -21,17 +24,43 @@ def playback( in_device, in_buffer_length ):
 
   return( out_buffer )
 
+def determine_platform():
+  platform_info = platform.uname()
+
+  iphone_re = re.compile( "^iPhone", re.IGNORECASE )
+
+  if( platform_info[ 0 ] == "Darwin" ):
+      if( iphone_re.search( platform_info[ 4 ] ) ):
+        return( "iPhone" ) 
+      else:
+        return( "Mac OSX" )
+
 class TestsCAHALDevice( unittest.TestCase ):
+  def setUp( self ):
+    global global_input_device_name
+    global global_output_device_name
+
+    platform = determine_platform()
+
+    if( platform == "iPhone" ):
+      global_input_device_name  = "MicrophoneBuiltIn"
+      global_output_device_name = "Speaker"
+    elif( platform == "Mac OSX" ):
+      global_input_device_name  = "Built-in Microphone"
+      global_output_device_name = "Built-in Output"
+    else:
+      self.fail( "Unable to determine platform" )
+
   def test_cahal_playback_record( self ):
     device_list = cahal_tests.cahal_get_device_list()
     index       = 0
     device      = cahal_tests.cahal_device_list_get( device_list, index )
     
     built_in_output_device  = None
-    buitl_in_input_device   = None
+    built_in_input_device   = None
 
     while( device ):
-      if( device.device_name == 'Built-in Microphone'             \
+      if( device.device_name == global_input_device_name          \
           and cahal_tests.cahal_test_device_direction_support (   \
                 device,                                           \
                 cahal_tests.CAHAL_DEVICE_INPUT_STREAM             \
@@ -39,7 +68,7 @@ class TestsCAHALDevice( unittest.TestCase ):
         ):
         built_in_input_device = device
     
-      if( device.device_name == 'Built-in Output'                 \
+      if( device.device_name == global_output_device_name         \
           and cahal_tests.cahal_test_device_direction_support (   \
                 device,                                           \
                 cahal_tests.CAHAL_DEVICE_OUTPUT_STREAM            \
@@ -49,9 +78,9 @@ class TestsCAHALDevice( unittest.TestCase ):
       
       index   += 1
       device  = cahal_tests.cahal_device_list_get( device_list, index )
-   
-    self.assertIsNotNone( built_in_input_device.device_name )
-    self.assertIsNotNone( built_in_output_device.device_name )
+ 
+    self.assert_( built_in_input_device is not None )
+    self.assert_( built_in_output_device is not None )
     
     self.assertTrue (                                     \
           cahal_tests.start_recording (                   \
@@ -371,5 +400,7 @@ class TestsCAHALDevice( unittest.TestCase ):
 
 if __name__ == '__main__':
   cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
+
+  cahal_tests.cahal_initialize()
 
   unittest.main()

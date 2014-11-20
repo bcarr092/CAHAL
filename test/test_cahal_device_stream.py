@@ -1,5 +1,3 @@
-#!/usr/local/bin/python -W error
-
 import cahal_tests
 import unittest
 import string
@@ -71,4 +69,8 @@ class TestsCAHALDeviceStream( unittest.TestCase ):
       device = cahal_tests.cahal_device_list_get( device_list, index )
 
 if __name__ == '__main__':
-    unittest.main()
+  cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
+
+  cahal_tests.cahal_initialize()
+
+  unittest.main()

@@ -47,7 +47,7 @@ ios_set_cahal_device_struct( void );
  
     \return True iff audio input is support, false otherwise.
  */
-BOOL
+CPC_BOOL
 ios_query_input_support( void );
 
 /*! \fn     OSStatus ios_get_device_uint32_property  (
@@ -149,7 +149,7 @@ ios_get_device_name (
     \return True iff the minimum fields are set, false otherwise. Note that if
             False is returned the device is unusable.
  */
-BOOL
+CPC_BOOL
 ios_get_input_device_info (
                            cahal_device* out_input_device
                            );
@@ -168,7 +168,7 @@ ios_get_input_device_info (
     \return True iff the minimum fields are set, false otherwise. Note that if
             False is returned the device is unusable.
     */
-BOOL
+CPC_BOOL
 ios_get_output_device_info (
                             cahal_device* out_output_device
                             );
@@ -190,10 +190,13 @@ ios_get_output_device_info (
     \return Truee iff the minimum fields are set, false otherwise. Note that if
             False is returned the device stream is unusable.
  */
-BOOL
+CPC_BOOL
 ios_set_device_stream (
                        cahal_device* io_device,
                        cahal_device_stream_direction in_direction
                        );
+
+void
+ios_initialize_recording( void );
 
 #endif  /*  __IOS_CAHAL_DEVICE_H__  */

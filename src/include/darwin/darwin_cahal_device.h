@@ -1,10 +1,5 @@
-/*! \file   osx_cahal_device.h
-    \brief  This interface takes care of creating the platform-agnostic device
-            structs as well as the implementation for the audio hardware
-            controls, i.e. playback and record.
- */
-#ifndef __OSX_CAHAL_DEVICE_H__
-#define __OSX_CAHAL_DEVICE_H__
+#ifndef __DARWIN_CAHAL_DEVICE_H__
+#define __DARWIN_CAHAL_DEVICE_H__
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <AudioToolbox/AudioToolbox.h>
@@ -16,201 +11,10 @@
 #include "cahal_device_stream.h"
 #include "cahal_audio_format_flags.h"
 
-#include "osx_cahal_audio_format_flags.h"
-#include "osx_cahal_device_stream.h"
+#include "darwin_cahal_audio_format_flags.h"
+#include "darwin_cahal_audio_format_description.h"
 
-/*! \fn     void osx_set_cahal_device_struct(
-              AudioObjectID in_device_id,
-              cahal_device* io_device
-            )
-    \brief  Populate the given io_device struct with the parameters of the
-            audio hardware object defined by in_device_id. Note that this 
-            function will catalogue all the supported streams of the device
-            as well as all of the supported formats.
- 
-    \param  in_device_id  The device handle whose properties are to be populated
-                          in io_device.
-    \param  io_device     The cahal_device struct to populate with the
-                          properties of in_device_id.
- */
-void
-osx_set_cahal_device_struct(
-                            AudioObjectID in_device_id,
-                            cahal_device* io_device
-                            );
-
-/*! \fn     OSStatus osx_get_device_uint32_property  (
-              AudioObjectID                in_device_id,
-              AudioObjectPropertySelector  in_property,
-              UINT32*                      out_device_property
-            )
-    \brief  Extract the UINT32 value of in_property from the audio hardware
-            in_device_id. The extracted value is stored in out_device_property.
-            This is a helper function to wrap the OSX interface for audio 
-            hardware.
- 
-    \param  in_device_id  The device handle whose property is to be extracted.
-    \param  in_property   The property to query on in_device_id
-    \param  out_device_property The location to store the extracted property
-                                value.
-    \return Either noErr or an error code. The error code can be passed to
-            darwin_helper for printing.
- */
-OSStatus
-osx_get_device_uint32_property  (
-                               AudioObjectID                in_device_id,
-                               AudioObjectPropertySelector  in_property,
-                               UINT32*                      out_device_property
-                                 );
-
-/*! \fn     OSStatus osx_get_device_float64_property  (
-              AudioObjectID                in_device_id,
-              AudioObjectPropertySelector  in_property,
-              FLOAT64*                     out_device_property
-            )
-    \brief  Extract the FLOAT64 value of in_property from the audio hardware
-            in_device_id. The extracted value is stored in out_device_property.
-            This is a helper function to wrap the OSX interface for audio
-            hardware.
-
-    \param  in_device_id  The device handle whose property is to be extracted.
-    \param  in_property   The property to query on in_device_id
-    \param  out_device_property The location to store the extracted property
-                                value.
-    \return Either noErr or an error code. The error code can be passed to
-            darwin_helper for printing.
- */
-OSStatus
-osx_get_device_float64_property (
-                               AudioObjectID                in_device_id,
-                               AudioObjectPropertySelector  in_property,
-                               FLOAT64*                     out_device_property
-                                 );
-
-/*! \fn     OSStatus osx_get_device_string_property  (
-              AudioObjectID                in_device_id,
-              AudioObjectPropertySelector  in_property,
-              CHAR**                       out_device_property
-            )
-    \brief  Extract the CHAR value of in_property from the audio hardware
-            in_device_id. The extracted value is stored in out_device_property.
-            This is a helper function to wrap the OSX interface for audio
-            hardware.
-
-    \param  in_device_id  The device handle whose property is to be extracted.
-    \param  in_property   The property to query on in_device_id
-    \param  out_device_property The location to store the extracted property
-                                value.
-    \return Either noErr or an error code. The error code can be passed to
-            darwin_helper for printing.
- */
-OSStatus
-osx_get_device_string_property  (
-                                 AudioObjectID               in_device_id,
-                                 AudioObjectPropertySelector in_property,
-                                 CHAR**                      out_device_property
-                                 );
-
-/*! \fn     OSStatus osx_get_device_property_value  (
-              AudioObjectID                in_device_id,
-              AudioObjectPropertySelector  in_property,
-              UINT32                       in_device_property_value_size,
-              void*                        out_device_property_value
-            )
-    \brief  Generic function to extract the value for in_property from the audio
-            hardware in_device_id. The extracted value is stored in
-            out_device_property_value.
-            This is a helper function to wrap the OSX interface for audio
-            hardware.
-
-    \param  in_device_id  The device handle whose property is to be extracted.
-    \param  in_property   The property to query on in_device_id
-    \param  in_device_property_value_size The number of bytes that will be
-                                          stored in out_device_property_value.
-    \param  out_device_property_value The location to store the extracted
-                                      property value.
-    \return Either noErr or an error code. The error code can be passed to
-            darwin_helper for printing.
- */
-OSStatus
-osx_get_device_property_value (
-                     AudioObjectID                in_device_id,
-                     AudioObjectPropertySelector  in_property,
-                     UINT32                       in_device_property_value_size,
-                     void*                        out_device_property_value
-                               );
-
-/*! \fn     OSStatus osx_get_device_property_size_and_value  (
-              AudioObjectID                in_device_id,
-              AudioObjectPropertySelector  in_property,
-              UINT32*                      out_device_property_value_size,
-              void**                       out_device_property_value
-            )
-    \brief  Generic function to extract both the size and value for in_property
-            from the audio hardware in_device_id. The extracted size is stored
-            in out_device_property_value_size and value is stored in
-            out_device_property_value. This is a helper function to wrap the OSX
-            interface for audio hardware.
-
-    \param  in_device_id  The device handle whose property is to be extracted.
-    \param  in_property   The property to query on in_device_id
-    \param  out_device_property_value_size  The location to store the number of
-                                            bytes required to store the property
-                                            value.
-    \param  out_device_property_value The location to store the extracted
-                                      property value. The size of
-                                      out_device_property_value is
-                                      out_device_property_value_size. The caller
-                                      must free this parameter.
-    \return Either noErr or an error code. The error code can be passed to
-            darwin_helper for printing.
- */
-OSStatus
-osx_get_device_property_size_and_value (
-                   AudioObjectID                in_device_id,
-                   AudioObjectPropertySelector  in_property,
-                   UINT32*                      out_device_property_value_size,
-                   void**                       out_device_property_value
-                                        );
-
-/*! \fn     OSStatus osx_get_device_supported_sample_rates (
-              cahal_device* io_device
-            )
-    \brief  Populate the list of supported sample rates in io_device. The
-            caller must free the list of supported sample rates. The list is
-            null-terminated. This is a helper function to wrap the OSX
-            interface for audio hardware.
- 
-    \param  io_device The sample rates supported by the audio device pointed to
-                      by the handle in io_device will be logged in the list of
-                      sample rates in io_device. This is a null terminated list
-                      and must be freed by the caller.
-    \return Either noErr or an error code. The error code can be passed to
-            darwin_helper for printing.
- */
-OSStatus
-osx_get_device_supported_sample_rates (
-                                       cahal_device* io_device
-                                       );
-
-/*! \fn     OSStatus osx_get_number_of_channels  (
-              cahal_device* io_device
-            )
-    \brief  Populate the number of supported channels in the cahal_device. We
-            query a number of different properties to find the correct number of
-            channels supported by the device.
- 
-    \param  io_device The number of channels supported by the device will be
-                      logged in the numeber_of_channels field of io_device.
-    \return Either noErr or an error code. The error code can be passed to
-            darwin_helper for printing.
- */
-OSStatus
-osx_get_number_of_channels  (
-                             cahal_device* io_device
-                             );
-
-/*! \fn     void osx_recorder_callback  (
+/*! \fn     void darwin_recorder_callback  (
               void*                                in_user_data,
               AudioQueueRef                        in_queue,
               AudioQueueBufferRef                  in_buffer,
@@ -240,8 +44,9 @@ osx_get_number_of_channels  (
     \param  in_packet_description Format information for the packet. Only used
                                   with VBR codecs. Always null in CBR cases.
  */
+static
 void
-osx_recorder_callback  (
+darwin_recorder_callback  (
                       void*                                in_user_data,
                       AudioQueueRef                        in_queue,
                       AudioQueueBufferRef                  in_buffer,
@@ -250,7 +55,7 @@ osx_recorder_callback  (
                       const AudioStreamPacketDescription*  in_packet_description
                         );
 
-/*! \fn     void osx_playback_callback (
+/*! \fn     void darwin_playback_callback (
               void*                in_user_data,
               AudioQueueRef        in_queue,
               AudioQueueBufferRef  in_buffer
@@ -268,14 +73,15 @@ osx_recorder_callback  (
                       buffer must be filled with samples encoded in the format
                       provided when cahal_start_playback was called.
  */
+static
 void
-osx_playback_callback (
+darwin_playback_callback (
                        void*                in_user_data,
                        AudioQueueRef        in_queue,
                        AudioQueueBufferRef  in_buffer
                        );
 
-/*! \fn     OSStatus osx_configure_asbd  (
+/*! \fn     OSStatus darwin_configure_asbd  (
               cahal_audio_format_id          in_format_id,
               UINT32                         in_number_of_channels,
               FLOAT64                        in_sample_rate,
@@ -302,7 +108,7 @@ osx_playback_callback (
     \param  out_asbd  The newly populated ASBD if no error occurs.
  */
 OSStatus
-osx_configure_asbd  (
+darwin_configure_asbd  (
                      cahal_audio_format_id          in_format_id,
                      UINT32                         in_number_of_channels,
                      FLOAT64                        in_sample_rate,
@@ -312,7 +118,7 @@ osx_configure_asbd  (
                      AudioStreamBasicDescription    *out_asbd
                      );
 
-/*! \fn     OSStatus osx_compute_bytes_per_buffer  (
+/*! \fn     OSStatus darwin_compute_bytes_per_buffer  (
               AudioStreamBasicDescription* in_asbd,
               FLOAT32                      in_number_of_seconds,
               UINT32*                      out_bytes_per_buffer
@@ -328,13 +134,13 @@ osx_configure_asbd  (
     \return noErr(0) if no error occurs or an appropriate error code.
  */
 OSStatus
-osx_compute_bytes_per_buffer  (
+darwin_compute_bytes_per_buffer  (
                              AudioStreamBasicDescription* in_asbd,
                              FLOAT32                      in_number_of_seconds,
                              UINT32*                      out_bytes_per_buffer
                                );
 
-/*! \fn     OSStatus osx_configure_input_audio_queue (
+/*! \fn     OSStatus darwin_configure_input_audio_queue (
               cahal_device*                 in_device,
               cahal_recorder_info*          in_callback_info,
               AudioStreamBasicDescription*  io_asbd,
@@ -352,14 +158,14 @@ osx_compute_bytes_per_buffer  (
     \return noErr(0) if no error occurs or an appropriate error code.
  */
 OSStatus
-osx_configure_input_audio_queue (
+darwin_configure_input_audio_queue (
                                  cahal_device*                 in_device,
                                  cahal_recorder_info*          in_callback_info,
                                  AudioStreamBasicDescription*  io_asbd,
                                  AudioQueueRef*                out_audio_queue
                                  );
 
-/*! \fn     OSStatus osx_configure_input_audio_queue (
+/*! \fn     OSStatus darwin_configure_input_audio_queue (
               cahal_device*                 in_device,
               cahal_recorder_info*          in_callback_info,
               AudioStreamBasicDescription*  io_asbd,
@@ -375,14 +181,14 @@ osx_configure_input_audio_queue (
     \return noErr(0) if no error occurs or an appropriate error code.
     */
 OSStatus
-osx_configure_output_audio_queue (
+darwin_configure_output_audio_queue (
                                 cahal_device*                 in_device,
                                 cahal_playback_info*          in_callback_info,
                                 AudioStreamBasicDescription*  in_asbd,
                                 AudioQueueRef*                out_audio_queue
                                   );
 
-/*! \fn     OSStatus osx_configure_input_audio_queue_buffer  (
+/*! \fn     OSStatus darwin_configure_input_audio_queue_buffer  (
               AudioStreamBasicDescription* in_asbd,
               AudioQueueRef                io_audio_queue
             )
@@ -393,11 +199,11 @@ osx_configure_output_audio_queue (
     \param  io_audio_queue  The audio queue that is populated with buffers.
  */
 OSStatus
-osx_configure_input_audio_queue_buffer  (
+darwin_configure_input_audio_queue_buffer  (
                                      AudioStreamBasicDescription* in_asbd,
                                      AudioQueueRef                io_audio_queue
                                          );
-/*! \fn     OSStatus osx_configure_output_audio_queue_buffer  (
+/*! \fn     OSStatus darwin_configure_output_audio_queue_buffer  (
               AudioStreamBasicDescription*  in_asbd,
               cahal_playback_info*          in_playback,
               AudioQueueRef                 io_audio_queue
@@ -412,10 +218,10 @@ osx_configure_input_audio_queue_buffer  (
     \param  io_audio_queue  The audio queue that is populated with buffers.
     */
 OSStatus
-osx_configure_output_audio_queue_buffer  (
+darwin_configure_output_audio_queue_buffer  (
                                     AudioStreamBasicDescription*  in_asbd,
                                     cahal_playback_info*          in_playback,
                                     AudioQueueRef                 io_audio_queue
                                           );
 
-#endif /* __OSX_CAHAL_DEVICE_H__ */
+#endif  /*  __DARWIN_CAHAL_DEVICE_H__ */

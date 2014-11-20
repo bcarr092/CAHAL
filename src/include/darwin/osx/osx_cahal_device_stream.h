@@ -16,6 +16,8 @@
 #include "osx_cahal_device.h"
 #include "osx_cahal_audio_format_description.h"
 
+#include "darwin/darwin_cahal_audio_format_description.h"
+
 /*! \fn     OSStatus osx_get_device_streams  (
               cahal_device* io_device
             )

@@ -28,18 +28,33 @@ list( APPEND HEADERS "${INCLUDE_DIR}/cahal_device.h" )
 list( APPEND HEADERS "${INCLUDE_DIR}/cahal_device_stream.h" )
 
 if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
+  find_library( FOUNDATION_FRAMEWORK Foundation )
   find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )
   find_library( CORE_AUDIO_FRAMEWORK CoreAudio )
+  find_library( AUDIO_TOOLBOX_FRAMEWORK AudioToolbox )
+  find_library( AVFOUNDATION_FRAMEWORK AVFoundation )
+  find_library( COREDATA_FRAMEWORK CoreData )
+  find_library( OBJC_FRAMEWORK objc )
 
-  set( EXTRA_LIBS ${CORE_FOUNDATION_FRAMEWORK} ${CORE_AUDIO_FRAMEWORK} )
+  set (
+        EXTRA_LIBS
+        ${CORE_FOUNDATION_FRAMEWORK}
+        ${CORE_AUDIO_FRAMEWORK}
+        ${AUDIO_TOOLBOX_FRAMEWORK}
+        ${AVFOUNDATION_FRAMEWORK}
+        ${COREDATA_FRAMEWORK}
+        ${OBJC_FRAMEWORK}
+        ${FOUNDATION_FRAMEWORK}
+      )
 
   message( STATUS "Framework libraries: ${EXTRA_LIBS}" )
 
+  find_path( AVFOUNDATION_INCLUDES   "AVFoundation/AVFoundation.h" )
   find_path( AUDIO_TOOLBOX_INCLUDES   "AudioToolbox/AudioToolbox.h" )
   find_path( CORE_FOUNDATION_INCLUDES "CoreFoundation/CoreFoundation.h" )
 
   set ( EXTRA_INCLUDES
-        ${CORE_FOUNDATION_INCLUDES} ${CORE_AUDIO_INCLUDES}
+        ${CORE_FOUNDATION_INCLUDES} ${AVFOUNDATION_INCLUDES}
         ${AUDIO_TOOLBOX_INCLUDES}
       )
   
@@ -57,32 +72,60 @@ if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
   include_directories( ${DARWINHELPER_INCLUDE_DIR} )
 
   if( ${PLATFORM} STREQUAL "iPhoneOS" )
-    list( APPEND SOURCES "${SOURCE_DIR}/ios/ios_cahal.c" )
-    list( APPEND SOURCES "${SOURCE_DIR}/ios/ios_cahal_device.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/darwin/ios/ios_cahal.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/darwin/ios/ios_cahal_device.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/darwin/ios/ios_cahal_initialize.m" )
 
-    list( APPEND HEADERS "${INCLUDE_DIR}/ios/ios_cahal.h" )
-    list( APPEND HEADERS "${INCLUDE_DIR}/ios/ios_cahal_device.h" )
+    list( APPEND HEADERS "${INCLUDE_DIR}/darwin/ios/ios_cahal.h" )
+    list( APPEND HEADERS "${INCLUDE_DIR}/darwin/ios/ios_cahal_device.h" )
+    list( APPEND HEADERS "${INCLUDE_DIR}/darwin/ios/ios_cahal_initialize.h" )
   elseif( ${PLATFORM} STREQUAL "MacOSX" )
-    list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal.c" )
-    list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal_audio_format_flags.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx/osx_cahal.c" )
     list(
           APPEND
           SOURCES
-          "${SOURCE_DIR}/osx/osx_cahal_audio_format_description.c"
+          "${SOURCE_DIR}/darwin/osx/osx_cahal_audio_format_description.c"
         )
-    list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal_device.c" )
-    list( APPEND SOURCES "${SOURCE_DIR}/osx/osx_cahal_device_stream.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx/osx_cahal_device.c" )
+    list( APPEND SOURCES "${SOURCE_DIR}/darwin/osx/osx_cahal_device_stream.c" )
 
-    list( APPEND HEADERS "${INCLUDE_DIR}/osx/osx_cahal.h" )
-    list( APPEND HEADERS "${INCLUDE_DIR}/osx/osx_cahal_audio_format_flags.h" )
+    list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx/osx_cahal.h" )
     list(
           APPEND
           HEADERS
-          "${INCLUDE_DIR}/osx/osx_cahal_audio_format_description.h"
+          "${INCLUDE_DIR}/darwin/osx/osx_cahal_audio_format_description.h"
         )
-    list( APPEND HEADERS "${INCLUDE_DIR}/osx/osx_cahal_device.h" )
-    list( APPEND HEADERS "${INCLUDE_DIR}/osx/osx_cahal_device_stream.h" )
+    list  (
+            APPEND
+            HEADERS
+            "${INCLUDE_DIR}/darwin/osx/osx_cahal_device.h"
+          )
+    list( APPEND HEADERS "${INCLUDE_DIR}/darwin/osx/osx_cahal_device_stream.h" )
   endif()
+
+  list  (
+          APPEND
+          SOURCES
+          "${SOURCE_DIR}/darwin/darwin_cahal_audio_format_flags.c"
+        )
+  list(
+        APPEND
+        SOURCES
+        "${SOURCE_DIR}/darwin/darwin_cahal_audio_format_description.c"
+      )
+  list( APPEND SOURCES "${SOURCE_DIR}/darwin/darwin_cahal_device.c" )
+
+  list  (
+          APPEND
+          HEADERS
+          "${INCLUDE_DIR}/darwin/darwin_cahal_audio_format_flags.h"
+        )
+  list(
+        APPEND
+        HEADERS
+        "${INCLUDE_DIR}/darwin/darwin_cahal_audio_format_description.h"
+      )
+  list( APPEND HEADERS "${INCLUDE_DIR}/darwin/darwin_cahal_device.h" )
 else()
   message( FATAL "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
 endif()

@@ -16,7 +16,7 @@
 #include <darwin_helper.h>
 
 #include "cahal.h"
-#include "osx/osx_cahal_device.h"
+#include "osx_cahal_device.h"
 
 /*! \fn     OSStatus osx_get_audio_device_handles (
               AudioObjectID** io_device_list,

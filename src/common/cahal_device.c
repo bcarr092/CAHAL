@@ -203,13 +203,13 @@ cahal_free_device_list (
   }
 }
 
-BOOL
+CPC_BOOL
 cahal_test_device_direction_support  (
                                       cahal_device*                 in_device,
                                       cahal_device_stream_direction in_direction
                                       )
 {
-  BOOL result = FALSE;
+  CPC_BOOL result = CPC_FALSE;
   
   if( NULL != in_device )
   {
@@ -220,7 +220,7 @@ cahal_test_device_direction_support  (
     {
       if( in_direction == stream->direction )
       {
-        result = TRUE;
+        result = CPC_TRUE;
       }
       
       stream = in_device->device_streams[ index++ ];
