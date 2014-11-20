@@ -157,12 +157,15 @@ ios_get_output_device_info (
   io_output_device->handle    = IOS_DEVICE_HANDLE_OUTPUT;
   io_output_device->is_alive  = 1;
   
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   if  (
        ios_get_device_name  (
                              kAudioSession_AudioRouteKey_Outputs,
                              &io_output_device->device_name
                              )
        )
+#pragma clang diagnostic pop
   {
     CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Could not get name." );
     
@@ -210,12 +213,15 @@ ios_get_input_device_info (
   out_input_device->handle   = IOS_DEVICE_HANDLE_INPUT;
   out_input_device->is_alive = 1;
   
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   if  (
        ios_get_device_name  (
                              kAudioSession_AudioRouteKey_Inputs,
                              &out_input_device->device_name
                              )
        )
+#pragma clang diagnostic pop
   {
     CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Could not get name." );
     
@@ -262,12 +268,15 @@ ios_get_device_name (
   UINT32 property_size                = 0;
   CFDictionaryRef audio_routing_info  = NULL;
   
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   OSStatus result =
   AudioSessionGetProperty (
                            kAudioSessionProperty_AudioRouteDescription,
                            &property_size,
                            &audio_routing_info
                            );
+#pragma clang diagnostic pop
   
   if( kAudioSessionNoError == result && NULL != audio_routing_info )
   {
@@ -294,11 +303,14 @@ ios_get_device_name (
         CFDictionaryRef input_dictionary =
         CFArrayGetValueAtIndex( routes, 0 );
         
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         CFStringRef device_type =
         CFDictionaryGetValue  (
                                input_dictionary,
                                kAudioSession_AudioRouteKey_Type
                                );
+#pragma clang diagnostic pop
         
         *out_device_label = darwin_convert_cfstring_to_char_string( device_type );
         
@@ -429,12 +441,15 @@ ios_get_device_property_value (
                            void*                  out_device_property_value
                                )
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   OSStatus result =
   AudioSessionGetProperty (
                            in_property,
                            io_device_property_value_size,
                            out_device_property_value
                            );
+#pragma clang diagnostic pop
   
   if( result )
   {

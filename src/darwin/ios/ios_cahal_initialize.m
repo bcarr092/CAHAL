@@ -69,9 +69,9 @@ void ios_initialize_recording()
     cpc_exit( CPC_ERROR_CODE_INVALID_PERMISSIONS );
   }
   
-  BOOL audioHWAvailable = [[AVAudioSession sharedInstance] inputIsAvailable];
+  NSArray* available_inputs = [[AVAudioSession sharedInstance] availableInputs];
   
-  if( ! audioHWAvailable )
+  if( 0 == available_inputs.count )
   {
     CPC_LOG_STRING  (
                       CPC_LOG_LEVEL_ERROR,
