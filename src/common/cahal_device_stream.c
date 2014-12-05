@@ -36,7 +36,7 @@ cahal_print_device_stream (
     }
     else
     {
-      CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\t\tDirection: INTPUT" );
+      CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "\t\tDirection: INPUT" );
     }
     
     cahal_print_audio_format_id (

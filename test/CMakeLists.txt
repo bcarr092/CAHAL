@@ -20,7 +20,6 @@ set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH )
 set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH )
 
 find_package( SWIG REQUIRED )
-#find_package( PythonLibs REQUIRED )
 
 set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
 set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
@@ -31,8 +30,22 @@ include( ${SWIG_USE_FILE} )
 set( CPCOMMON_INCLUDE_DIRECTORY "${cpcommon_SOURCE_DIR}/src/include" )
 set( CAHAL_INCLUDE_DIRECTORY "${cahal_SOURCE_DIR}/src/include" )
 
-set( PYTHON_INCLUDE_PATH "/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/include" )
-set( PYTHON_LIBRARIES "/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/lib/libpython.dylib" )
+set (
+      PYTHON_INCLUDE_PATH
+      "/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/include"
+    )
+
+if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
+  set (
+        PYTHON_LIBRARIES
+"/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/lib/libpython.dylib"
+      )
+elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
+  set (
+        PYTHON_LIBRARIES
+"/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/lib/libpython.so"
+      )
+endif()
 
 include_directories( ${CPCOMMON_INCLUDE_DIRECTORY} )
 include_directories( ${CAHAL_INCLUDE_DIRECTORY} )
@@ -78,16 +91,40 @@ enable_testing()
 
 add_test( ${PROJECT_NAME} "${PROJECT_BINARY_DIR}/test_driver.py" )
 
-# These are platform specific build instructions, this needs to be cleaned up
-find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )
-find_library( CORE_AUDIO_FRAMEWORK CoreAudio )
-find_library( AUDIO_TOOLBOX_FRAMEWORK AudioToolbox )
+if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
+  find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )
+  find_library( CORE_AUDIO_FRAMEWORK CoreAudio )
+  find_library( AUDIO_TOOLBOX_FRAMEWORK AudioToolbox )
 
-set ( EXTRA_LIBS
-      ${CORE_FOUNDATION_FRAMEWORK} ${CORE_AUDIO_FRAMEWORK}
-      ${AUDIO_TOOLBOX_FRAMEWORK}
-    )
+  set ( EXTRA_LIBS
+        ${CORE_FOUNDATION_FRAMEWORK} ${CORE_AUDIO_FRAMEWORK}
+        ${AUDIO_TOOLBOX_FRAMEWORK}
+      )
 
-message( STATUS "Framework libraries: ${EXTRA_LIBS}" )
+  message( STATUS "Framework libraries: ${EXTRA_LIBS}" )
 
-swig_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
+  swig_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
+elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
+  find_library  (
+                  OPENSLES_LIB
+                  OpenSLES
+                  HINTS "${CMAKE_FIND_ROOT_PATH}/usr/lib"
+                )
+  find_library  (
+                  MATH_LIB
+                  m  
+                  HINTS "${CMAKE_FIND_ROOT_PATH}/usr/lib"
+                )
+
+  set (
+        EXTRA_LIBS
+        ${OPENSLES_LIB}
+        ${MATH_LIB}
+      )
+
+  message( STATUS "Android libraries: ${EXTRA_LIBS}" )
+
+  swig_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
+else()
+  message( FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
+endif()

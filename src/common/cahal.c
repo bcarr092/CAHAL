@@ -5,6 +5,8 @@
 
 #define LIBRARY_NAME  "cahal"
 
+cahal_state g_cahal_state = CAHAL_STATE_NOT_INITIALIZED;
+
 UINT16 cahal_get_version( void )
 {
   UINT16 version = ( ( MAJOR_VERSION & 0x000000FF ) << 8 )
@@ -29,20 +31,11 @@ CHAR* cahal_get_version_string( void )
   return( version );
 }
 
+
 void
-test( void )
+cahal_sleep (
+    UINT32 in_sleep_time
+            )
 {
-  CHAR* buffer = NULL;
-  
-  cpc_safe_malloc( ( void** ) &buffer, 10 );
-  
-  for( UINT32 i = 0; i < 10; i++ )
-  {
-    if( buffer[ i ] != '\0' )
-    {
-      exit( -1 );
-    }
-  }
-  
-  cpc_safe_free( ( void** )   &buffer );
+  sleep( in_sleep_time );
 }

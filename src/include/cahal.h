@@ -14,6 +14,17 @@
 #include "cahal_audio_format_flags.h"
 #include "cahal_audio_format_description.h"
 
+enum cahal_states
+{
+  CAHAL_STATE_NOT_INITIALIZED  = 0,
+  CAHAL_STATE_INITIALIZED,
+  CAHAL_STATE_TERMINATED
+};
+
+typedef UINT32 cahal_state;
+
+extern cahal_state g_cahal_state;
+
 /*! \fn     UINT16 get_version( void )
     \brief  Returns the version of the library in a SHORT. The top 8 MSBs are
             the major version and the 8 LSBs are the minor version.
@@ -41,6 +52,14 @@ cahal_get_version_string( void );
  */
 void
 cahal_initialize( void );
+
+void
+cahal_terminate( void );
+
+void
+cahal_sleep (
+    UINT32 in_sleep_time
+            );
 
 #endif /* _CAHAL_H_ */
 

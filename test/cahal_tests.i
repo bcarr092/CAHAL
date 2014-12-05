@@ -212,7 +212,6 @@ cahal_float_array_get (
                   int                   in_bit_depth,
                   PyObject*             in_callback_function,
                   int                   in_format_flags
-                  int                   in_record_time
                                   )
     \brief  Wrapper function that passes the trampoline callback 
             python_recorder_callback as the intermediate callback to the
@@ -233,7 +232,6 @@ cahal_float_array_get (
                                   buffers of audio data are made available.
     \param  in_format_flags The format flag bitmask indicating the cahal
                             flags to use in the recording.
-    \param  in_record_time  The number of seconds to record for.
     \return Returns the result of cahal_start_recording, which is a boolean.
   */
 PyObject*
@@ -244,8 +242,7 @@ start_recording (
                   double        in_sample_rate,
                   int           in_bit_depth,
                   PyObject*     in_callback_function,
-                  int           in_format_flags,
-                  int           in_record_time
+                  int           in_format_flags
                 )
 {
   int result =  cahal_start_recording (
@@ -256,8 +253,7 @@ start_recording (
                           in_bit_depth,
                           python_recorder_callback,
                           in_callback_function,
-                          in_format_flags,
-                          in_record_time
+                          in_format_flags
                                       ); 
 
   if( 1 == result )
@@ -335,7 +331,6 @@ python_recorder_callback  (
                   int                   in_bit_depth,
                   PyObject*             in_callback_function,
                   int                   in_format_flags
-                  int                   in_playback_time
                                   )
     \brief  Wrapper function that passes the trampoline callback 
             python_playback_callback as the intermediate callback to the
@@ -356,7 +351,6 @@ python_recorder_callback  (
                                   buffers of audio data are made available.
     \param  in_format_flags The format flag bitmask indicating the cahal
                             flags to use in the playback.
-    \param  in_record_time  The number of seconds to playback for.
     \return Returns the result of cahal_start_playback, which is a boolean.
   */
 PyObject*
@@ -367,8 +361,7 @@ start_playback (
                   double        in_sample_rate,
                   int           in_bit_depth,
                   PyObject*     in_callback_function,
-                  int           in_format_flags,
-                  int           in_playback_time
+                  int           in_format_flags
                 )
 {
   int result =  cahal_start_playback  (
@@ -379,8 +372,7 @@ start_playback (
                           in_bit_depth,
                           python_playback_callback,
                           in_callback_function,
-                          in_format_flags,
-                          in_playback_time
+                          in_format_flags
                                       ); 
 
   if( 1 == result )

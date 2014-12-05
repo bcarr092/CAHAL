@@ -126,8 +126,58 @@ if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
         "${INCLUDE_DIR}/darwin/darwin_cahal_audio_format_description.h"
       )
   list( APPEND HEADERS "${INCLUDE_DIR}/darwin/darwin_cahal_device.h" )
+elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
+  list( APPEND SOURCES "${SOURCE_DIR}/android/android_cahal.c" )
+  list( APPEND SOURCES "${SOURCE_DIR}/android/android_cahal_device.c" )
+    list(
+          APPEND
+          SOURCES
+          "${SOURCE_DIR}/android/android_cahal_audio_format_description.c"
+        )
+
+  list( APPEND HEADERS "${INCLUDE_DIR}/android/android_cahal.h" )
+  list( APPEND HEADERS "${INCLUDE_DIR}/android/android_cahal_device.h" )
+  list(
+        APPEND
+        HEADERS
+        "${INCLUDE_DIR}/android/android_cahal_audio_format_description.h"
+      )
+
+  find_library  (
+                  OPENSLES_LIB
+                  OpenSLES
+                  HINTS "${CMAKE_FIND_ROOT_PATH}/usr/lib"
+                )
+  find_library  (
+                  MATH_LIB
+                  m
+                  HINTS "${CMAKE_FIND_ROOT_PATH}/usr/lib"
+                )
+
+  set (
+        EXTRA_LIBS
+        ${OPENSLES_LIB}
+        ${MATH_LIB}
+      )
+
+  message( STATUS "Android libraries: ${EXTRA_LIBS}" )
+
+  find_path (
+              OPENSLES_INCLUDES
+              "SLES/OpenSLES.h"
+              HINTS "${CMAKE_FIND_ROOT_PATH}/usr/include"
+            )
+
+  set (
+        EXTRA_INCLUDES
+        ${OPENSLES_INCLUDES}
+      )
+  
+  message( STATUS "Android include directories: ${EXTRA_INCLUDES}" )
+
+  include_directories( ${EXTRA_INCLUDES} )
 else()
-  message( FATAL "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
+  message( FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
 endif()
 
 set( CPCOMMON_INCLUDE_DIR "${cpcommon_SOURCE_DIR}/src/include" )
@@ -150,6 +200,8 @@ target_link_libraries( ${PROJECT_NAME} cpcommon )
 if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
   target_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
   target_link_libraries( ${PROJECT_NAME} darwinhelper )
+elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
+  #target_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
 endif()
 
 install (

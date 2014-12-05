@@ -1,5 +1,7 @@
 #include "cahal_device.h"
 
+cahal_device** g_device_list    = NULL;
+
 void
 cahal_print_device_list (
                          cahal_device** in_device_list
@@ -130,18 +132,12 @@ cahal_print_device  (
 }
 
 void
-cahal_free_device_list (
-                        cahal_device** in_device_list
-                        )
+cahal_free_device_list( void )
 {
-  if( NULL == in_device_list )
-  {
-    return;
-  }
-  else
+  if( NULL != g_device_list )
   {
     UINT32 device_index   = 0;
-    cahal_device* device  = in_device_list[ 0 ];
+    cahal_device* device  = g_device_list[ 0 ];
     
     while( NULL != device )
     {
@@ -196,10 +192,14 @@ cahal_free_device_list (
       
       device_index++;
       
-      device = in_device_list[ device_index ];
+      device = g_device_list[ device_index ];
     }
     
-    cpc_safe_free( ( void** ) &( in_device_list ) );
+    cpc_safe_free( ( void** ) ( &g_device_list ) );
+  }
+  else
+  {
+    CPC_LOG_STRING( CPC_LOG_LEVEL_WARN, "CAHAL device list is not set." );
   }
 }
 

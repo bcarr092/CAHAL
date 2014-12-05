@@ -118,7 +118,7 @@ typedef struct cahal_sample_rate_range_t
 /*! \var    cahal_audio_format_description
     \brief  Struct used to model the configuration parameters for an audio
             stream, both input and output. This struct captures stream specific
-            parameters that can be used when openning a stream for input/output.
+            parameters that can be used when opening a stream for input/output.
             These parameters are supported by the corresponding audio device in
             hardware.
  */
