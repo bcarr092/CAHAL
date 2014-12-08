@@ -1,3 +1,6 @@
+/*! \file   android_cahal.h
+ *  \brief  Android platform specific functions to setup the OpenSLES framework.
+ */
 #ifndef __ANDROID_CAHAL_H__
 #define __ANDROID_CAHAL_H__
 

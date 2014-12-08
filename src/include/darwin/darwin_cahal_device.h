@@ -1,3 +1,6 @@
+/*! \file   darwin_cahal_device.h
+    \brief  Common code for iOS and OSX to handle recording/playback.
+ */
 #ifndef __DARWIN_CAHAL_DEVICE_H__
 #define __DARWIN_CAHAL_DEVICE_H__
 

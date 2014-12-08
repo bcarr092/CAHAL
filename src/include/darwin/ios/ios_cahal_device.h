@@ -1,3 +1,6 @@
+/*! \file   ios_cahal_device.h
+    \brief  iOS platform specific calls to generate the device struct.
+ */
 #ifndef __IOS_CAHAL_DEVICE_H__
 #define __IOS_CAHAL_DEVICE_H__
 

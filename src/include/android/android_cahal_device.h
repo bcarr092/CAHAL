@@ -1,3 +1,7 @@
+/*! \file   android_cahal_device.h
+ *  \brief  Android specific OpenSLES API calls used to setup the list of
+ *          supported input and output hardware devices.
+ */
 #ifndef __ANDROID_CAHAL_DEVICE_H__
 #define __ANDROID_CAHAL_DEVICE_H__
 
@@ -11,8 +15,8 @@
 #include "android_cahal.h"
 
 /*! \var    android_callback_info_t
- *  \brief  Struct used to store buffer information required by the playback/
- *          record callbacks.
+   \brief  Struct used to store buffer information required by the playback/
+           record callbacks.
  */
 typedef struct android_callback_info_t
 {
@@ -46,7 +50,7 @@ typedef struct android_callback_info_t
 } android_callback_info;
 
 /*! \var    android_recorder_context_t
- *  \breif  Platform-specific pointers to data structures required to record
+ *  \brief  Platform-specific pointers to data structures required to record
  *          audio using the OpenSLES framework.
  */
 typedef struct android_recoder_context_t
@@ -64,7 +68,7 @@ typedef struct android_recoder_context_t
 } android_recorder_context;
 
 /*! \var    android_recorder_context_t
- *  \breif  Platform-specific pointers to data structures required to playbac
+ *  \brief  Platform-specific pointers to data structures required to playbac
  *          audio using the OpenSLES framework.
  */
 typedef struct android_playback_context_t

@@ -124,6 +124,10 @@ typedef struct cahal_device_t
   
 } cahal_device;
 
+/*! \var    g_device_list
+    \brief  The global device list that is set the first time that
+            cahal_get_device_list is called.
+ */
 extern cahal_device** g_device_list;
 
 /*! \def    cahal_recorder_callback
@@ -200,7 +204,7 @@ typedef CPC_BOOL (*cahal_playback_callback) (
   void*         in_client_data
 );
 
-/*! \def    cahal_recorder_info
+/*! \def    cahal_recorder_info_t
    \brief  Structure that is passed to the platform-specific callback routine
            when audio buffers populated with samples is made available by the
            recording device. This structure stores the ultimate callback that
@@ -227,7 +231,7 @@ typedef struct cahal_recorder_info_t
   void*                   platform_data;
 } cahal_recorder_info;
 
-/*! \def    cahal_playback_info_t
+/*! \def   cahal_playback_info_t
    \brief  Structure that is passed to the platform-specific callback routine
            when audio buffers need to be populated with samples. This structure
            stores the ultimate callback that is called when data is required by
@@ -253,7 +257,7 @@ typedef struct cahal_playback_info_t
   void*                     platform_data;
 } cahal_playback_info;
 
-/*! \fn     void print_cahal_device  (
+/*! \fn     void cahal_print_device  (
               cahal_device* in_device
             )
     \brief  Prints in_device using the logger at the LOG level.
@@ -265,7 +269,7 @@ cahal_print_device  (
                      cahal_device* in_device
                      );
 
-/*! \fn     void print_cahal_device_list (
+/*! \fn     void cahal_print_device_list (
               cahal_device** in_device_list
             )
     \brief  Prints all the devices in in__device_list
@@ -278,7 +282,7 @@ cahal_print_device_list (
                          cahal_device** in_device_list
                          );
 
-/*! \fn     cahal_device** get_device_list( void )
+/*! \fn     cahal_device** cahal_get_device_list( void )
     \brief  Instantiates a list of audio input/output devices in a platform-
             agnostic way.
 
@@ -289,7 +293,7 @@ cahal_print_device_list (
 cahal_device**
 cahal_get_device_list( void );
 
-/*! \fn     void free_cahal_device_list()
+/*! \fn     void cahal_free_device_list()
     \brief  Frees the list of cahal_devices. This function will free all
             devices in the list as well as all members of those devices.
 
@@ -324,26 +328,26 @@ cahal_test_device_direction_support  (
                                       cahal_device_stream_direction in_direction
                                       );
 
-/*  \fn     CPC_BOOL cahal_stop_recording( void )
- *  \brief  Calling this function will stop recording and free all structures
- *          related to the recording back to the OS. If no recording is taking
- *          place this function simply returns.
- *
- *  \return True iff a recording has been stopped. Note that no recording is
- *          stopped if the library hasn't been initialized, or no recording is
- *          taking place.
+/*!  \fn     CPC_BOOL cahal_stop_recording( void )
+   \brief  Calling this function will stop recording and free all structures
+           related to the recording back to the OS. If no recording is taking
+           place this function simply returns.
+ 
+   \return True iff a recording has been stopped. Note that no recording is
+           stopped if the library hasn't been initialized, or no recording is
+           taking place.
  */
 CPC_BOOL
 cahal_stop_recording( void );
 
-/*  \fn     CPC_BOOL cahal_stop_playback( void )
- *  \brief  Calling this function will stop playback and free all structures
- *          related to the playback to the OS. If no playback is taking
- *          place this function simply returns false.
- *
- *  \return True iff playback has been stopped. Note that no playback is
- *          stopped if the library hasn't been initialized, or no playback is
- *          taking place.
+/*!  \fn     CPC_BOOL cahal_stop_playback( void )
+   \brief  Calling this function will stop playback and free all structures
+           related to the playback to the OS. If no playback is taking
+           place this function simply returns false.
+ 
+   \return True iff playback has been stopped. Note that no playback is
+           stopped if the library hasn't been initialized, or no playback is
+           taking place.
  */
 CPC_BOOL
 cahal_stop_playback( void );
@@ -422,7 +426,7 @@ cahal_start_recording (
     \param  in_sample_rate  The sample rate to playback at.
     \param  in_bit_depth  The number of bits per sample to use (this is the
                           quantization level).
-    \param  in_recorder The caller-supplied callback to be called with empty
+    \param  in_playback The caller-supplied callback to be called with empty
                         buffers that need to be filled.
     \param  in_callback_user_data The caller-supplied data to be passed back to
                                   the caller (unmodified) when their callback is

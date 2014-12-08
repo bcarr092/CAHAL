@@ -1,3 +1,6 @@
+/*! \file   ios_cahal.h
+    \brief  iOS platform specific calls to initialize the audio API.
+ */
 #ifndef __IOS_CAHAL_H__
 #define __IOS_CAHAL_H__
 

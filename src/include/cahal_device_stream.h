@@ -39,7 +39,7 @@ typedef UINT32 cahal_device_stream_handle;
             specific format. Note that a device can have multiple streams, e.g.
             a USB headset with a speaker and microphone.
  */
-typedef struct cahal_device_stream
+typedef struct cahal_device_stream_t
 {
   
   /*! \var    supported_formats
@@ -72,7 +72,7 @@ typedef struct cahal_device_stream
   
 } cahal_device_stream;
 
-/*! \fn     void print_cahal_device_stream_list (
+/*! \fn     void cahal_print_device_stream_list (
               cahal_device_stream** in_device_stream_list
             )
     \brief  Prints all device streams using the logger. The streams are logged
@@ -86,7 +86,7 @@ cahal_print_device_stream_list (
                                 cahal_device_stream** in_device_stream_list
                                 );
 
-/*! \fn     void print_cahal_device_stream (
+/*! \fn     void cahal_print_device_stream (
               cahal_device_stream* in_device_stream
             )
     \brief  Prints a single device stream using the logger. The stream is logger
@@ -99,7 +99,7 @@ cahal_print_device_stream (
                            cahal_device_stream* in_device_stream
                            );
 
-/*! \fn     void free_cahal_device_stream_list (
+/*! \fn     void cahal_free_device_stream_list (
               cahal_device_stream** in_device_stream_list
             )
     \brief  Frees all device streams in the list and then frees the passed in
