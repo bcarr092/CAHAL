@@ -201,19 +201,23 @@ typedef CPC_BOOL (*cahal_playback_callback) (
 );
 
 /*! \def    cahal_recorder_info
- \brief  Structure that is passed to the platform-specific callback routine
- when audio buffers populated with samples is made available by the
- recording device. This structure stores the ultimate callback that
- needs to be called after the data is copied from the OS' buffers
- as well as the user supplied data that was provided when the
- recording began.
- 
- \param  recording_device  The device that was used to record the samples.
- \param  recording_callback  The ultimate function to be called once the
- recorded samples have been copied from the OS'
- buffers.
- \param  user_data The data that was supplied by the caller when the
- recording was initiated.
+   \brief  Structure that is passed to the platform-specific callback routine
+           when audio buffers populated with samples is made available by the
+           recording device. This structure stores the ultimate callback that
+           needs to be called after the data is copied from the OS' buffers
+           as well as the user supplied data that was provided when the
+           recording began.
+
+   \param  recording_device  The device that was used to record the samples.
+   \param  recording_callback  The ultimate function to be called once the
+                               recorded samples have been copied from the OS'
+                               buffers.
+   \param  user_data The data that was supplied by the caller when the
+                     recording was initiated.
+ \param  platform_data   Platform-specific pointer used to store platform
+                         specific data that is required by the callback that
+                         is called when a buffer is full as well as to release
+                         control of the recording device back to the OS.
  */
 typedef struct cahal_recorder_info_t
 {
@@ -223,6 +227,24 @@ typedef struct cahal_recorder_info_t
   void*                   platform_data;
 } cahal_recorder_info;
 
+/*! \def    cahal_playback_info_t
+   \brief  Structure that is passed to the platform-specific callback routine
+           when audio buffers need to be populated with samples. This structure
+           stores the ultimate callback that is called when data is required by
+           the OS' buffers.
+
+   \param  playback_device  The device that was used to playback the samples.
+   \param  playback_callback  The ultimate function to be called once the
+                               playback samples are required by the OS'
+                               buffers.
+   \param  user_data The data that was supplied by the caller when the
+                     playback was initiated.
+   \param  platform_data   Platform-specific pointer used to store platform
+                           specific data that is required by the callback that
+                           is called when a buffer needs to be filled. Contains
+                           the infop needed to to release control of the
+                           playback device back to the OS.
+ */
 typedef struct cahal_playback_info_t
 {
   cahal_device*             playback_device;
@@ -267,11 +289,14 @@ cahal_print_device_list (
 cahal_device**
 cahal_get_device_list( void );
 
-/*! \fn     void free_cahal_device_list (
-              cahal_device** in_device_list
-            )
+/*! \fn     void free_cahal_device_list()
     \brief  Frees the list of cahal_devices. This function will free all
             devices in the list as well as all members of those devices.
+
+    \note   This function will free the global device list that is generated
+            the first time you call cahal_get_device_list(). You should however
+            never need to call this function directly as the global device list
+            is freed when cahal_terminate is called.
  */
 void
 cahal_free_device_list( void );
@@ -299,9 +324,27 @@ cahal_test_device_direction_support  (
                                       cahal_device_stream_direction in_direction
                                       );
 
+/*  \fn     CPC_BOOL cahal_stop_recording( void )
+ *  \brief  Calling this function will stop recording and free all structures
+ *          related to the recording back to the OS. If no recording is taking
+ *          place this function simply returns.
+ *
+ *  \return True iff a recording has been stopped. Note that no recording is
+ *          stopped if the library hasn't been initialized, or no recording is
+ *          taking place.
+ */
 CPC_BOOL
 cahal_stop_recording( void );
 
+/*  \fn     CPC_BOOL cahal_stop_playback( void )
+ *  \brief  Calling this function will stop playback and free all structures
+ *          related to the playback to the OS. If no playback is taking
+ *          place this function simply returns false.
+ *
+ *  \return True iff playback has been stopped. Note that no playback is
+ *          stopped if the library hasn't been initialized, or no playback is
+ *          taking place.
+ */
 CPC_BOOL
 cahal_stop_playback( void );
 
@@ -313,8 +356,7 @@ cahal_stop_playback( void );
               UINT32                   in_bit_depth,
               cahal_recorder_callback  in_recorder,
               void*                    in_callback_user_data,
-              cahal_audio_format_flag  in_format_flags,
-              UINT32                   in_recording_time
+              cahal_audio_format_flag  in_format_flags
             )
     \brief  The entry point into the CAHAL library to start recording. The
             caller is responsible for supplying all the necessary parameters.
@@ -363,8 +405,7 @@ cahal_start_recording (
               UINT32                   in_bit_depth,
               cahal_playback_callback  in_playback,
               void*                    in_callback_user_data,
-              cahal_audio_format_flag  in_format_flags,
-              UINT32                   in_playback_time
+              cahal_audio_format_flag  in_format_flags
             )
     \brief  The entry point into the CAHAL library to start playback. The
             caller is responsible for supplying all the necessary parameters.

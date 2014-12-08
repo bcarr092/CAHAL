@@ -236,7 +236,10 @@ cahal_stop_recording( void )
 {
   CPC_BOOL result = CPC_FALSE;
 
-  if( NULL != g_recorder_callback_info )
+  if  (
+        CAHAL_STATE_INITIALIZED == g_cahal_state
+        && NULL != g_recorder_callback_info
+      )
   {
     android_callback_info* callback_info =
         ( android_callback_info* ) g_recorder_callback_info->platform_data;

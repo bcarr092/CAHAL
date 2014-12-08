@@ -14,12 +14,26 @@
 #include "darwin_cahal_audio_format_flags.h"
 #include "darwin_cahal_audio_format_description.h"
 
+/*! \def    darwin_context
+    \brief  This is the platform-specific struct that stores the references
+            required to release the audio device back to the OS.
+ */
 typedef struct darwin_context_t
 {
+  /*! \var    audio_queue
+      \brief  The audio queue used to record/playback audio samples.
+   */
   AudioQueueRef         audio_queue;
   
+  /*! \var    number_of_buffers
+      \brief  The number of buffers in audio_buffers. This is required when
+              freeing the audio buffers.
+   */
   UINT32                number_of_buffers;
   
+  /*! \var    audio_buffers
+      \brief  The audio buffers used to record/playback samples.
+   */
   AudioQueueBufferRef*  audio_buffers;
   
 } darwin_context;
@@ -206,6 +220,9 @@ darwin_configure_output_audio_queue (
             with them.
  
     \param  in_asbd The ASBD containing the format and encoding information.
+    \param  out_context Structure that stores references to the queue and buffers
+                        so that they can be released. This function sets the
+                        buffers in out_context.
     \param  io_audio_queue  The audio queue that is populated with buffers.
  */
 OSStatus
@@ -227,6 +244,9 @@ darwin_configure_input_audio_queue_buffer  (
     \param  in_asbd The ASBD containing the format and encoding information.
     \param  in_playback The user data struct containing device specific info
                         required by the playback callback.
+    \param  out_context Structure that stores references to the queue and buffers
+                        so that they can be released. This function sets the
+                        buffers in out_context.
     \param  io_audio_queue  The audio queue that is populated with buffers.
     */
 OSStatus
@@ -237,6 +257,16 @@ darwin_configure_output_audio_queue_buffer  (
                                    AudioQueueRef                 io_audio_queue
                                              );
 
+/*! \fn     OSStatus darwin_free_context (
+              darwin_context* io_context
+            )
+    \brief  Frees all the structs in io_context. Releases the audio queue and
+            buffers back to the OS using the AudioQueue* API.
+ 
+    \param  io_context  The audio queue and audio queue buffers to free.
+    \return noErr(0) if all structs are freed, an appropriate error code
+            otherwise.
+ */
 OSStatus
 darwin_free_context (
                      darwin_context* io_context

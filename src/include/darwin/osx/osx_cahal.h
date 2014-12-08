@@ -42,6 +42,17 @@ osx_get_audio_device_handles (
                               UINT32*         out_num_devices
                               );
 
+/*! \fn     cahal_device** osx_get_device_list( void )
+    \brief  Generates and returns a new list of devices from the OS. This
+            function only needs to be called once to generate the list.
+ 
+    \note   The library does not currently supported automatic updating of this
+            list. That is, if a device is plugged in to the system (e.g. USB
+            headset) after the list is generated it will not be included in
+            the listing returned by this call.
+ 
+    \return A list of input and output devices supported by the OS.
+ */
 cahal_device**
 osx_get_device_list( void );
 

@@ -14,6 +14,12 @@
 #include "cahal_audio_format_flags.h"
 #include "cahal_audio_format_description.h"
 
+/*! \enum   cahal_states
+ *  \brief  The states that the library goes through. The state transition
+ *          diagram is as follows NOT_INITIALIZED -> INITIALIZED -> TERMINATED.
+ *          Currently, going back to NOT_INITIALIZED after TERMINATED is not
+ *          supported.
+ */
 enum cahal_states
 {
   CAHAL_STATE_NOT_INITIALIZED  = 0,
@@ -21,8 +27,17 @@ enum cahal_states
   CAHAL_STATE_TERMINATED
 };
 
+/*! \var    cahal_state
+ *  \brief  The global CAHAL library state variable
+ */
 typedef UINT32 cahal_state;
 
+/*! \var    g_cahal_state
+ *  \brief  This is the global state of the CAHAL library. This value should
+ *          never be modified directly. It is updated automatically through
+ *          specific API calls. To initialize the library call cahal_initialize,
+ *          when done with the library call cahal_terminate.
+ */
 extern cahal_state g_cahal_state;
 
 /*! \fn     UINT16 get_version( void )
@@ -48,14 +63,30 @@ cahal_get_version_string( void );
 /*! \fn     void cahal_initialize( void )
     \brief  Entry point for the library. This must be the first function that
             external libraries call. If not, the system will not be 
-            appropriately initialized.
+            appropriately initialized and the behaviour of the library is
+            undefined.
  */
 void
 cahal_initialize( void );
 
+/*! \fn     void cahal_terminate( void )
+ *  \brief  Termination point for the library. By calling this function all
+ *          associated OS resources that are held by the library will be
+ *          returned to the OS. The library is unusable after a call to
+ *          terminate is performed.
+ */
 void
 cahal_terminate( void );
 
+/*! \fn     void cahal_sleep (
+              UINT32 in_sleep_time
+            )
+    \brief  Platform-specific call to the sleep function. This method is only
+            ever used for testing.
+
+    \param  in_sleep_time The amount of time (in seconds) to put the thread to
+                          sleep for.
+ */
 void
 cahal_sleep (
     UINT32 in_sleep_time

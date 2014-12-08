@@ -105,6 +105,10 @@ cahal_print_device_stream (
     \brief  Frees all device streams in the list and then frees the passed in
             list itself.
  
+    \note   This function should never have to be called directly. When
+            cahal_terminate is called the global device list is freed which will
+            free all associated device streams.
+ 
     \param  in_device_stream_list A null-terminated list of device streams to be
                                   freed. The passed in pointer will be freed as
                                   well.
