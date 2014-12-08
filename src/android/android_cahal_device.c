@@ -24,7 +24,7 @@ cahal_start_playback  (
   SLPlayItf                     playback_interface  = NULL;
   SLAndroidSimpleBufferQueueItf buffer_interface    = NULL;
 
-  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "In start playback!" );
+  CPC_LOG_STRING( CPC_LOG_LEVEL_TRACE, "In start playback!" );
 
   if  (
        cahal_test_device_direction_support  (
@@ -1334,7 +1334,7 @@ cahal_start_recording (
   SLRecordItf                   recorder_interface  = NULL;
   SLAndroidSimpleBufferQueueItf buffer_interface    = NULL;
 
-  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "In start recording!" );
+  CPC_LOG_STRING( CPC_LOG_LEVEL_TRACE, "In start recording!" );
 
   if  (
        cahal_test_device_direction_support  (

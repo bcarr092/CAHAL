@@ -30,12 +30,3 @@ CHAR* cahal_get_version_string( void )
   
   return( version );
 }
-
-
-void
-cahal_sleep (
-    UINT32 in_sleep_time
-            )
-{
-  sleep( in_sleep_time );
-}

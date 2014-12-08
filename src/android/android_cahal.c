@@ -28,6 +28,11 @@ static UINT32 opensles_supported_sample_rates [
                                              NUM_OPENSLES_SUPPORTED_SAMPLE_RATES
                                              ]  =
 {
+  /* Sampling rates are commented out below because creating a recorder with
+   * these rates, realizing the recorder, then destroying it causes the
+   * application to seg-fault.
+   */
+
   SL_SAMPLINGRATE_8,
   SL_SAMPLINGRATE_11_025,
 //  SL_SAMPLINGRATE_12,
@@ -1255,4 +1260,12 @@ android_add_device_to_list  (
   }
 
   return( result );
+}
+
+void
+cahal_sleep (
+    UINT32 in_sleep_time
+            )
+{
+  sleep( in_sleep_time );
 }

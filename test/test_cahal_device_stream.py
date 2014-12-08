@@ -51,26 +51,11 @@ class TestsCAHALDeviceStream( unittest.TestCase ):
 
       device = cahal_tests.cahal_device_list_get( device_list, index )
 
-  def test_free_cahal_device_stream_list( self ):
-    cahal_tests.cahal_free_device_stream_list( None )
-
-    device_list = cahal_tests.cahal_get_device_list()
-
-    index       = 0;                                                                    
-    device      = cahal_tests.cahal_device_list_get( device_list, index )               
-                                                                                
-    while( device ):                                                                
-      self.assertNotEqual( device, None )
-
-      cahal_tests.cahal_free_device_stream_list( device.device_streams )
-
-      index += 1                                                                    
-
-      device = cahal_tests.cahal_device_list_get( device_list, index )
-
 if __name__ == '__main__':
   cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
 
   cahal_tests.cahal_initialize()
 
   unittest.main()
+
+  cahal_tests.cahal_terminate()

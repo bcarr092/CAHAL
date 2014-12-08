@@ -1,6 +1,7 @@
 #ifndef __ANDROID_CAHAL_H__
 #define __ANDROID_CAHAL_H__
 
+#include <unistd.h>
 #include <stdlib.h>
 
 #include <SLES/OpenSLES.h>

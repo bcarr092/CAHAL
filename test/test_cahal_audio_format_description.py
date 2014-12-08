@@ -87,3 +87,5 @@ if __name__ == '__main__':
   cahal_tests.cahal_initialize()
 
   unittest.main()
+
+  cahal_tests.cahal_terminate()
