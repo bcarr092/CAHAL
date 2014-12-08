@@ -752,7 +752,7 @@ cahal_get_device_list( void )
     CPC_ERROR( "CAHAL has not been initialized: %d.", g_cahal_state );
   }
 
-  return( device_list );
+  return( g_device_list );
 }
 
 cpc_error_code

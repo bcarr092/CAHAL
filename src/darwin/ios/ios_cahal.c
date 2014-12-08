@@ -3,26 +3,76 @@
 void
 cahal_initialize( void )
 {
-  ios_initialize_recording();
+  switch( g_cahal_state )
+  {
+    case CAHAL_STATE_NOT_INITIALIZED:
+      ios_initialize_recording();
+      
+      g_cahal_state = CAHAL_STATE_INITIALIZED;
+      
+      break;
+    case CAHAL_STATE_INITIALIZED:
+    case CAHAL_STATE_TERMINATED:
+      CPC_LOG_STRING  (
+                       CPC_LOG_LEVEL_WARN,
+                       "CAHAL has already been initialized."
+                       );
+      break;
+  }
+}
+
+void
+cahal_terminate( void )
+{
+  switch( g_cahal_state )
+  {
+    case CAHAL_STATE_NOT_INITIALIZED:
+      CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "CAHAL has not been initialized" );
+      break;
+    case CAHAL_STATE_TERMINATED:
+      CPC_LOG_STRING  (
+                       CPC_LOG_LEVEL_WARN,
+                       "CAHAL has already been terminated"
+                       );
+      break;
+    case CAHAL_STATE_INITIALIZED:
+      g_cahal_state = CAHAL_STATE_TERMINATED;
+      
+      break;
+  }
 }
 
 cahal_device**
 cahal_get_device_list( void )
 {
-  cahal_device** device_list  = NULL;
+  cahal_device** device_list = NULL;
   
-  OSStatus result = noErr;
-  
-  if( noErr == result )
+  if( CAHAL_STATE_INITIALIZED == g_cahal_state )
   {
-    device_list = ios_set_cahal_device_struct();
-    
-    if( result )
+    if( NULL == g_device_list )
     {
-      CPC_ERROR( "Could not set session inactive: 0x%x.", result );
+      g_device_list = ios_set_cahal_device_struct();
       
-      CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+      CPC_LOG (
+               CPC_LOG_LEVEL_DEBUG,
+               "Generated device list: 0x%x.",
+               g_device_list
+               );
     }
+    else
+    {
+      CPC_LOG (
+               CPC_LOG_LEVEL_DEBUG,
+               "Returning existing device list: 0x%x.",
+               g_device_list
+               );
+    }
+    
+    device_list = g_device_list;
+  }
+  else
+  {
+    CPC_ERROR( "CAHAL has not been initialized: %d.", g_cahal_state );
   }
 
   return( device_list );

@@ -43,6 +43,42 @@ cahal_terminate( void )
 cahal_device**
 cahal_get_device_list( void )
 {
+  cahal_device** device_list = NULL;
+  
+  if( CAHAL_STATE_INITIALIZED == g_cahal_state )
+  {
+    if( NULL == g_device_list )
+    {
+      g_device_list = osx_get_device_list();
+      
+      CPC_LOG (
+               CPC_LOG_LEVEL_DEBUG,
+               "Generated device list: 0x%x.",
+               g_device_list
+               );
+    }
+    else
+    {
+      CPC_LOG (
+               CPC_LOG_LEVEL_DEBUG,
+               "Returning existing device list: 0x%x.",
+               g_device_list
+               );
+    }
+    
+    device_list = g_device_list;
+  }
+  else
+  {
+    CPC_ERROR( "CAHAL has not been initialized: %d.", g_cahal_state );
+  }
+  
+  return( device_list );
+}
+
+cahal_device**
+osx_get_device_list( void )
+{
   AudioObjectID* device_ids   = NULL;
   cahal_device** device_list  = NULL;
   UINT32 num_devices          = 0;

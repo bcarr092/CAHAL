@@ -464,3 +464,12 @@ ios_get_device_property_value (
   
   return( result );
 }
+
+
+void
+cahal_sleep (
+             UINT32 in_sleep_time
+             )
+{
+  CFRunLoopRunInMode(kCFRunLoopDefaultMode, in_sleep_time, CPC_FALSE );
+}

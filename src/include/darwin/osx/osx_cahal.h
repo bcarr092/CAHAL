@@ -42,4 +42,7 @@ osx_get_audio_device_handles (
                               UINT32*         out_num_devices
                               );
 
+cahal_device**
+osx_get_device_list( void );
+
 #endif /* __OSX_CAHAL_H__ */
