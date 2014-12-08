@@ -660,3 +660,19 @@ cahal_set_default_device (
   
   return( return_value );
 }
+
+void
+cahal_sleep (
+             UINT32 in_sleep_time
+             )
+{
+  sleep( in_sleep_time );
+  //  CFRunLoopRunInMode(kCFRunLoopDefaultMode, in_playback_time, false);
+  //
+  //  CFRunLoopRunInMode  (
+  //                       kCFRunLoopDefaultMode,
+  //                       in_record_time,
+  //                       CPC_FALSE
+  //                       );
+  //  
+}

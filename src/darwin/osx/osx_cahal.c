@@ -3,7 +3,41 @@
 void
 cahal_initialize( void )
 {
-  
+  switch( g_cahal_state )
+  {
+    case CAHAL_STATE_NOT_INITIALIZED:
+      g_cahal_state = CAHAL_STATE_INITIALIZED;
+      
+      break;
+    case CAHAL_STATE_INITIALIZED:
+    case CAHAL_STATE_TERMINATED:
+      CPC_LOG_STRING  (
+                       CPC_LOG_LEVEL_WARN,
+                       "CAHAL has already been initialized."
+                       );
+      break;
+  }
+}
+
+void
+cahal_terminate( void )
+{
+  switch( g_cahal_state )
+  {
+    case CAHAL_STATE_NOT_INITIALIZED:
+      CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "CAHAL has not been initialized" );
+      break;
+    case CAHAL_STATE_TERMINATED:
+      CPC_LOG_STRING  (
+                       CPC_LOG_LEVEL_WARN,
+                       "CAHAL has already been terminated"
+                       );
+      break;
+    case CAHAL_STATE_INITIALIZED:
+      g_cahal_state = CAHAL_STATE_TERMINATED;
+      
+      break;
+  }
 }
 
 cahal_device**

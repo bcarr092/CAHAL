@@ -1,5 +1,8 @@
 #include "darwin/darwin_cahal_device.h"
 
+cahal_recorder_info* g_recorder_callback_info = NULL;
+cahal_playback_info* g_playback_callback_info = NULL;
+
 static
 void
 darwin_playback_callback (
@@ -207,8 +210,7 @@ cahal_start_playback  (
                        UINT32                   in_bit_depth,
                        cahal_playback_callback  in_playback,
                        void*                    in_callback_user_data,
-                       cahal_audio_format_flag  in_format_flags,
-                       UINT32                   in_playback_time
+                       cahal_audio_format_flag  in_format_flags
                        )
 {
   CPC_BOOL return_value = CPC_FALSE;
@@ -218,69 +220,49 @@ cahal_start_playback  (
                                              in_device,
                                              CAHAL_DEVICE_OUTPUT_STREAM
                                              )
+       && CAHAL_STATE_INITIALIZED == g_cahal_state
+       && NULL == g_playback_callback_info
        )
   {
     AudioStreamBasicDescription playback_description;
     
-    cahal_playback_info* playback = NULL;
+    OSStatus result               = noErr;
+    AudioQueueRef audio_queue     = NULL;
     
     memset( &playback_description, 0, sizeof( AudioStreamBasicDescription ) );
     
     if  ( CPC_ERROR_CODE_NO_ERROR
          == cpc_safe_malloc (
-                             ( void ** ) &( playback ),
+                             ( void ** ) &( g_playback_callback_info ),
                              sizeof( cahal_playback_info )
                              )
          )
     {
-      playback->playback_device   = in_device;
-      playback->playback_callback = in_playback;
-      playback->user_data         = in_callback_user_data;
+      g_playback_callback_info->playback_device   = in_device;
+      g_playback_callback_info->playback_callback = in_playback;
+      g_playback_callback_info->user_data         = in_callback_user_data;
       
-      OSStatus result =
-      darwin_configure_asbd  (
-                           in_format_id,
-                           in_number_of_channels,
-                           in_sample_rate,
-                           in_bit_depth,
-                           in_format_flags,
-                           CAHAL_DEVICE_OUTPUT_STREAM,
-                           &playback_description
-                           );
-      
-      if( noErr == result )
+      if  (
+           CPC_ERROR_CODE_NO_ERROR
+           == cpc_safe_malloc (
+                           ( void** ) &g_playback_callback_info->platform_data,
+                           sizeof( darwin_context)
+                               )
+           )
       {
-        AudioQueueRef audio_queue = NULL;
-        
-        CPC_LOG (
-                 CPC_LOG_LEVEL_TRACE,
-                 "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
-                 ", bpp=0x%x, fpp=0x%x",
-                 playback_description.mSampleRate,
-                 playback_description.mChannelsPerFrame,
-                 playback_description.mBitsPerChannel,
-                 playback_description.mBytesPerFrame,
-                 playback_description.mBytesPerPacket,
-                 playback_description.mFramesPerPacket
-                 );
-        
         result =
-        darwin_configure_output_audio_queue  (
-                                           in_device,
-                                           playback,
-                                           &playback_description,
-                                           &audio_queue
-                                           );
+        darwin_configure_asbd  (
+                             in_format_id,
+                             in_number_of_channels,
+                             in_sample_rate,
+                             in_bit_depth,
+                             in_format_flags,
+                             CAHAL_DEVICE_OUTPUT_STREAM,
+                             &playback_description
+                             );
         
         if( noErr == result )
         {
-          result =
-          darwin_configure_output_audio_queue_buffer (
-                                                   &playback_description,
-                                                   playback,
-                                                   audio_queue
-                                                   );
-          
           CPC_LOG (
                    CPC_LOG_LEVEL_TRACE,
                    "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
@@ -293,47 +275,55 @@ cahal_start_playback  (
                    playback_description.mFramesPerPacket
                    );
           
+          result =
+          darwin_configure_output_audio_queue  (
+                                             in_device,
+                                             g_playback_callback_info,
+                                             &playback_description,
+                                             &audio_queue
+                                             );
+          
           if( noErr == result )
           {
-            result = AudioQueueStart( audio_queue, NULL );
+            darwin_context* context =
+              ( darwin_context* ) g_playback_callback_info->platform_data;
+            
+            context->audio_queue = audio_queue;
+            
+            result =
+            darwin_configure_output_audio_queue_buffer (
+                                                     &playback_description,
+                                                     g_playback_callback_info,
+                                                     context,
+                                                     audio_queue
+                                                     );
+            
+            CPC_LOG (
+                     CPC_LOG_LEVEL_TRACE,
+                     "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+                     ", bpp=0x%x, fpp=0x%x",
+                     playback_description.mSampleRate,
+                     playback_description.mChannelsPerFrame,
+                     playback_description.mBitsPerChannel,
+                     playback_description.mBytesPerFrame,
+                     playback_description.mBytesPerPacket,
+                     playback_description.mFramesPerPacket
+                     );
             
             if( noErr == result )
             {
-//              sleep( in_playback_time );
-              CFRunLoopRunInMode(kCFRunLoopDefaultMode, in_playback_time, false);
+              result = AudioQueueStart( audio_queue, NULL );
               
-              result = AudioQueueStop( audio_queue, true );
-              
-              if( noErr == result )
+              if( result )
               {
-                result =
-                AudioQueueDispose( audio_queue, true );
-                
-                if( result )
-                {
-                  CPC_ERROR( "Could not dispose of queue: 0x%x.", result );
-                  
-                  CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
-                }
-              }
-              else
-              {
-                CPC_ERROR( "Could not stop audio queue: 0x%x.", result );
+                CPC_ERROR( "Could not start audio queue: 0x%x.", result );
                 
                 CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
               }
             }
-            else
-            {
-              CPC_ERROR( "Could not start audio queue: 0x%x.", result );
-              
-              CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
-            }
           }
         }
       }
-      
-      cpc_safe_free( ( void** ) &playback );
       
       if( noErr == result )
       {
@@ -353,6 +343,114 @@ cahal_start_playback  (
   return( return_value );
 }
 
+OSStatus
+darwin_free_context (
+                     darwin_context* io_context
+                     )
+{
+  OSStatus result = kAudio_ParamError;
+  
+  if( NULL != io_context )
+  {
+    result = AudioQueueStop( io_context->audio_queue, true );
+    
+    if( noErr == result )
+    {
+      for( UINT32 i = 0; i < io_context->number_of_buffers; i++ )
+      {
+        if( NULL != io_context->audio_buffers[ i ] )
+        {
+          result =
+          AudioQueueFreeBuffer  (
+                                 io_context->audio_queue,
+                                 io_context->audio_buffers[ i ]
+                                 );
+          
+          if( result )
+          {
+            CPC_ERROR (
+                       "Could not free queue buffer: 0x%x.",
+                       result
+                       );
+            
+            CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+          }
+        }
+      }
+      
+      result =
+      AudioQueueDispose( io_context->audio_queue, true );
+      
+      if( result )
+      {
+        CPC_ERROR( "Could not dispose of queue: 0x%x.", result );
+        
+        CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+      }
+    }
+    else
+    {
+      CPC_ERROR( "Could not stop audio queue: 0x%x.", result );
+      
+      CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    }
+  }
+  
+  return( result );
+}
+
+CPC_BOOL
+cahal_stop_playback( void )
+{
+  CPC_BOOL result = CPC_FALSE;
+  
+  if  (
+       CAHAL_STATE_INITIALIZED == g_cahal_state
+       && NULL != g_playback_callback_info
+       )
+  {
+    darwin_context* context =
+    ( darwin_context* ) g_playback_callback_info->platform_data;
+    
+    if( NULL != context )
+    {
+      darwin_free_context( context );
+      
+      cpc_safe_free( ( void** ) &context );
+    }
+    
+    cpc_safe_free( ( void** ) &g_playback_callback_info );
+  }
+  
+  return( result );
+}
+
+CPC_BOOL
+cahal_stop_recording( void )
+{
+  CPC_BOOL result = CPC_FALSE;
+  
+  if  (
+       CAHAL_STATE_INITIALIZED == g_cahal_state
+       && NULL != g_recorder_callback_info
+       )
+  {
+    darwin_context* context =
+      ( darwin_context* ) g_recorder_callback_info->platform_data;
+    
+    if( NULL != context )
+    {
+      darwin_free_context( context );
+      
+      cpc_safe_free( ( void** ) &context );
+    }
+    
+    cpc_safe_free( ( void** ) &g_recorder_callback_info );
+  }
+  
+  return( result );
+}
+
 CPC_BOOL
 cahal_start_recording (
                        cahal_device*            in_device,
@@ -362,141 +460,124 @@ cahal_start_recording (
                        UINT32                   in_bit_depth,
                        cahal_recorder_callback  in_recorder,
                        void*                    in_callback_user_data,
-                       cahal_audio_format_flag  in_format_flags,
-                       UINT32                   in_record_time
+                       cahal_audio_format_flag  in_format_flags
                        )
 {
   CPC_BOOL return_value = CPC_FALSE;
   
-  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "In start recording!" );
+  CPC_LOG_STRING( CPC_LOG_LEVEL_TRACE, "In start recording!" );
   
   if  (
        cahal_test_device_direction_support  (
                                              in_device,
                                              CAHAL_DEVICE_INPUT_STREAM
                                              )
+       && CAHAL_STATE_INITIALIZED == g_cahal_state
+       && NULL == g_recorder_callback_info
        )
   {
     AudioStreamBasicDescription recorder_desciption;
-    
-    cahal_recorder_info* recorder = NULL;
     
     memset( &recorder_desciption, 0, sizeof( AudioStreamBasicDescription ) );
     
     if  ( CPC_ERROR_CODE_NO_ERROR
          == cpc_safe_malloc (
-                             ( void ** ) &( recorder ),
+                             ( void ** ) &( g_recorder_callback_info ),
                              sizeof( cahal_recorder_info )
                              )
          )
     {
-      recorder->recording_device    = in_device;
-      recorder->recording_callback  = in_recorder;
-      recorder->user_data           = in_callback_user_data;
+      g_recorder_callback_info->recording_device    = in_device;
+      g_recorder_callback_info->recording_callback  = in_recorder;
+      g_recorder_callback_info->user_data           = in_callback_user_data;
       
-      OSStatus result =
-      darwin_configure_asbd  (
-                           in_format_id,
-                           in_number_of_channels,
-                           in_sample_rate,
-                           in_bit_depth,
-                           in_format_flags,
-                           CAHAL_DEVICE_INPUT_STREAM,
-                           &recorder_desciption
-                           );
-      
-      if( noErr == result )
+      if  (
+           CPC_ERROR_CODE_NO_ERROR
+           == cpc_safe_malloc (
+                       ( void** ) &( g_recorder_callback_info->platform_data ),
+                       sizeof( darwin_context)
+                               )
+           )
       {
-        AudioQueueRef audio_queue = NULL;
-        
-        CPC_LOG (
-                 CPC_LOG_LEVEL_TRACE,
-                 "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
-                 ", bpp=0x%x, fpp=0x%x",
-                 recorder_desciption.mSampleRate,
-                 recorder_desciption.mChannelsPerFrame,
-                 recorder_desciption.mBitsPerChannel,
-                 recorder_desciption.mBytesPerFrame,
-                 recorder_desciption.mBytesPerPacket,
-                 recorder_desciption.mFramesPerPacket
-                 );
-        
-        result =
-        darwin_configure_input_audio_queue (
-                                         in_device,
-                                         recorder,
-                                         &recorder_desciption,
-                                         &audio_queue
-                                         );
-        
-        CPC_LOG (
-                 CPC_LOG_LEVEL_TRACE,
-                 "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
-                 ", bpp=0x%x, fpp=0x%x",
-                 recorder_desciption.mSampleRate,
-                 recorder_desciption.mChannelsPerFrame,
-                 recorder_desciption.mBitsPerChannel,
-                 recorder_desciption.mBytesPerFrame,
-                 recorder_desciption.mBytesPerPacket,
-                 recorder_desciption.mFramesPerPacket
-                 );
+        OSStatus result =
+        darwin_configure_asbd  (
+                             in_format_id,
+                             in_number_of_channels,
+                             in_sample_rate,
+                             in_bit_depth,
+                             in_format_flags,
+                             CAHAL_DEVICE_INPUT_STREAM,
+                             &recorder_desciption
+                             );
         
         if( noErr == result )
         {
+          AudioQueueRef audio_queue = NULL;
+          
+          CPC_LOG (
+                   CPC_LOG_LEVEL_TRACE,
+                   "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+                   ", bpp=0x%x, fpp=0x%x",
+                   recorder_desciption.mSampleRate,
+                   recorder_desciption.mChannelsPerFrame,
+                   recorder_desciption.mBitsPerChannel,
+                   recorder_desciption.mBytesPerFrame,
+                   recorder_desciption.mBytesPerPacket,
+                   recorder_desciption.mFramesPerPacket
+                   );
+          
           result =
-          darwin_configure_input_audio_queue_buffer  (
-                                                   &recorder_desciption,
-                                                   audio_queue
-                                                   );
+          darwin_configure_input_audio_queue (
+                                           in_device,
+                                           g_recorder_callback_info,
+                                           &recorder_desciption,
+                                           &audio_queue
+                                           );
+          
+          CPC_LOG (
+                   CPC_LOG_LEVEL_TRACE,
+                   "ASDB Info: sr=%.2f, nc=0x%x, bd=0x%x, bpf=0x%x"
+                   ", bpp=0x%x, fpp=0x%x",
+                   recorder_desciption.mSampleRate,
+                   recorder_desciption.mChannelsPerFrame,
+                   recorder_desciption.mBitsPerChannel,
+                   recorder_desciption.mBytesPerFrame,
+                   recorder_desciption.mBytesPerPacket,
+                   recorder_desciption.mFramesPerPacket
+                   );
           
           if( noErr == result )
           {
-            result = AudioQueueStart( audio_queue, NULL );
+            darwin_context* context =
+            ( darwin_context* ) g_recorder_callback_info->platform_data;
+            
+            context->audio_queue = audio_queue;
+            
+            result =
+            darwin_configure_input_audio_queue_buffer  (
+                                                     &recorder_desciption,
+                                                     context,
+                                                     audio_queue
+                                                     );
             
             if( noErr == result )
             {
-              CFRunLoopRunInMode  (
-                                   kCFRunLoopDefaultMode,
-                                   in_record_time,
-                                   CPC_FALSE
-                                   );
+              result = AudioQueueStart( audio_queue, NULL );
               
-              result = AudioQueueStop( audio_queue, true );
-              
-              if( noErr == result )
+              if( result )
               {
-                result =
-                AudioQueueDispose( audio_queue, true );
-                
-                if( result )
-                {
-                  CPC_ERROR( "Could not dispose of queue: 0x%x.", result );
-                  
-                  CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
-                }
-              }
-              else
-              {
-                CPC_ERROR( "Could not stop audio queue: 0x%x.", result );
+                CPC_ERROR( "Could not start audio queue: 0x%x.", result );
                 
                 CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
               }
             }
-            else
-            {
-              CPC_ERROR( "Could not start audio queue: 0x%x.", result );
-              
-              CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
-            }
           }
         }
-      }
-      
-      cpc_safe_free( ( void** ) &recorder );
-      
-      if( noErr == result )
-      {
-        return_value = CPC_TRUE;
+        
+        if( noErr == result )
+        {
+          return_value = CPC_TRUE;
+        }
       }
     }
   }
@@ -515,6 +596,7 @@ cahal_start_recording (
 OSStatus
 darwin_configure_input_audio_queue_buffer  (
                                      AudioStreamBasicDescription* in_asbd,
+                                     darwin_context*              out_context,
                                      AudioQueueRef                io_audio_queue
                                          )
 {
@@ -523,55 +605,68 @@ darwin_configure_input_audio_queue_buffer  (
   
   if( NULL != in_asbd )
   {
-    result =
-    darwin_compute_bytes_per_buffer  (
-                                   in_asbd,
-                                   CAHAL_QUEUE_BUFFER_DURATION,
-                                   &bytes_per_buffer
-                                   );
+    out_context->number_of_buffers = CAHAL_QUEUE_NUMBER_OF_QUEUES;
     
-    CPC_LOG (
-             CPC_LOG_LEVEL_TRACE,
-             "Bytes per AudioQueue buffer is 0x%x",
-             bytes_per_buffer
-             );
-    
-    if( noErr == result )
+    if  (
+         CPC_ERROR_CODE_NO_ERROR
+         == cpc_safe_malloc (
+                 ( void** ) &out_context->audio_buffers,
+                 sizeof( AudioQueueBufferRef ) * out_context->number_of_buffers
+                             )
+         )
     {
-      for( UINT32 i = 0; i < CAHAL_QUEUE_NUMBER_OF_QUEUES; i++ )
+      result =
+      darwin_compute_bytes_per_buffer  (
+                                     in_asbd,
+                                     CAHAL_QUEUE_BUFFER_DURATION,
+                                     &bytes_per_buffer
+                                     );
+      
+      CPC_LOG (
+               CPC_LOG_LEVEL_TRACE,
+               "Bytes per AudioQueue buffer is 0x%x",
+               bytes_per_buffer
+               );
+      
+      if( noErr == result )
       {
-        AudioQueueBufferRef buffer;
-        
-        result =
-        AudioQueueAllocateBuffer  (
-                                   io_audio_queue,
-                                   bytes_per_buffer,
-                                   &buffer
-                                   );
-        
-        if( noErr == result )
+        for( UINT32 i = 0; i < CAHAL_QUEUE_NUMBER_OF_QUEUES; i++ )
         {
-          result =
-          AudioQueueEnqueueBuffer( io_audio_queue, buffer, 0, NULL );
+          AudioQueueBufferRef buffer;
           
-          if( result )
+          result =
+          AudioQueueAllocateBuffer  (
+                                     io_audio_queue,
+                                     bytes_per_buffer,
+                                     &buffer
+                                     );
+          
+          if( noErr == result )
           {
-            CPC_ERROR (
-                       "Error enqueuing buffer: %d",
-                       result
-                       );
+            out_context->audio_buffers[ i ] = buffer;
+            
+            result =
+            AudioQueueEnqueueBuffer( io_audio_queue, buffer, 0, NULL );
+            
+            if( result )
+            {
+              CPC_ERROR (
+                         "Error enqueuing buffer: %d",
+                         result
+                         );
+              
+              CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+            }
+          }
+          else
+          {
+            CPC_ERROR(
+                      "Error allocating a new audio queue buffer: %d",
+                      result
+                      );
             
             CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
           }
-        }
-        else
-        {
-          CPC_ERROR(
-                    "Error allocating a new audio queue buffer: %d",
-                    result
-                    );
-          
-          CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
         }
       }
     }
@@ -626,6 +721,7 @@ OSStatus
 darwin_configure_output_audio_queue_buffer  (
                                     AudioStreamBasicDescription*  in_asbd,
                                     cahal_playback_info*          in_playback,
+                                    darwin_context*               out_context,
                                     AudioQueueRef                 io_audio_queue
                                           )
 {
@@ -634,38 +730,51 @@ darwin_configure_output_audio_queue_buffer  (
   
   if( NULL != in_asbd )
   {
-    result =
-    darwin_compute_bytes_per_buffer  (
-                                   in_asbd,
-                                   CAHAL_QUEUE_BUFFER_DURATION,
-                                   &bytes_per_buffer
-                                   );
+    out_context->number_of_buffers = CAHAL_QUEUE_NUMBER_OF_QUEUES;
     
-    if( noErr == result )
+    if  (
+         CPC_ERROR_CODE_NO_ERROR
+         == cpc_safe_malloc (
+                 ( void** ) &out_context->audio_buffers,
+                 sizeof( AudioQueueBufferRef ) * out_context->number_of_buffers
+                             )
+         )
     {
-      for( UINT32 i = 0; i < CAHAL_QUEUE_NUMBER_OF_QUEUES; i++ )
+      result =
+      darwin_compute_bytes_per_buffer  (
+                                        in_asbd,
+                                        CAHAL_QUEUE_BUFFER_DURATION,
+                                        &bytes_per_buffer
+                                        );
+      
+      if( noErr == result )
       {
-        AudioQueueBufferRef buffer;
-        
-        result =
-        AudioQueueAllocateBuffer  (
-                                   io_audio_queue,
-                                   bytes_per_buffer,
-                                   &buffer
-                                   );
-        
-        if( noErr == result )
+        for( UINT32 i = 0; i < CAHAL_QUEUE_NUMBER_OF_QUEUES; i++ )
         {
-          darwin_playback_callback( in_playback, io_audio_queue, buffer );
-        }
-        else
-        {
-          CPC_ERROR(
-                    "Error allocating a new audio queue buffer: %d",
-                    result
-                    );
+          AudioQueueBufferRef buffer;
           
-          CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+          result =
+          AudioQueueAllocateBuffer  (
+                                     io_audio_queue,
+                                     bytes_per_buffer,
+                                     &buffer
+                                     );
+          
+          if( noErr == result )
+          {
+            out_context->audio_buffers[ i ] = buffer;
+            
+            darwin_playback_callback( in_playback, io_audio_queue, buffer );
+          }
+          else
+          {
+            CPC_ERROR(
+                      "Error allocating a new audio queue buffer: %d",
+                      result
+                      );
+            
+            CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+          }
         }
       }
     }

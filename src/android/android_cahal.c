@@ -78,7 +78,7 @@ cahal_terminate( void )
       break;
     case CAHAL_STATE_TERMINATED:
       CPC_LOG_STRING  (
-          CPC_LOG_LEVEL_ERROR,
+          CPC_LOG_LEVEL_WARN,
           "CAHAL has already been terminated"
           );
       break;

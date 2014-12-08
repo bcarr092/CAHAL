@@ -14,6 +14,16 @@
 #include "darwin_cahal_audio_format_flags.h"
 #include "darwin_cahal_audio_format_description.h"
 
+typedef struct darwin_context_t
+{
+  AudioQueueRef         audio_queue;
+  
+  UINT32                number_of_buffers;
+  
+  AudioQueueBufferRef*  audio_buffers;
+  
+} darwin_context;
+
 /*! \fn     void darwin_recorder_callback  (
               void*                                in_user_data,
               AudioQueueRef                        in_queue,
@@ -200,9 +210,11 @@ darwin_configure_output_audio_queue (
  */
 OSStatus
 darwin_configure_input_audio_queue_buffer  (
-                                     AudioStreamBasicDescription* in_asbd,
-                                     AudioQueueRef                io_audio_queue
-                                         );
+                                    AudioStreamBasicDescription* in_asbd,
+                                    darwin_context*              out_context,
+                                    AudioQueueRef                io_audio_queue
+                                            );
+
 /*! \fn     OSStatus darwin_configure_output_audio_queue_buffer  (
               AudioStreamBasicDescription*  in_asbd,
               cahal_playback_info*          in_playback,
@@ -219,9 +231,15 @@ darwin_configure_input_audio_queue_buffer  (
     */
 OSStatus
 darwin_configure_output_audio_queue_buffer  (
-                                    AudioStreamBasicDescription*  in_asbd,
-                                    cahal_playback_info*          in_playback,
-                                    AudioQueueRef                 io_audio_queue
-                                          );
+                                   AudioStreamBasicDescription*  in_asbd,
+                                   cahal_playback_info*          in_playback,
+                                   darwin_context*               out_context,
+                                   AudioQueueRef                 io_audio_queue
+                                             );
+
+OSStatus
+darwin_free_context (
+                     darwin_context* io_context
+                     );
 
 #endif  /*  __DARWIN_CAHAL_DEVICE_H__ */
