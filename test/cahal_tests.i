@@ -323,6 +323,7 @@ python_recorder_callback  (
 
   return( return_value );
 }
+
 /*! \fn     void start_playback (
                   cahal_device*         in_device,
                   int                   in_format_id,
@@ -497,7 +498,7 @@ python_playback_callback  (
 %include <cahal_device_stream.h>
 
 %include <types.h>
-%include <error_codes.h>
+%include <cpcommon_error_codes.h>
 %include <log_definitions.h>
 %include <log_functions.h>
 
