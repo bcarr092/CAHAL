@@ -89,7 +89,7 @@ install(  FILES ${WRAPPERS} DESTINATION
 
 enable_testing()
 
-add_test( ${PROJECT_NAME} "${PROJECT_BINARY_DIR}/test_driver.py" )
+add_test( ${PROJECT_NAME} "/usr/local/bin/python" "${PROJECT_BINARY_DIR}/test_driver.py" )
 
 if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
   find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )
