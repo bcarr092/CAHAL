@@ -1,3 +1,8 @@
+/*! \file   osx_cahal_device_stream.c
+    \brief  The implementation for OSX specific device streams.
+ 
+    \author Brent Carrara
+ */
 #include "darwin/osx/osx_cahal_device_stream.h"
 
 void

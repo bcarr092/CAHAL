@@ -1,3 +1,7 @@
+/*! \file   cahal_device_stream.c
+ 
+    \author Brent Carrara
+ */
 #include "cahal_device_stream.h"
 
 void

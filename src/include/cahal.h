@@ -3,6 +3,8 @@
             include. Provides a cross-platform abstraction layer to all the
             audio input/output hardware supported by the platform this library
             is run on.
+ 
+    \author Brent Carrara
  */
 #ifndef _CAHAL_H_
 #define _CAHAL_H_

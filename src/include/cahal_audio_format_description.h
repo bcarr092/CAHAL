@@ -1,6 +1,8 @@
 /*! \file   cahal_audio_format_description.h
     \brief  All constants, typedefs and functions related to audio formats and
             sample rates are defined in this file.
+ 
+    \author Brent Carrara
  */
 #ifndef __CAHAL_AUDIO_FORMAT_H__
 #define __CAHAL_AUDIO_FORMAT_H__

@@ -1,3 +1,8 @@
+/*! \file   osx_cahal_device.
+    \brief  The OSX implementation of cahal devices.
+ 
+    \author Brent Carrara
+ */
 #include "darwin/osx/osx_cahal_device.h"
 
 void

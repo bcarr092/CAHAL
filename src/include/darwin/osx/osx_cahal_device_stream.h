@@ -2,6 +2,8 @@
     \brief  The platform-specific functions to query the hardware for its
             hardware-supported device streams as well as manage device streams
             are located in this file.
+ 
+    \author Brent Carrara
  */
 #ifndef __OSX_CAHAL_DEVICE_STREAM_H__
 #define __OSX_CAHAL_DEVICE_STREAM_H__

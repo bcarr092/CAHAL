@@ -1,3 +1,8 @@
+/*! \file   osx_cahal_audio_format_description.h
+    \brief  The OSX specific audio format description code.
+ 
+    \author Brent Carrara
+ */
 #include "darwin/osx/osx_cahal_audio_format_description.h"
 
 OSStatus

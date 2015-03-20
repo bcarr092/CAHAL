@@ -1,3 +1,7 @@
+/*! \file   ios_cahal_initialize.m
+ 
+    \author Brent Carrara
+ */
 #import "darwin/ios/ios_cahal_initialize.h"
 
 void ios_initialize_recording()

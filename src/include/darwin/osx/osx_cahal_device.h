@@ -2,6 +2,8 @@
     \brief  This interface takes care of creating the platform-agnostic device
             structs as well as the implementation for the audio hardware
             controls, i.e. playback and record.
+ 
+    \author Brent Carrara
  */
 #ifndef __OSX_CAHAL_DEVICE_H__
 #define __OSX_CAHAL_DEVICE_H__

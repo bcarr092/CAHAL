@@ -1,3 +1,7 @@
+/*! \file osx_cahal.h
+ 
+    \author Brent Carrara
+ */
 #include "darwin/osx/osx_cahal.h"
 
 void

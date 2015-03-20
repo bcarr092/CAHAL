@@ -1,3 +1,7 @@
+/*! \file   cahal_audio_format_description.c
+ 
+    \author Brent Carrara
+ */
 #include "cahal_audio_format_description.h"
 
 /*! \fn     void log_cahal_audio_format  (

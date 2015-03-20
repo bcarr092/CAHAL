@@ -1,3 +1,7 @@
+/*! \file   android_cahal.c
+
+    \author Brent Carrara
+ */
 #include "android/android_cahal.h"
 
 SLObjectItf g_engine_object     = NULL;

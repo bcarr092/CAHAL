@@ -1,3 +1,7 @@
+/*! \file   cahal_device.c
+ 
+    \author Brent Carrara
+ */
 #include "cahal_device.h"
 
 cahal_device** g_device_list    = NULL;

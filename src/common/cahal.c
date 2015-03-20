@@ -1,3 +1,7 @@
+/*! \file   cahal.c
+ 
+    \author Brent Carrara
+ */
 #include "cahal.h"
 
 #define MAJOR_VERSION 1U

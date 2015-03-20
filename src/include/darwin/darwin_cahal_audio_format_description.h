@@ -2,6 +2,8 @@
     \brief  This is the platform-specific file responsible for querying the
             hardware for its supported audio formats as well as creating the
             list of supported formats for each device stream.
+ 
+    \author Brent Carrara
  */
 #ifndef __darwin_CAHAL_AUDIO_FORMAT_H__
 #define __darwin_CAHAL_AUDIO_FORMAT_H__

@@ -1,3 +1,7 @@
+/*! \file   cahal_audio_format_flags.c
+ 
+    \author Brent Carrara
+ */
 #include "cahal_audio_format_flags.h"
 
 void

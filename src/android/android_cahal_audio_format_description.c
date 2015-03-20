@@ -1,3 +1,7 @@
+/*! \file   android_cahal_audio_format_description.c
+
+    \author Brent Carrara
+ */
 #include "android/android_cahal_audio_format_description.h"
 
 cahal_audio_format_id

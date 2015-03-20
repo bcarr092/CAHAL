@@ -1,3 +1,7 @@
+/*! \file   ios_cahal.c
+ 
+    \author Brent Carrara
+ */
 #include "darwin/ios/ios_cahal.h"
 
 void

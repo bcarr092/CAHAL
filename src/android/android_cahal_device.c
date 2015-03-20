@@ -1,3 +1,7 @@
+/*! \file   android_cahal_device.c
+
+    \author Brent Carrara
+ */
 #include "android/android_cahal_device.h"
 
 cahal_recorder_info* g_recorder_callback_info = NULL;

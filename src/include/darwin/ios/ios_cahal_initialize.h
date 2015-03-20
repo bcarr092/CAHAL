@@ -1,6 +1,8 @@
 /*! \file   ios_cahal_initialize.h
     \brief  objective-c class that provides access to the underlying playback/
             record hardware via an objective-c inteface.
+ 
+    \author Brent Carrara
  */
 #ifndef __IOS_CAHAL_INITIALIZE_H__
 #define __IOS_CAHAL_INITIALIZE_H__

@@ -1,3 +1,7 @@
+/*! \file   ios_cahal_device.c
+ 
+    \author Brent Carrara
+ */
 #include "darwin/ios/ios_cahal_device.h"
 
 CPC_BOOL

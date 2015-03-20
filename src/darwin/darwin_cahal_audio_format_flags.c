@@ -1,3 +1,7 @@
+/*! \file   audio_format_flags.c
+ 
+    \author Brent Carrara
+ */
 #include "darwin/darwin_cahal_audio_format_flags.h"
 
 cahal_audio_format_flag

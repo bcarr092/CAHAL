@@ -1,6 +1,8 @@
 /*! \file   android_cahal_device.h
  *  \brief  Android specific OpenSLES API calls used to setup the list of
  *          supported input and output hardware devices.
+
+    \author Brent Carrara
  */
 #ifndef __ANDROID_CAHAL_DEVICE_H__
 #define __ANDROID_CAHAL_DEVICE_H__

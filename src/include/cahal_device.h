@@ -4,6 +4,8 @@
               way are also defined here. A device struct models all properties
               of an audio device including streams (i.e. input/output) as well
               as format information including bit depth, and sample rate.
+ 
+    \author Brent Carrara
  */
 #ifndef __CAHAL_DEVICE_H__
 #define __CAHAL_DEVICE_H__

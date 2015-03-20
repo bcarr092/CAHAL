@@ -1,5 +1,7 @@
 /*! \file   ios_cahal_device.h
     \brief  iOS platform specific calls to generate the device struct.
+ 
+    \author Brent Carrara
  */
 #ifndef __IOS_CAHAL_DEVICE_H__
 #define __IOS_CAHAL_DEVICE_H__

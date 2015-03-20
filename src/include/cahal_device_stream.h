@@ -5,6 +5,8 @@
             single input or output stream. A device can have multiple streams if
             it supports both recording (e.g. a mic) as well as playback (e.g. a
             speaker).
+ 
+    \author Brent Carrara
  */
 #ifndef __CAHAL_DEVICE_STREAM_H__
 #define __CAHAL_DEVICE_STREAM_H__

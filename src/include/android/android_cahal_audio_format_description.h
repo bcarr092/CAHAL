@@ -1,6 +1,8 @@
 /*! \file   android_cahal_device_format_description.h
  *  \brief  Device format description conversion helper functions to convert
  *          between OpenSLES and CAHAL.
+
+    \author Brent Carrara
  */
 #ifndef __ANDROID_CAHAL_AUDIO_FORMAT_DESCRIPTION_H__
 #define __ANDROID_CAHAL_AUDIO_FORMAT_DESCRIPTION_H__

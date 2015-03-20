@@ -6,6 +6,8 @@
             in cahal.h, which is an exposed header file. The interface is
             platform agnostic even though the gathering of device information is
             platform specific.
+ 
+    \author Brent Carrara
  */
 #ifndef __OSX_CAHAL_H__
 #define __OSX_CAHAL_H__

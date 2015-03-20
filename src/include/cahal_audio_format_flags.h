@@ -1,6 +1,8 @@
 /*! \file   cahal_audio_format_flags.h
     \brief  List of platform agnostic audio format flags and helper functions to
             display their value.
+ 
+    \author Brent Carrara
  */
 #ifndef __CAHAL_AUDIO_FORMAT_FLAGS_H__
 #define __CAHAL_AUDIO_FORMAT_FLAGS_H__

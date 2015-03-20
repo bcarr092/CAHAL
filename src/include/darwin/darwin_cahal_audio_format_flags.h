@@ -1,6 +1,8 @@
 /*! \file   darwin_cahal_audio_format_flags.h
     \brief  Helper functions to convert CAHAL audio format flags to core audio
             flags and vice-versa.
+ 
+    \author Brent Carrara
  */
 #ifndef __darwin_CAHAL_AUDIO_FORMAT_FLAGS_H__
 #define __darwin_CAHAL_AUDIO_FORMAT_FLAGS_H__
