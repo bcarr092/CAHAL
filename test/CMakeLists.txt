@@ -30,30 +30,63 @@ include( ${SWIG_USE_FILE} )
 set( CPCOMMON_INCLUDE_DIRECTORY "${cpcommon_SOURCE_DIR}/src/include" )
 set( CAHAL_INCLUDE_DIRECTORY "${cahal_SOURCE_DIR}/src/include" )
 
-set (
-      PYTHON_INCLUDE_PATH
-      "/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/include"
-    )
+if(
+    DEFINED ENV{PYTHON_INCLUDE}
+    AND DEFINED ENV{PYTHON_LIB}
+    AND DEFINED ENV{PYTHON_BIN}
+  )
+  set( PYTHON_INCLUDE $ENV{PYTHON_INCLUDE}  )
+  set( PYTHON_LIB     $ENV{PYTHON_LIB}      )
+  set( PYTHON_BIN     $ENV{PYTHON_BIN}      )
+else()
+  message (
+    FATAL_ERROR
+    "Environment variables PYTHON_INCLUDE, PYTHON_LIB, PYTHON_BIN must be set."
+          )
+endif()
 
 if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
   set (
         PYTHON_LIBRARIES
-"/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/lib/libpython.dylib"
+        "${PYTHON_LIB}/libpython.dylib"
+      )
+  set (
+        PYTHON_BINARY
+        "${PYTHON_BIN}/python"
       )
 elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
   set (
         PYTHON_LIBRARIES
-"/Users/user/Developer/Python/${PLATFORM}-${ARCHITECTURE}/lib/libpython.so"
+        "${PYTHON_LIB}/libpython.so"
       )
+  set (
+        PYTHON_BINARY
+        "${PYTHON_BIN}/python"
+      )
+elseif( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+  string( REPLACE "\\" "/" PYTHON_INCLUDE ${PYTHON_INCLUDE} )
+  string( REPLACE "\\" "/" PYTHON_LIB ${PYTHON_LIB} )
+  string( REPLACE "\\" "/" PYTHON_BIN ${PYTHON_BIN} )
+
+  set (
+        PYTHON_LIBRARIES
+        "${PYTHON_LIB}/python27.lib"
+      )
+  set (
+        PYTHON_BINARY
+        "${PYTHON_BIN}/python.exe"
+      )
+else()
+  message( FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
 endif()
 
 include_directories( ${CPCOMMON_INCLUDE_DIRECTORY} )
 include_directories( ${CAHAL_INCLUDE_DIRECTORY} )
-include_directories( ${PYTHON_INCLUDE_PATH} )
+include_directories( ${PYTHON_INCLUDE} )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 message( STATUS "Python library: ${PYTHON_LIBRARIES}" )
-message( STATUS "Python includes: ${PYTHON_INCLUDE_PATH}" )
+message( STATUS "Python includes: ${PYTHON_INCLUDE}" )
 
 swig_add_module( ${PROJECT_NAME} python "${PROJECT_NAME}.i" )
 swig_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} cpcommon cahal )
@@ -89,7 +122,7 @@ install(  FILES ${WRAPPERS} DESTINATION
 
 enable_testing()
 
-add_test( ${PROJECT_NAME} "/usr/local/bin/python" "${PROJECT_BINARY_DIR}/test_driver.py" )
+add_test( ${PROJECT_NAME} ${PYTHON_BINARY} "${PROJECT_BINARY_DIR}/test_driver.py" )
 
 if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
   find_library( CORE_FOUNDATION_FRAMEWORK CoreFoundation )
@@ -125,6 +158,7 @@ elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
   message( STATUS "Android libraries: ${EXTRA_LIBS}" )
 
   swig_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
+elseif( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 else()
   message( FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
 endif()

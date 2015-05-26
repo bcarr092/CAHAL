@@ -176,6 +176,8 @@ elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
   message( STATUS "Android include directories: ${EXTRA_INCLUDES}" )
 
   include_directories( ${EXTRA_INCLUDES} )
+elseif( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+  message( STATUS "Platform ${CMAKE_SYSTEM_NAME}" )
 else()
   message( FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
 endif()
