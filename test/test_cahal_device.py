@@ -40,6 +40,8 @@ def determine_platform():
       return( "Mac OSX" )                                                       
   elif( platform_info[ 0 ] == "Linux" ):                                        
     return( "Android" )                                                         
+  elif( platform_info[ 0 ] == "Windows" ):
+    return( "Windows" )
                                                                                 
 class TestsCAHALDevice( unittest.TestCase ):                                    
   def setUp( self ):                                                            
@@ -73,6 +75,14 @@ class TestsCAHALDevice( unittest.TestCase ):
           cahal_tests.CAHAL_AUDIO_FORMAT_FLAGISPACKED
                                                                                 
     elif( platform == "Android" ):                                              
+      global_input_device_name  = "MicGeneric"
+      global_output_device_name = "DefaultOutput"
+      global_number_of_channels = 1
+      global_sample_rate        = 48000
+      global_bit_depth          = 16
+      global_flags              = 0
+
+    elif( platform == "Windows" ):                                              
       global_input_device_name  = "MicGeneric"
       global_output_device_name = "DefaultOutput"
       global_number_of_channels = 1

@@ -129,11 +129,11 @@ if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
 elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
   list( APPEND SOURCES "${SOURCE_DIR}/android/android_cahal.c" )
   list( APPEND SOURCES "${SOURCE_DIR}/android/android_cahal_device.c" )
-    list(
-          APPEND
-          SOURCES
-          "${SOURCE_DIR}/android/android_cahal_audio_format_description.c"
-        )
+  list(
+        APPEND
+        SOURCES
+        "${SOURCE_DIR}/android/android_cahal_audio_format_description.c"
+      )
 
   list( APPEND HEADERS "${INCLUDE_DIR}/android/android_cahal.h" )
   list( APPEND HEADERS "${INCLUDE_DIR}/android/android_cahal_device.h" )
@@ -177,7 +177,21 @@ elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
 
   include_directories( ${EXTRA_INCLUDES} )
 elseif( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
-  message( STATUS "Platform ${CMAKE_SYSTEM_NAME}" )
+  find_library  (
+                  PROPSYS_LIB
+                  Propsys 
+                )
+
+  set (
+        EXTRA_LIBS
+        ${PROPSYS_LIB}
+      )
+
+  list( APPEND SOURCES "${SOURCE_DIR}/windows/windows_cahal.c" )
+  list( APPEND SOURCES "${SOURCE_DIR}/windows/windows_cahal_device.cpp" )
+
+  list( APPEND HEADERS "${INCLUDE_DIR}/windows/windows_cahal.h" )
+  list( APPEND HEADERS "${INCLUDE_DIR}/windows/windows_cahal_device.hpp" )
 else()
   message( FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
 endif()
@@ -204,6 +218,8 @@ if( "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" )
   target_link_libraries( ${PROJECT_NAME} darwinhelper )
 elseif( ${PLATFORM} STREQUAL "Generic" AND ${TARGET} MATCHES "^android" )
   #target_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
+elseif( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+  target_link_libraries( ${PROJECT_NAME} ${EXTRA_LIBS} )
 endif()
 
 install (
