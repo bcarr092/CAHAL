@@ -1,3 +1,8 @@
+/*! \file   windows_cahal.c
+
+    \author Brent Carrara
+ */
+
 #include "windows/windows_cahal.h"
 
 void

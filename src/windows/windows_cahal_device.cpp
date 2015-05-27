@@ -1,29 +1,99 @@
+/*! \file   windows_cahal_device.cpp
+    \brief  Implementation that queries the underlying Windows hardware and
+            creates the device_list struct.
+
+    \author Brent Carrara
+ */
+
 #include "windows/windows_cahal_device.hpp"
 
+/*! \def    HRESULT windows_set_device_info(
+              cahal_device* out_device,
+              IMMDevice*    in_endpoint
+            );
+    \brief  Sets out_device's name, ID, and state by querying the hardware
+            pointed to by in_endpoint. A call is made from this function
+            to set the streams. Success is returned if this device has streams.
+
+    \param  out_device  The device whos name, ID, streams and state are to be
+                        set.
+    \param  in_endpoint Pointer to the underlying hardware that is to be
+            queried.
+    \return S_OK iff the devices streams are set correctly. An error code
+            otherwise.
+ */
 HRESULT
 windows_set_device_info(
   cahal_device* out_device,
   IMMDevice*    in_endpoint
 );
 
+/*! \def    HRESULT windows_set_device_defaults(
+              cahal_device* out_device,
+              IMMDevice*    in_endpoint
+            );
+    \brief  Sets the preferred sample rate and number of channels for the
+            device pointed to by in_endpoint.
+
+    \param  out_device  The device whos preferred sample rate and number of
+                        channels is ot be set.
+    \param  in_endpoint Pointer to the underlying hardware that is to be
+                        queried.
+    \return S_OK iff the default format for in_endpoint can be queried.
+ */
 HRESULT
 windows_set_device_defaults(
   cahal_device* out_device,
   IMMDevice*    in_endpoint
 );
 
+/*! \def    HRESULT windows_set_device_id(
+              cahal_device* out_device,
+              IMMDevice*    in_endpoint
+            );
+    \brief  Sets the device's ID by querying the underlying hardware.
+
+    \param  out_device  The device whos ID is to be set (this is the
+                        device_uid)
+    \param  in_endpoint Pointer to the underlying hardware that is to be
+                        queried.
+    \return S_OK iff the devices ID can be queried.
+ */
 HRESULT
 windows_set_device_id(
   cahal_device* out_device,
   IMMDevice*    in_endpoint
 );
 
+/*! \def    HRESULT windows_set_device_state(
+              cahal_device* out_device,
+              IMMDevice*    in_endpoint
+            );
+    \brief  Sets the device's state (active or not) by querying the underlying
+            hardware.
+
+    \param  out_device  The device whos state is to be set
+    \param  in_endpoint Pointer to the underlying hardware that is to be
+                        queried.
+    \return S_OK iff the devices state can be queried.
+*/
 HRESULT
 windows_set_device_state(
   cahal_device* out_device,
   IMMDevice*    in_endpoint
 );
 
+/*! \def    HRESULT windows_set_device_name(
+              cahal_device* out_device,
+              IMMDevice*    in_endpoint
+            );
+    \brief  Sets the device's name by querying the underlying hardware.
+
+    \param  out_device  The device whos name is to be sets
+    \param  in_endpoint Pointer to the underlying hardware that is to be
+                        queried.
+    \return S_OK iff the devices name can be queried.
+*/
 HRESULT
 windows_set_device_name(
   cahal_device* out_device,

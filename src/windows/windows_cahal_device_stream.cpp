@@ -1,3 +1,10 @@
+/*! \file   windows_cahal_device_stream.hpp
+    \brief  Implementation of functions that query the underlying hardware for
+            its supported formats.
+
+    \author Brent Carrara
+ */
+
 #include "windows/windows_cahal_device_stream.hpp"
 
 #define NUM_CHANNELS_TO_TEST                2
@@ -31,6 +38,27 @@ static UINT32 supported_sample_rates[
   192000
 };
 
+/*! \def    cpc_error_code  windows_add_format_description(
+                              UINT32                in_bits_per_sample,
+                              UINT32                in_num_channels,
+                              UINT32                in_sample_rate,
+                              UINT32                in_num_supported_formats,
+                              cahal_device_stream*  io_device_stream
+                            );
+    \brief  Creates a new audio description with the passed in parameters and
+            adds the newly created description to the list of supported formats
+            pointed to by io_device_stream.
+
+    \param  in_bits_per_sample  The number of bits per sample supported.
+    \param  in_num_channels The number of channels supported.
+    \param  in_sample_rate  The sample rate supported.
+    \param  in_num_supported_formats  The number of supported formats currently
+                                      in the list pointed to by
+                                      io_device_stream.
+    \param  io_device_stream  The list to add the supported format to.
+    \return CPC_ERROR_CODE_NO_ERROR if the description is added. An error code
+            otherwise.
+ */
 cpc_error_code
 windows_add_format_description(
   UINT32                in_bits_per_sample,
@@ -40,12 +68,37 @@ windows_add_format_description(
   cahal_device_stream*  io_device_stream
 );
 
+/*! \def    HRESULT windows_set_device_stream_direction(
+                        cahal_device_stream*  out_stream,
+                        IMMDevice*            in_endpoint
+                      );
+    \brief  Queries the underlying hardware's direction (render or capture)
+            and sets the stream appropriately.
+
+    \param  out_stream  The stream who's direction needs to be set.
+    \param  in_endpoint Pointer to the underlying hardware to be queried.
+    \return S_OK iff the endpoint's direction can be queried. An error code
+            otherwise.
+ */
 HRESULT
 windows_set_device_stream_direction(
   cahal_device_stream*  out_stream,
   IMMDevice*            in_endpoint
 );
 
+/*! \def    HRESULT windows_determine_supported_formats(
+                      cahal_device_stream*  out_stream,
+                      IMMDevice*            in_endpoint
+                    );
+    \brief  Queries the endpoint for its supported formats (i.e., channels,
+            sample rate, bit depth). Supported formats are added to out_stream.
+
+    \param  out_stream Supported formats are added to this stream.
+    \param  in_endpoint Pointer to the underlying hardware whos formats are to
+                        be queried.
+    \return S_OK iff the endpoint's formats can be queried and added to the
+            list in out_stream.
+ */
 HRESULT
 windows_determine_supported_formats(
   cahal_device_stream*  out_stream,
