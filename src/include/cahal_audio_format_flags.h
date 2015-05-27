@@ -9,6 +9,11 @@
 
 #include <cpcommon.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /*! \enum     cahal_audio_format_flags
     \brief    List of the various flags that are supported by the CAHAL library.
               These are platform-agnostic constants and are mapped to platform-
@@ -75,5 +80,9 @@ cahal_print_audio_format_flag (
                                CHAR*                    in_label,
                                cahal_audio_format_flag  in_format_flag
                                );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /*  __CAHAL_AUDIO_FORMAT_FLAGS_H__  */

@@ -9,6 +9,11 @@
 
 #include <cpcommon.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #define CAHAL_AUDIO_FORMAT_STRING_MACE6                 "MACE6"
 #define CAHAL_AUDIO_FORMAT_STRING_QUALCOMM              "QUALCOMM"
 #define CAHAL_AUDIO_FORMAT_STRING_MPEG4TWINVQ           "MPEG4TwinVQ"
@@ -199,5 +204,9 @@ cahal_print_audio_format_id (
                              CHAR*                  in_label,
                              cahal_audio_format_id  in_format_id
                              );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /*  __CAHAL_AUDIO_FORMAT_H__  */

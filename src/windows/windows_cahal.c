@@ -119,18 +119,3 @@ cahal_start_playback(
 {
   return( CPC_FALSE );
 }
-
-CPC_BOOL
-cahal_start_recording(
-  cahal_device*            in_device,
-  cahal_audio_format_id    in_format_id,
-  UINT32                   in_number_of_channels,
-  FLOAT64                  in_sample_rate,
-  UINT32                   in_bit_depth,
-  cahal_recorder_callback  in_recorder,
-  void*                    in_callback_user_data,
-  cahal_audio_format_flag  in_format_flags
-)
-{
-  return( CPC_FALSE );
-}

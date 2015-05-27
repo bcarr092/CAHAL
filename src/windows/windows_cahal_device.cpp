@@ -7,6 +7,9 @@
 
 #include "windows/windows_cahal_device.hpp"
 
+cahal_recorder_info* g_recorder_callback_info = NULL;
+cahal_playback_info* g_playback_callback_info = NULL;
+
 /*! \def    HRESULT windows_set_device_info(
               cahal_device* out_device,
               IMMDevice*    in_endpoint
@@ -325,7 +328,7 @@ windows_get_device_list( void )
   IMMDeviceEnumerator *enumerator         = NULL;
   IMMDeviceCollection *device_collection  = NULL;
 
-  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Enumerating devices" );
+  CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "Enumerating devices" );
 
   result =
       CoCreateInstance  (
@@ -418,4 +421,249 @@ windows_get_device_list( void )
   }
 
   return( device_list );
+}
+
+CPC_BOOL
+cahal_start_recording (
+  cahal_device*            in_device,
+  cahal_audio_format_id    in_format_id,
+  UINT32                   in_number_of_channels,
+  FLOAT64                  in_sample_rate,
+  UINT32                   in_bit_depth,
+  cahal_recorder_callback  in_recorder,
+  void*                    in_callback_user_data,
+  cahal_audio_format_flag  in_format_flags
+                      )
+{
+  CPC_BOOL return_value = CPC_FALSE;
+
+  CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "In start recording!" );
+
+  if(
+    cahal_test_device_direction_support(
+    in_device,
+    CAHAL_DEVICE_INPUT_STREAM
+    )
+    && CAHAL_STATE_INITIALIZED == g_cahal_state
+    && NULL == g_playback_callback_info
+    )
+  {
+    CPC_BOOL return_value = CPC_FALSE;
+    IMMDeviceEnumerator *enumerator = NULL;
+    IMMDeviceCollection *device_collection = NULL;
+
+    CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "Enumerating devices" );
+
+    HRESULT result =
+      CoCreateInstance(
+      __uuidof( MMDeviceEnumerator ),
+      NULL,
+      CLSCTX_ALL,
+      __uuidof( IMMDeviceEnumerator ),
+      ( void** )&enumerator
+      );
+
+    if( S_OK == result )
+    {
+      result =
+        enumerator->EnumAudioEndpoints(
+        eAll,
+        DEVICE_STATE_ACTIVE,
+        &device_collection
+        );
+
+      if( S_OK == result )
+      {
+        IMMDevice* device = NULL;
+
+        result = device_collection->Item( in_device->handle, &device );
+
+        if( S_OK == result )
+        {
+          WAVEFORMATEX format;
+
+          IAudioClient *audio_client = NULL;
+
+          CPC_MEMSET( &format, 0x0, sizeof( WAVEFORMATEX ) );
+
+          format.wFormatTag = WAVE_FORMAT_PCM;
+          format.nChannels = in_number_of_channels;
+          format.nSamplesPerSec = ( DWORD ) in_sample_rate;
+          format.wBitsPerSample = in_bit_depth;
+          format.nBlockAlign =
+            ( format.nChannels * format.wBitsPerSample ) / 8;
+          format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
+          format.cbSize = 0;
+
+          CPC_LOG (
+            CPC_LOG_LEVEL_DEBUG,
+            "Format info: sr=%d, nc=0x%x, bd=0x%x",
+            format.nSamplesPerSec,
+            format.nChannels,
+            format.wBitsPerSample
+                  );
+
+          result =
+            device->Activate  (
+              __uuidof( IAudioClient ), 
+              CLSCTX_ALL, 
+              NULL, 
+              ( void** )&audio_client
+                              );
+
+          if( S_OK == result )
+          {
+            REFERENCE_TIME requested_latency = 0;
+
+            result = audio_client->GetDevicePeriod( NULL, &requested_latency );
+
+            CPC_LOG (
+              CPC_LOG_LEVEL_DEBUG, 
+              "Hardware sample rate: %lld.", 
+              requested_latency
+                    );
+
+            if( S_OK == result )
+            {
+              result =
+                audio_client->Initialize  (
+                  AUDCLNT_SHAREMODE_EXCLUSIVE, 
+                  AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 
+                  requested_latency, 
+                  requested_latency, 
+                  &format, 
+                  NULL
+                                          );
+
+              if( AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED == result )
+              {
+                UINT32 number_of_frames = 0;
+
+                result = audio_client->GetBufferSize( &number_of_frames );
+
+                if( S_OK == result )
+                {
+                  requested_latency =
+                    ( REFERENCE_TIME )
+                      ( 
+                        (
+                          10000.0 * 1000
+                          / format.nSamplesPerSec * number_of_frames
+                        )
+                        + 0.5
+                      );
+
+                  CPC_LOG (
+                    CPC_LOG_LEVEL_DEBUG, 
+                    "New hardware sample rate is %lld.", 
+                    requested_latency
+                          );
+
+                  audio_client->Release();
+
+                  result =
+                    device->Activate(
+                      __uuidof( IAudioClient ),
+                      CLSCTX_ALL,
+                      NULL,
+                      ( void** )&audio_client
+                    );
+
+                  if( S_OK == result )
+                  {
+                    result =
+                      audio_client->Initialize  (
+                        AUDCLNT_SHAREMODE_EXCLUSIVE,
+                        AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                        requested_latency,
+                        requested_latency,
+                        &format,
+                        NULL
+                                                );
+
+                    if( S_OK == result )
+                    {
+                      HANDLE event = CreateEvent( NULL, FALSE, FALSE, NULL );
+
+                      if( NULL != event )
+                      {
+                        result = audio_client->SetEventHandle( event );
+
+                        if( S_OK == result )
+                        {
+                          result = audio_client->Start();
+
+                          CPC_ERROR( "Start: 0x%x.", result );
+                        }
+                        else
+                        {
+                          CPC_ERROR( "Could not set event: 0x%x.", result );
+                        }
+                      }
+                      else
+                      {
+                        CPC_LOG_STRING  (
+                          CPC_LOG_LEVEL_ERROR, 
+                          "Could not create event."
+                                        );
+                      }
+                    }
+                    else
+                    {
+                      CPC_ERROR( "Could not initialize client: 0x%x.", result );
+                    }
+                  }
+                  else
+                  {
+                    CPC_ERROR (
+                      "Could not active client (again): 0x%x.", 
+                      result
+                      );
+                  }
+                }
+                else
+                {
+                  CPC_ERROR( "Could not read buffer size: 0x%x.", result );
+                }
+              }
+            }
+            else
+            {
+              CPC_ERROR( "Could not requrest device period: 0x%x.", result );
+            }
+          }
+          else
+          {
+            CPC_ERROR( "Could not active device: 0x%x.", result );
+          }
+        }
+        else
+        {
+          CPC_ERROR(
+            "Could not retrieve item 0x%x: 0x%x.",
+            in_device->handle,
+            result
+            );
+        }
+      }
+      else
+      {
+        CPC_ERROR( "Could not enumerate devices: 0x%x.", result );
+      }
+    }
+    else
+    {
+      CPC_ERROR( "Could not create enumerator COM object: 0x%x.", result );
+    }
+  }
+  else
+  {
+    CPC_ERROR(
+      "Direction (%d) not support by %s.",
+      CAHAL_DEVICE_INPUT_STREAM,
+      in_device->device_name
+      );
+  }
+
+  return( return_value );
 }

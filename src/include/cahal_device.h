@@ -16,6 +16,11 @@
 #include "cahal_audio_format_description.h"
 #include "cahal_device_stream.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /*! \def    CAHAL_QUEUE_BUFFER_DURATION
     \brief  The amount of time (in seconds) to buffer samples for in each queued
             buffer.
@@ -453,5 +458,9 @@ cahal_start_playback  (
                        void*                    in_callback_user_data,
                        cahal_audio_format_flag  in_format_flags
                        );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /*  _CAHAL_DEVICE_H__ */

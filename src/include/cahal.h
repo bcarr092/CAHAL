@@ -16,6 +16,11 @@
 #include "cahal_audio_format_flags.h"
 #include "cahal_audio_format_description.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /*! \enum   cahal_states
  *  \brief  The states that the library goes through. The state transition
  *          diagram is as follows NOT_INITIALIZED -> INITIALIZED -> TERMINATED.
@@ -93,6 +98,10 @@ void
 cahal_sleep (
     UINT32 in_sleep_time
             );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _CAHAL_H_ */
 

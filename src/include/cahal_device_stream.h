@@ -15,6 +15,11 @@
 
 #include "cahal_audio_format_description.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /*! \enum   cahal_device_stream_direction
     \brief  Enum of the different directions supported in streams. Input is for
             recording (e.g. microphone), output is for playback (e.g. speaker).
@@ -119,5 +124,9 @@ void
 cahal_free_device_stream_list (
                                cahal_device_stream** in_device_stream_list
                                );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /*  __CAHAL_DEVICE_STREAM_H__ */
