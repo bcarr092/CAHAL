@@ -85,6 +85,8 @@ typedef struct cahal_device_t
               This is a complete list of the sample rate ranges supported by the
               device. All supported sample rate ranges are supported by the
               audio device in hardware.
+
+      \note   This needs to be removed. It is not used.
    */
   cahal_sample_rate_range** supported_sample_rates;
   

@@ -10,6 +10,8 @@
 #include "cahal.h"
 #include "cahal_device.h"
 
+#include "windows_cahal_device_stream.hpp"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -17,18 +19,6 @@ extern "C"
 
 cahal_device**
 windows_get_device_list( void );
-
-void
-windows_set_device_info(
-  cahal_device* out_device,
-  IMMDevice*    in_endpoint
-);
-
-void
-windows_set_device_defaults(
-  cahal_device* out_device,
-  IMMDevice*    in_endpoint
-);
 
 #ifdef __cplusplus
 }

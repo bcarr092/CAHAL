@@ -83,10 +83,10 @@ class TestsCAHALDevice( unittest.TestCase ):
       global_flags              = 0
 
     elif( platform == "Windows" ):                                              
-      global_input_device_name  = "MicGeneric"
-      global_output_device_name = "DefaultOutput"
-      global_number_of_channels = 1
-      global_sample_rate        = 48000
+      global_input_device_name  = "Microphone"
+      global_output_device_name = "Speakers"
+      global_number_of_channels = 2
+      global_sample_rate        = 44100
       global_bit_depth          = 16
       global_flags              = 0
                                                                                 

@@ -1,52 +1,87 @@
 #include "windows/windows_cahal_device.hpp"
 
-const CLSID CLSID_MMDeviceEnumerator  = __uuidof( MMDeviceEnumerator );
-const IID IID_IMMDeviceEnumerator     = __uuidof( IMMDeviceEnumerator );
-const IID IID_IAudioClient            = __uuidof( IAudioClient );
-
-void
-windows_set_device_info (
+HRESULT
+windows_set_device_info(
   cahal_device* out_device,
   IMMDevice*    in_endpoint
-                        )
+);
+
+HRESULT
+windows_set_device_defaults(
+  cahal_device* out_device,
+  IMMDevice*    in_endpoint
+);
+
+HRESULT
+windows_set_device_id(
+  cahal_device* out_device,
+  IMMDevice*    in_endpoint
+);
+
+HRESULT
+windows_set_device_state(
+  cahal_device* out_device,
+  IMMDevice*    in_endpoint
+);
+
+HRESULT
+windows_set_device_name(
+  cahal_device* out_device,
+  IMMDevice*    in_endpoint
+);
+
+HRESULT
+windows_set_device_id(
+  cahal_device* out_device,
+  IMMDevice*    in_endpoint
+                      )
 {
-  PROPVARIANT value;
-
-  DWORD state                 = NULL;
-  LPWSTR device_id            = NULL;
-  IPropertyStore *properties  = NULL;
-
-  HRESULT result = in_endpoint->GetId( &device_id );
+  LPWSTR device_id  = NULL;
+  HRESULT result    = S_OK;
+  
+  result = in_endpoint->GetId( &device_id );
 
   if( S_OK == result )
   {
     if(
       CPC_ERROR_CODE_NO_ERROR
-        == cpc_safe_malloc  (
-            ( void** )&( out_device->device_uid ),
-            sizeof( CHAR )* ( wcslen( device_id ) + 1 )
-                            )
+      == cpc_safe_malloc(
+      ( void** )&( out_device->device_uid ),
+      sizeof( CHAR )* ( wcslen( device_id ) + 1 )
+      )
       )
     {
       USIZE number_converted = 0;
 
-      wcstombs_s  (
-        &number_converted, 
-        out_device->device_uid, 
-        wcslen( device_id ) + 1, 
-        device_id, 
+      wcstombs_s(
+        &number_converted,
+        out_device->device_uid,
+        wcslen( device_id ) + 1,
+        device_id,
         wcslen( device_id )
-                  );
+        );
 
-      CPC_LOG (
+      CPC_LOG(
         CPC_LOG_LEVEL_DEBUG,
         "Device identifier is %s.",
         out_device->device_uid
-              );
+        );
     }
 
     CoTaskMemFree( device_id );
   }
+
+  return( result );
+}
+
+HRESULT
+windows_set_device_state  (
+  cahal_device* out_device,
+  IMMDevice*    in_endpoint
+                          )
+{
+  DWORD state     = NULL;
+  HRESULT result  = S_OK;
 
   result = in_endpoint->GetState( &state );
 
@@ -62,13 +97,27 @@ windows_set_device_info (
     }
   }
 
+  return( result );
+}
+
+HRESULT
+windows_set_device_name(
+  cahal_device* out_device,
+  IMMDevice*    in_endpoint
+                        )
+{
+  PROPVARIANT value;
+
+  IPropertyStore *properties  = NULL;
+  HRESULT result              = S_OK;
+
   result = in_endpoint->OpenPropertyStore( STGM_READ, &properties );
 
   if( S_OK == result )
   {
     PropVariantInit( &value );
 
-    result = properties->GetValue( PKEY_Device_FriendlyName, &value );
+    result = properties->GetValue( PKEY_Device_DeviceDesc, &value );
 
     if( S_OK == result && VT_EMPTY != value.vt )
     {
@@ -100,13 +149,67 @@ windows_set_device_info (
 
     PropVariantClear( &value );
 
-    properties->Release();
+    properties->Release( );
   }
 
-  windows_set_device_defaults( out_device, in_endpoint );
+  return( result );
 }
 
-void
+HRESULT
+windows_set_device_info (
+  cahal_device* out_device,
+  IMMDevice*    in_endpoint
+                        )
+{
+  HRESULT result = S_OK;
+
+  result = windows_set_device_id( out_device, in_endpoint );
+
+  if( S_OK != result )
+  {
+    CPC_LOG( CPC_LOG_LEVEL_WARN, "Could not set device id: 0x%x.", result );
+  }
+
+  result = windows_set_device_name( out_device, in_endpoint );
+
+  if( S_OK != result )
+  {
+    CPC_LOG( CPC_LOG_LEVEL_WARN, "Could not set device name: 0x%x.", result );
+  }
+
+  result = windows_set_device_state( out_device, in_endpoint );
+
+  if( S_OK != result )
+  {
+    CPC_LOG( CPC_LOG_LEVEL_WARN, "Could not set device state: 0x%x.", result );
+  }
+
+  result = windows_set_device_defaults( out_device, in_endpoint );
+
+  if( S_OK != result )
+  {
+    CPC_LOG (
+      CPC_LOG_LEVEL_WARN,
+      "Could not set device defaults: 0x%x.",
+      result
+            );
+  }
+
+  result = windows_set_device_streams( out_device, in_endpoint );
+
+  if( S_OK != result )
+  {
+    CPC_LOG (
+      CPC_LOG_LEVEL_WARN, 
+      "Could not set device stream: 0x%x.", 
+      result
+            );
+  }
+
+  return( result );
+}
+
+HRESULT
 windows_set_device_defaults(
   cahal_device* out_device,
   IMMDevice*    in_endpoint
@@ -117,7 +220,7 @@ windows_set_device_defaults(
   HRESULT result              = S_OK;
 
   result = in_endpoint->Activate (
-    IID_IAudioClient,
+    __uuidof( IAudioClient ),
     CLSCTX_ALL, 
     NULL, 
     ( void** ) &audio_client
@@ -140,6 +243,8 @@ windows_set_device_defaults(
               );
     }
   }
+
+  return( result );
 }
 
 cahal_device**
@@ -154,10 +259,10 @@ windows_get_device_list( void )
 
   result =
       CoCreateInstance  (
-        CLSID_MMDeviceEnumerator, 
+        __uuidof( MMDeviceEnumerator ),
         NULL, 
         CLSCTX_ALL, 
-        IID_IMMDeviceEnumerator, 
+        __uuidof( IMMDeviceEnumerator ),
         ( void** )&enumerator
                         );
 
@@ -199,6 +304,8 @@ windows_get_device_list( void )
                                   )
               )
             {
+              IMMDevice *endpoint = NULL;
+
               CPC_LOG_BUFFER(
                 CPC_LOG_LEVEL_TRACE,
                 "Device",
@@ -207,7 +314,7 @@ windows_get_device_list( void )
                 8
                 );
 
-              IMMDevice *endpoint = NULL; 
+              device_list[ i ]->handle = i;
 
               result = device_collection->Item( i, &endpoint );
 

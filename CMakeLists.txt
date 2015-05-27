@@ -189,9 +189,20 @@ elseif( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 
   list( APPEND SOURCES "${SOURCE_DIR}/windows/windows_cahal.c" )
   list( APPEND SOURCES "${SOURCE_DIR}/windows/windows_cahal_device.cpp" )
+  list  (
+    APPEND
+    SOURCES
+    "${SOURCE_DIR}/windows/windows_cahal_device_stream.cpp"
+        )
 
   list( APPEND HEADERS "${INCLUDE_DIR}/windows/windows_cahal.h" )
   list( APPEND HEADERS "${INCLUDE_DIR}/windows/windows_cahal_device.hpp" )
+  list  (
+    APPEND
+    HEADERS
+    "${INCLUDE_DIR}/windows/windows_cahal_device_stream.hpp"
+        )
+
 else()
   message( FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}" )
 endif()
