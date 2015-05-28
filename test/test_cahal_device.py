@@ -163,6 +163,7 @@ class TestsCAHALDevice( unittest.TestCase ):
 
     cahal_tests.cahal_stop_playback()
 
+"""
   def test_cahal_test_device_direction_support( self ):
     self.assertFalse(                                             \
       cahal_tests.cahal_test_device_direction_support( None, 0 )  \
@@ -362,9 +363,10 @@ class TestsCAHALDevice( unittest.TestCase ):
       index += 1                                                                    
 
       device = cahal_tests.cahal_device_list_get( device_list, index )
+"""
 
 if __name__ == '__main__':
-  cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
+  cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_DEBUG )
 
   cahal_tests.cahal_initialize()
 

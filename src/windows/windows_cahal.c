@@ -49,14 +49,6 @@ cahal_terminate( void )
   }
 }
 
-void
-cahal_sleep (
-  UINT32 in_sleep_time
-            )
-{
-  Sleep( in_sleep_time * 1000 );
-}
-
 cahal_device**
 cahal_get_device_list( void )
 {
@@ -95,12 +87,6 @@ cahal_get_device_list( void )
 
 CPC_BOOL
 cahal_stop_playback( void )
-{
-  return( CPC_FALSE );
-}
-
-CPC_BOOL
-cahal_stop_recording( void )
 {
   return( CPC_FALSE );
 }
