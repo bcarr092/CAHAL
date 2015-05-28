@@ -14,19 +14,158 @@ HANDLE g_recorder_thread            = INVALID_HANDLE_VALUE;
 HANDLE g_recorder_data_ready_event  = INVALID_HANDLE_VALUE;
 HANDLE g_recorder_terminate_event   = INVALID_HANDLE_VALUE;
 
-HRESULT
-windows_initialize_device(
-IMMDevice*      in_device,
-IAudioClient**  io_audio_client,
-WAVEFORMATEX    in_format
-);
+/*! \def    DWORD WINAPI  windows_recorder_thread_entry (
+                            LPVOID in_callback_info
+                                                        )
+    \brief  Entry point for the recorder thread. This function will block
+            on the data ready and terminate events and handle them when
+            signalled. When the terminate event is signalled the thread will
+            exit.
 
+    \param  in_callback_info  Contains the callback function to call when data
+                              is read (after receiving the data ready event).
+    \return Exit code (always 0).
+ */
+DWORD
+WINAPI
+windows_recorder_thread_entry (
+  LPVOID in_callback_info
+                              );
+
+/*! \def    UINT32  windows_recorder_read_data  (
+                      IAudioCaptureClient*  in_capture_client,
+                      WAVEFORMATEX*         in_format,
+                      cahal_recorder_info*  in_callback_info
+                                                )
+    \brief  Reads a buffer full of data from the capture hardware and makes
+            the data available to the callback.
+
+    \param  in_capture_client The capture client to record the data from.
+    \param  in_format The format the data is in.
+    \param  in_callback_info  The callback to call with the new data.
+    \return The amount of data read from in_capture_client.
+ */
+UINT32
+windows_recorder_read_data  (
+  IAudioCaptureClient*  in_capture_client,
+  WAVEFORMATEX*         in_format,
+  cahal_recorder_info*  in_callback_info
+                            );
+
+/*! \def    HRESULT windows_initialize_recorder_event_thread(
+                      IAudioClient*         io_audio_client,
+                      cahal_recorder_info*  in_callback_info
+                                                            )
+    \brief  Creates the recorder events (data ready, terminate), the recorder
+            thread and adds the data ready event to the audio client (so it
+            can be signalled when data is available).
+
+    \param  io_audio_client The objet to set the data ready event on.
+    \param  in_callback_info  The recorder thread created in this function is
+                              configured with this callback.
+    \return S_OK iff the audio_client is configured to call the data ready
+            event. An error code otherwise.
+ */
 HRESULT
-windows_reinitialize_device(
-IMMDevice*      in_device,
-IAudioClient**  io_audio_client,
-WAVEFORMATEX    in_format
-);
+windows_initialize_recorder_event_thread(
+  IAudioClient*         io_audio_client,
+  cahal_recorder_info*  in_callback_info
+                                        );
+
+/*! \def    void  windows_handle_recorder_data(
+                    cahal_recorder_info* in_callback_info
+                                              )
+    \brief  Called by the recording thread when signaled that a new capture
+            buffer is ready. This function will get the capture client and
+            read a buffer full of data from it then pass the data to the
+            callback in in_callback_info.
+
+    \param  in_callback_info  The callback to call with a buffer full of data.
+ */
+void
+windows_handle_recorder_data(
+  cahal_recorder_info* in_callback_info
+                            );
+
+/*! \def    HRESULT windows_configure_capture_device(
+                      cahal_device*   in_device,
+                      UINT32          in_number_of_channels,
+                      FLOAT64         in_sample_rate,
+                      UINT32          in_bit_depth,
+                      IAudioClient**  out_audio_client
+                                                    )
+    \breif  Entry point to configure the WASAPI to capture audio samples. This
+            function will enumerate the audio devices, select the appropriate
+            device (using in_device->handle) and initialize an audio client
+            to use for capture.
+
+    \param  in_device The cahal device struct that contains the handle of the
+                      capture device.
+    \param  in_number_of_channels The number of channels to capture on.
+    \param  in_sample_rate  The sample rate to record at.
+    \param  in_bit_depth  The number of bits per sample to capture at.
+    \param  out_audio_client  A created, initialized audio client that can be
+                              used to read recorded data buffers.
+    \return S_OK iff out_audio_client is created, activated and initialized.
+            An error code otherwise.
+ */
+HRESULT
+windows_configure_capture_device(
+  cahal_device*   in_device,
+  UINT32          in_number_of_channels,
+  FLOAT64         in_sample_rate,
+  UINT32          in_bit_depth,
+  IAudioClient**  out_audio_client
+                                );
+
+/*! \def    HRESULT windows_initialize_device (
+                      IMMDevice*      in_device,
+                      IAudioClient**  io_audio_client,
+                      WAVEFORMATEX    in_format
+                                              )
+    \brief  Activates a new audio client from in_device and initializes it.
+            Calling reinitialize if required.
+
+    \param  in_device The device to activate.
+    \param  io_audio_client The newly created audio client, intialized from
+                            in_device.
+    \param  in_format The data format to configure the device to use.
+    \return S_OK iff the audio_client is properly activated and initialized.
+            An error code otherwise.
+ */
+HRESULT
+windows_initialize_device (
+  IMMDevice*      in_device,
+  IAudioClient**  io_audio_client,
+  WAVEFORMATEX    in_format
+                          );
+
+/*! \def    HRESULT windows_reinitialize_device (
+                      IMMDevice*      in_device,
+                      IAudioClient**  io_audio_client,
+                      WAVEFORMATEX    in_format
+                                                )
+    \breif  Reinitializes the audio_client with a buffer size that is aligned
+            to the block size in the format. This is required when devices are
+            opened in exclusive mode (it is required to align the expected
+            buffer size with the hardware buffer size).
+
+    \param  in_device The endpoint device that the audio client is attached
+                      to.
+    \param  io_audio_client The audio client to reinitialize. Note that the
+                            passed in audio client will be released and a new
+                            one will be initialized.
+    \param  in_format The data format that the device is configured to capture
+                      in.
+    \return S_OK iff the audio_client is reinitialized with the appropriate
+            sized buffer. An error code otherwise.
+ */
+HRESULT
+windows_reinitialize_device (
+  IMMDevice*      in_device,
+  IAudioClient**  io_audio_client,
+  WAVEFORMATEX    in_format
+                            );
 
 /*! \def    HRESULT windows_set_device_info(
               cahal_device* out_device,
@@ -332,6 +471,8 @@ windows_set_device_defaults(
         out_device->preferred_number_of_channels, 
         out_device->preferred_sample_rate
               );
+
+      CoTaskMemFree( format );
     }
   }
 
@@ -936,7 +1077,7 @@ windows_initialize_recorder_event_thread  (
   if( NULL != in_callback_info && NULL != io_audio_client )
   {
     g_recorder_data_ready_event = CreateEvent( NULL, FALSE, FALSE, NULL );
-    g_recorder_terminate_event = CreateEvent( NULL, FALSE, FALSE, NULL );
+    g_recorder_terminate_event  = CreateEvent( NULL, FALSE, FALSE, NULL );
 
     if(
       NULL != g_recorder_data_ready_event
