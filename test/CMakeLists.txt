@@ -92,6 +92,7 @@ swig_add_module( ${PROJECT_NAME} python "${PROJECT_NAME}.i" )
 swig_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} cpcommon cahal )
 
 set( SCRIPTS "${PROJECT_SOURCE_DIR}/test_driver.py" )
+list( APPEND SCRIPTS "${PROJECT_SOURCE_DIR}/test_wav.py" )
 list( APPEND SCRIPTS "${PROJECT_SOURCE_DIR}/test_cahal.py" )
 list( APPEND SCRIPTS "${PROJECT_SOURCE_DIR}/test_cahal_device.py" )
 list( APPEND SCRIPTS "${PROJECT_SOURCE_DIR}/test_cahal_device_stream.py" )

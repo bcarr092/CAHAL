@@ -193,15 +193,15 @@ windows_determine_supported_formats(
 
           CPC_MEMSET( &format, 0x0, sizeof( WAVEFORMATEX ) );
 
-          format.wFormatTag = WAVE_FORMAT_PCM;
-          format.nChannels = ( num_channels + 1 );
+          format.wFormatTag       = WAVE_FORMAT_PCM;
+          format.nChannels        = ( num_channels + 1 );
           format.nSamplesPerSec = supported_sample_rates[sample_rate_index];
-          format.wBitsPerSample =
+          format.wBitsPerSample   =
             supported_bits_per_sample[bits_per_sample_index];
-          format.nBlockAlign =
+          format.nBlockAlign      =
             ( format.nChannels * format.wBitsPerSample ) / 8;
-          format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
-          format.cbSize = 0;
+          format.nAvgBytesPerSec  = format.nSamplesPerSec * format.nBlockAlign;
+          format.cbSize           = 0;
 
           HRESULT supported_check = 
             audio_client->IsFormatSupported ( 

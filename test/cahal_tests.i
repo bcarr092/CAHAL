@@ -407,7 +407,7 @@ python_playback_callback  (
                     in_playback_device,
                     *io_data_buffer_length
                   );
-                  
+                
   if( NULL != argument_list )
   {
     result = PyEval_CallObject( python_callback, argument_list );

@@ -84,24 +84,3 @@ cahal_get_device_list( void )
 
   return( device_list );
 }
-
-CPC_BOOL
-cahal_stop_playback( void )
-{
-  return( CPC_FALSE );
-}
-
-CPC_BOOL
-cahal_start_playback(
-  cahal_device*            in_device,
-  cahal_audio_format_id    in_format_id,
-  UINT32                   in_number_of_channels,
-  FLOAT64                  in_sample_rate,
-  UINT32                   in_bit_depth,
-  cahal_playback_callback  in_playback,
-  void*                    in_callback_user_data,
-  cahal_audio_format_flag  in_format_flags
-)
-{
-  return( CPC_FALSE );
-}

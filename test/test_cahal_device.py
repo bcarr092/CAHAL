@@ -16,9 +16,13 @@ global_bit_depth          = 0
 global_flags              = 0                                                   
                                                                                 
 def recorder( in_device, in_buffer, in_buffer_length ):                         
+  global recorded_samples
+
   recorded_samples.append( in_buffer )                                          
                                                                                 
 def playback( in_device, in_buffer_length ):                                    
+  global recorded_samples
+
   if( 0 < len( recorded_samples ) ):                                            
     out_buffer = recorded_samples[ 0 ]                                          
                                                                                 
@@ -143,7 +147,7 @@ class TestsCAHALDevice( unittest.TestCase ):
                                       )                   \
                     )                                     
                                                                                 
-    cahal_tests.cahal_sleep( 5 )                                                
+    cahal_tests.cahal_sleep( 1 )                                                
 
     cahal_tests.cahal_stop_recording()
             
@@ -159,7 +163,7 @@ class TestsCAHALDevice( unittest.TestCase ):
                                       )                   \
                     )
                                                                                 
-    cahal_tests.cahal_sleep( 5 )
+    cahal_tests.cahal_sleep( 1 )
 
     cahal_tests.cahal_stop_playback()
 
@@ -366,7 +370,7 @@ class TestsCAHALDevice( unittest.TestCase ):
 """
 
 if __name__ == '__main__':
-  cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_DEBUG )
+  cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
 
   cahal_tests.cahal_initialize()
 

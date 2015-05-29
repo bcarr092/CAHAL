@@ -7,32 +7,85 @@
 
 #include "windows/windows_cahal_device.hpp"
 
+#define LABEL_CAPTURE   "captur"
+#define LABEL_RENDER    "render"
+
 cahal_recorder_info* g_recorder_callback_info = NULL;
 cahal_playback_info* g_playback_callback_info = NULL;
 
-HANDLE g_recorder_thread            = INVALID_HANDLE_VALUE;
-HANDLE g_recorder_data_ready_event  = INVALID_HANDLE_VALUE;
-HANDLE g_recorder_terminate_event   = INVALID_HANDLE_VALUE;
+HANDLE g_recorder_thread            = NULL;
+HANDLE g_recorder_data_ready_event  = NULL;
+HANDLE g_recorder_terminate_event   = NULL;
 
-/*! \def    DWORD WINAPI  windows_recorder_thread_entry (
-                            LPVOID in_callback_info
-                                                        )
-    \brief  Entry point for the recorder thread. This function will block
+HANDLE g_playback_thread            = NULL;
+HANDLE g_playback_data_ready_event  = NULL;
+HANDLE g_playback_terminate_event   = NULL;
+
+typedef struct windows_context_t
+{
+  IAudioClient* audio_client;
+
+  WAVEFORMATEX* format;
+
+} windows_context;
+
+typedef void( *windows_data_handler_routine ) (
+  void* in_callback_info
+);
+
+typedef struct data_handler_t
+{
+  void* callback_info;
+
+  PHANDLE data_ready_event;
+
+  PHANDLE terminate_event;
+
+  windows_data_handler_routine  data_handler;
+
+  UCHAR label[7];
+
+} data_handler;
+
+void
+windows_configure_format(
+UINT32          in_number_of_channels,
+FLOAT64         in_sample_rate,
+UINT32          in_bit_depth,
+WAVEFORMATEX**  out_format
+);
+
+void
+windows_handle_playback_data(
+cahal_playback_info* in_callback_info
+);
+
+CPC_BOOL
+windows_stop_thread(
+PHANDLE io_terminate_event,
+PHANDLE io_thread
+);
+
+/*! \def    DWORD WINAPI  windows_thread_entry  (
+                            LPVOID in_handler_info
+                                                )
+    \brief  Entry point for the processing threads. This function will block
             on the data ready and terminate events and handle them when
             signalled. When the terminate event is signalled the thread will
             exit.
 
-    \param  in_callback_info  Contains the callback function to call when data
-                              is read (after receiving the data ready event).
+    \param  in_handler_info Contains all the events, callback function and
+                            label for the thread handling processing events
+                            from the kernel.
     \return Exit code (always 0).
  */
 DWORD
 WINAPI
-windows_recorder_thread_entry (
-  LPVOID in_callback_info
-                              );
+windows_thread_entry  (
+  LPVOID in_handler_info
+                      );
 
-/*! \def    UINT32  windows_recorder_read_data  (
+/*! \def    void  windows_recorder_read_data  (
                       IAudioCaptureClient*  in_capture_client,
                       WAVEFORMATEX*         in_format,
                       cahal_recorder_info*  in_callback_info
@@ -43,34 +96,56 @@ windows_recorder_thread_entry (
     \param  in_capture_client The capture client to record the data from.
     \param  in_format The format the data is in.
     \param  in_callback_info  The callback to call with the new data.
-    \return The amount of data read from in_capture_client.
  */
-UINT32
+void
 windows_recorder_read_data  (
   IAudioCaptureClient*  in_capture_client,
   WAVEFORMATEX*         in_format,
   cahal_recorder_info*  in_callback_info
                             );
 
-/*! \def    HRESULT windows_initialize_recorder_event_thread(
-                      IAudioClient*         io_audio_client,
-                      cahal_recorder_info*  in_callback_info
-                                                            )
-    \brief  Creates the recorder events (data ready, terminate), the recorder
-            thread and adds the data ready event to the audio client (so it
-            can be signalled when data is available).
+/*! \def    HRESULT windows_initialize_events_thread  (
+                      IAudioClient*           io_audio_client,
+                      void*                   in_callback_info
+                      PHANDLE                 out_data_ready_event,
+                      PHANDLE                 out_terminate_event,
+                      PHANDLE                 out_thread,
+                      LPTHREAD_START_ROUTINE  in_thread_entry,
+                      CHAR*                   in_label
+                                                      )
+    \brief  Creates the events (data ready, terminate), a thread and adds the
+            data ready event to the audio client (so it can be signalled when
+            a buffer needs to be processed). This function sets up both the
+            recorder and playback events and threads.
 
     \param  io_audio_client The objet to set the data ready event on.
-    \param  in_callback_info  The recorder thread created in this function is
-                              configured with this callback.
+    \param  in_callback_info  The thread created in this function is configured
+                              to call this callback when data needs to be
+                              processed.
+    \param  out_data_ready_event  The newly created data ready event, which is
+                                  passed to the audio client so it can signal
+                                  the event when data is ready.
+    \param  out_terminate_event The newly created terminate event, which is
+                                signalled when stop_(playback||record) is
+                                called.
+    \param  out_thread  The newly created thread, either a recorder or playback
+                        thread.
+    \param  in_thread_entry The handler that is called when out_thread is 
+                            awoken with data to process.
+    \param  in_label  Label to be given to the thread (eitehr captur or render)
     \return S_OK iff the audio_client is configured to call the data ready
             event. An error code otherwise.
  */
 HRESULT
-windows_initialize_recorder_event_thread(
-  IAudioClient*         io_audio_client,
-  cahal_recorder_info*  in_callback_info
-                                        );
+windows_initialize_events_thread  (
+  IAudioClient*                 io_audio_client,
+  void*                         in_callback_info,
+  PHANDLE                       out_data_ready_event,
+  PHANDLE                       out_terminate_event,
+  PHANDLE                       out_thread,
+  windows_data_handler_routine  in_data_handler_routine,
+  CHAR*                         in_label
+                                  );
 
 /*! \def    void  windows_handle_recorder_data(
                     cahal_recorder_info* in_callback_info
@@ -87,41 +162,35 @@ windows_handle_recorder_data(
   cahal_recorder_info* in_callback_info
                             );
 
-/*! \def    HRESULT windows_configure_capture_device(
+/*! \def    HRESULT windows_configure_device  (
                       cahal_device*   in_device,
-                      UINT32          in_number_of_channels,
-                      FLOAT64         in_sample_rate,
-                      UINT32          in_bit_depth,
+                      WAVEFORMATEX*   in_format,
                       IAudioClient**  out_audio_client
-                                                    )
-    \breif  Entry point to configure the WASAPI to capture audio samples. This
+                                              )
+    \breif  Entry point to configure the WASAPI to process audio samples. This
             function will enumerate the audio devices, select the appropriate
             device (using in_device->handle) and initialize an audio client
-            to use for capture.
+            to use for capture or render.
 
     \param  in_device The cahal device struct that contains the handle of the
-                      capture device.
-    \param  in_number_of_channels The number of channels to capture on.
-    \param  in_sample_rate  The sample rate to record at.
-    \param  in_bit_depth  The number of bits per sample to capture at.
+                      device to be configured.
+    \param  in_format The format of the stream.
     \param  out_audio_client  A created, initialized audio client that can be
-                              used to read recorded data buffers.
+                              used to process data buffers.
     \return S_OK iff out_audio_client is created, activated and initialized.
             An error code otherwise.
  */
 HRESULT
-windows_configure_capture_device(
+windows_configure_device  (
   cahal_device*   in_device,
-  UINT32          in_number_of_channels,
-  FLOAT64         in_sample_rate,
-  UINT32          in_bit_depth,
+  WAVEFORMATEX*   in_format,
   IAudioClient**  out_audio_client
-                                );
+                          );
 
 /*! \def    HRESULT windows_initialize_device (
                       IMMDevice*      in_device,
                       IAudioClient**  io_audio_client,
-                      WAVEFORMATEX    in_format
+                      WAVEFORMATEX*   in_format
                                               )
     \brief  Activates a new audio client from in_device and initializes it.
             Calling reinitialize if required.
@@ -137,13 +206,13 @@ HRESULT
 windows_initialize_device (
   IMMDevice*      in_device,
   IAudioClient**  io_audio_client,
-  WAVEFORMATEX    in_format
+  WAVEFORMATEX*   in_format
                           );
 
 /*! \def    HRESULT windows_reinitialize_device (
                       IMMDevice*      in_device,
                       IAudioClient**  io_audio_client,
-                      WAVEFORMATEX    in_format
+                      WAVEFORMATEX*   in_format
                                                 )
     \breif  Reinitializes the audio_client with a buffer size that is aligned
             to the block size in the format. This is required when devices are
@@ -164,7 +233,7 @@ HRESULT
 windows_reinitialize_device (
   IMMDevice*      in_device,
   IAudioClient**  io_audio_client,
-  WAVEFORMATEX    in_format
+  WAVEFORMATEX*   in_format
                             );
 
 /*! \def    HRESULT windows_set_device_info(
@@ -586,12 +655,12 @@ HRESULT
 windows_initialize_device (
   IMMDevice*      in_device,
   IAudioClient**  io_audio_client,
-  WAVEFORMATEX    in_format
+  WAVEFORMATEX*   in_format
                           )
 {
   HRESULT result = S_OK;
 
-  if( NULL != in_device )
+  if( NULL != in_device && NULL != in_format )
   {
     result =
       in_device->Activate(
@@ -622,14 +691,14 @@ windows_initialize_device (
             AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
             requested_latency,
             requested_latency,
-            &in_format,
+            in_format,
             NULL
           );
 
         if( AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED == result )
         {
           result =
-            windows_reinitialize_device (
+            windows_reinitialize_device(
               in_device, 
               io_audio_client, 
               in_format
@@ -652,7 +721,11 @@ windows_initialize_device (
   }
   else
   {
-    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Device is null." );
+    CPC_ERROR (
+      "Device (0x%x) or format (0x%x) are null.", 
+      in_device, 
+      in_format
+    );
   }
   
   return( result );
@@ -662,22 +735,25 @@ HRESULT
 windows_reinitialize_device (
   IMMDevice*      in_device,
   IAudioClient**  io_audio_client,
-  WAVEFORMATEX    in_format
+  WAVEFORMATEX*   in_format
                             )
 {
   UINT32 number_of_frames = 0;
   HRESULT result          = S_OK;
 
-  if( NULL != in_device && NULL != ( *io_audio_client ) )
+  if( NULL != in_device && NULL != ( *io_audio_client ) && NULL != in_format )
   {
     result = ( *io_audio_client )->GetBufferSize( &number_of_frames );
+
+    CPC_ERROR( "Buffer size is 0x%x.", number_of_frames );
 
     if( S_OK == result )
     {
       REFERENCE_TIME requested_latency =
         ( REFERENCE_TIME )
-        ( ( 10000.0 * 1000 / in_format.nSamplesPerSec * number_of_frames )
-        + 0.5 );
+        (
+          10000.0 * 1000 * number_of_frames / in_format->nSamplesPerSec + 0.5
+        );
 
       CPC_LOG(
         CPC_LOG_LEVEL_DEBUG,
@@ -703,9 +779,22 @@ windows_reinitialize_device (
             AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
             requested_latency,
             requested_latency,
-            &in_format,
+            in_format,
             NULL
           );
+
+        if( S_OK != result )
+        {
+          CPC_ERROR( "Could not reinitialize device: 0x%x.", result );
+        }
+        else
+        {
+          CPC_ERROR( "Client's latency is: 0x%x.", requested_latency );
+
+          result = ( *io_audio_client )->GetBufferSize( &number_of_frames );
+
+          CPC_ERROR( "Buffer size is 0x%x.", number_of_frames );
+        }
       }
       else
       {
@@ -720,9 +809,10 @@ windows_reinitialize_device (
   else
   {
     CPC_ERROR (
-      "Device (0x%x) or audio client (0x%x) are null.", 
+      "Device (0x%x), audio client (0x%x), or format (0x%x) are null.", 
       in_device, 
-      io_audio_client
+      io_audio_client,
+      in_format
     );
   }
 
@@ -730,19 +820,17 @@ windows_reinitialize_device (
 }
 
 HRESULT
-windows_configure_capture_device  (
+windows_configure_device  (
   cahal_device*   in_device,
-  UINT32          in_number_of_channels,
-  FLOAT64         in_sample_rate,
-  UINT32          in_bit_depth,
+  WAVEFORMATEX*   in_format,
   IAudioClient**  out_audio_client
-                                  )
+                          )
 {
   HRESULT result                          = S_OK;
   IMMDeviceEnumerator *enumerator         = NULL;
   IMMDeviceCollection *device_collection  = NULL;
 
-  if( NULL != in_device )
+  if( NULL != in_device && NULL != in_format )
   {
     result =
       CoCreateInstance(
@@ -770,29 +858,8 @@ windows_configure_capture_device  (
 
         if( S_OK == result )
         {
-          WAVEFORMATEX format;
-
-          CPC_MEMSET( &format, 0x0, sizeof( WAVEFORMATEX ) );
-
-          format.wFormatTag       = WAVE_FORMAT_PCM;
-          format.nChannels        = in_number_of_channels;
-          format.nSamplesPerSec   = ( DWORD )in_sample_rate;
-          format.wBitsPerSample   = in_bit_depth;
-          format.nBlockAlign      =
-            ( format.nChannels * format.wBitsPerSample ) / 8;
-          format.nAvgBytesPerSec  = format.nSamplesPerSec * format.nBlockAlign;
-          format.cbSize = 0;
-
-          CPC_LOG(
-            CPC_LOG_LEVEL_DEBUG,
-            "Format info: sr=%d, nc=0x%x, bd=0x%x",
-            format.nSamplesPerSec,
-            format.nChannels,
-            format.wBitsPerSample
-          );
-
           result =
-            windows_initialize_device( device, out_audio_client, format );
+            windows_initialize_device( device, out_audio_client, in_format );
         }
         else
         {
@@ -815,7 +882,11 @@ windows_configure_capture_device  (
   }
   else
   {
-    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Device is null." );
+    CPC_ERROR (
+      "Device (0x%x) or format (0x%x) are null.", 
+      in_device, 
+      in_format
+    );
   }
 
   if( NULL != enumerator )
@@ -831,7 +902,118 @@ windows_configure_capture_device  (
   return( result );
 }
 
-UINT32
+void
+windows_playback_send_data  (
+  IAudioClient*         in_audio_client,
+  IAudioRenderClient*   in_render_client,
+  WAVEFORMATEX*         in_format,
+  cahal_playback_info*  in_callback_info
+                            )
+{
+  UINT32 number_of_frames = 0;
+  HRESULT result          = S_OK;
+  BYTE *data              = NULL;
+  BYTE *buffer            = NULL;
+  UINT32 buffer_length    = 0;
+
+  result = in_audio_client->GetBufferSize( &number_of_frames );
+
+  CPC_LOG (
+    CPC_LOG_LEVEL_INFO,
+    "Render hardware supports buffer of size 0x%x frames (0x%x).", 
+    number_of_frames,
+    in_format->nBlockAlign
+  );
+
+  if( S_OK == result )
+  {
+    buffer_length = number_of_frames * in_format->nBlockAlign;
+
+    CPC_LOG (
+      CPC_LOG_LEVEL_INFO,
+      "Requesting 0x%x bytes of data.", 
+      buffer_length
+    );
+    
+    if(
+      CPC_ERROR_CODE_NO_ERROR 
+      == cpc_safe_malloc( ( void** )&buffer, sizeof( BYTE )* buffer_length )
+      )
+    {
+      if(
+          ! in_callback_info->playback_callback(
+              in_callback_info->playback_device,
+              buffer,
+              &buffer_length,
+              in_callback_info->user_data
+            )
+        )
+      {
+        CPC_LOG_STRING  (
+          CPC_LOG_LEVEL_ERROR, 
+          "Error reading data from callback."
+        );
+      }
+      else
+      {
+        CPC_LOG (
+          CPC_LOG_LEVEL_INFO,
+          "Buffer length is 0x%x.", 
+          buffer_length
+        );
+
+        number_of_frames = buffer_length / in_format->nBlockAlign;
+
+        CPC_LOG (
+          CPC_LOG_LEVEL_INFO,
+          "Requesting buffer of length 0x%x frames from render client.", 
+          number_of_frames
+         );
+
+        result = in_render_client->GetBuffer( number_of_frames, &data );
+
+        if( S_OK == result )
+        {
+          CPC_LOG (
+            CPC_LOG_LEVEL_INFO, 
+            "Copying 0x%x bytes of data to render hardware (0x%x).", 
+            buffer_length,
+            data
+          );
+
+          cpc_memcpy( data, buffer, buffer_length );
+
+          result = in_render_client->ReleaseBuffer( number_of_frames, 0 );
+            
+          if( S_OK == result )
+          {
+            CPC_LOG (
+              CPC_LOG_LEVEL_INFO, 
+              "Releasing buffer of length 0x%x frames.", 
+              number_of_frames
+            );
+          }
+          else
+          {
+            CPC_ERROR( "Could not release buffer: 0x%x.", result );
+          }
+
+          cpc_safe_free( ( void** )&buffer );
+        }
+        else
+        {
+          CPC_ERROR( "Could not get buffer: 0x%x.", result );
+        }
+      }
+    }
+  }
+  else
+  {
+    CPC_ERROR( "Could not read buffer size: 0x%x.", result );
+  }
+}
+
+void
 windows_recorder_read_data(
   IAudioCaptureClient*  in_capture_client,
   WAVEFORMATEX*         in_format,
@@ -879,6 +1061,19 @@ windows_recorder_read_data(
       {
         cpc_memcpy( buffer, data, buffer_length );
       }
+      else
+      {
+        CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "Received buffer of silence." );
+      }
+    }
+    
+    // Release the buffer back to the endpoint hardware as soon as it's copied,
+    // i.e., before the data is passed to the callback.
+    result = in_capture_client->ReleaseBuffer( number_of_frames );
+    
+    if( S_OK != result )
+    {
+      CPC_ERROR( "Could not release buffer: 0x%x.", result );
     }
 
     if( NULL != buffer )
@@ -889,25 +1084,73 @@ windows_recorder_read_data(
         buffer_length
       );
 
-      in_callback_info->recording_callback(
-        in_callback_info->recording_device,
-        buffer,
-        buffer_length,
-        in_callback_info->user_data
-      );
+      if(
+          ! in_callback_info->recording_callback(
+              in_callback_info->recording_device,
+              buffer,
+              buffer_length,
+              in_callback_info->user_data
+            )
+        )
+      {
+        CPC_LOG_STRING  (
+          CPC_LOG_LEVEL_ERROR, 
+          "Error sending data to callback."
+        );
+      }
 
       cpc_safe_free( ( void** )&buffer );
     }
+  }
+}
 
-    result = in_capture_client->ReleaseBuffer( number_of_frames );
+void
+windows_handle_playback_data  (
+  cahal_playback_info* in_callback_info
+                              )
+{
+  HRESULT result                      = S_OK;
+  IAudioRenderClient * render_client  = NULL;
 
-    if( S_OK != result )
+  if( NULL != in_callback_info && NULL != in_callback_info->platform_data )
+  {
+    IAudioClient* audio_client  =
+      ( ( windows_context* )in_callback_info->platform_data )->audio_client;
+    WAVEFORMATEX *format        =
+      ( ( windows_context* )in_callback_info->platform_data )->format;
+
+    result =
+      audio_client->GetService(
+        __uuidof( IAudioRenderClient ),
+        ( void** )&render_client
+      );
+
+    if( S_OK == result )
     {
-      CPC_ERROR( "Could not release buffer: 0x%x.", result );
+      windows_playback_send_data(
+        audio_client,
+        render_client,
+        format,
+        in_callback_info
+      );
+    }
+    else
+    {
+      CPC_ERROR( "Could not get render client: 0x%x.", result );
     }
   }
+  else
+  {
+    CPC_ERROR(
+      "Callback (0x%x) or platform data are null.",
+      in_callback_info
+    );
+  }
 
-  return( number_of_frames );
+  if( NULL != render_client )
+  {
+    render_client->Release( );
+  }
 }
 
 void
@@ -917,12 +1160,13 @@ windows_handle_recorder_data(
 {
   HRESULT result                      = S_OK;
   IAudioCaptureClient* capture_client = NULL;
-  WAVEFORMATEX *format                = NULL;
 
   if( NULL != in_callback_info && NULL != in_callback_info->platform_data )
   {
-    IAudioClient* audio_client =
-      ( IAudioClient* )in_callback_info->platform_data;
+    IAudioClient* audio_client  =
+      ( ( windows_context* )in_callback_info->platform_data )->audio_client;
+    WAVEFORMATEX *format        =
+      ( ( windows_context* )in_callback_info->platform_data )->format;
 
     result =
       audio_client->GetService(
@@ -932,36 +1176,11 @@ windows_handle_recorder_data(
 
     if( S_OK == result )
     {
-      result = audio_client->GetMixFormat( &format );
-
-      if( S_OK == result )
-      {
-        if( S_OK == result )
-        {
-          UINT32 number_of_frames =
-            windows_recorder_read_data  (
-              capture_client, 
-              format, 
-              in_callback_info 
-            );
-
-          CPC_LOG(
-            CPC_LOG_LEVEL_DEBUG,
-            "Number of frames is 0x%x.",
-            number_of_frames
-          );
-        }
-        else
-        {
-          CPC_ERROR( "Could not get packet size: 0x%x.", result );
-        }
-      }
-      else
-      {
-        CPC_ERROR( "Could not get format: 0x%x.", result );
-      }
-
-      CoTaskMemFree( format );
+      windows_recorder_read_data  (
+        capture_client, 
+        format, 
+        in_callback_info 
+      );
     }
     else
     {
@@ -984,55 +1203,79 @@ windows_handle_recorder_data(
 
 DWORD
 WINAPI
-windows_recorder_thread_entry (
-  LPVOID in_callback_info
-                              ) 
+windows_thread_entry  (
+  LPVOID in_handler_info
+                      ) 
 {
-  CPC_BOOL done                       = CPC_FALSE;
-  HANDLE events[]                     =
-    { g_recorder_data_ready_event, g_recorder_terminate_event };
-  cahal_recorder_info* callback_info  =
-    ( cahal_recorder_info* )in_callback_info;
+  CPC_BOOL done               = CPC_FALSE;
+  data_handler* handler_info  = ( data_handler* ) in_handler_info;
 
-  CPC_LOG (
-    CPC_LOG_LEVEL_DEBUG, 
-    "Capture thread (%d) started. Waiting to be signaled.", 
-    GetCurrentThreadId()
-  );
-
-  if( NULL != callback_info && NULL != callback_info->platform_data )
+  if( NULL != handler_info )
   {
-    IAudioClient* audio_client = ( IAudioClient* )callback_info->platform_data;
-
-    while( !done )
-    {
-      DWORD wait_result =
-        WaitForMultipleObjects( ARRAYSIZE( events ), events, FALSE, INFINITE );
-
-      CPC_LOG(
-        CPC_LOG_LEVEL_DEBUG,
-        "Capture thread (%d) awoken: 0x%x.",
-        GetCurrentThreadId(),
-        wait_result
-      );
-
-      switch( wait_result )
+    HANDLE events[] =
       {
+        *( handler_info->data_ready_event ),
+        *( handler_info->terminate_event )
+      };
+
+    windows_data_handler_routine handler_routine = handler_info->data_handler;
+
+    cahal_recorder_info* callback_info =
+      ( cahal_recorder_info* )handler_info->callback_info;
+
+    CPC_LOG(
+      CPC_LOG_LEVEL_DEBUG,
+      "%s thread (%d) started. Waiting to be signaled.",
+      handler_info->label,
+      GetCurrentThreadId()
+    );
+
+    if(
+      NULL != callback_info
+      && NULL != callback_info->platform_data
+      && NULL != handler_routine
+      )
+    {
+      IAudioClient* audio_client =
+        ( ( windows_context* )callback_info->platform_data )->audio_client;
+
+      while( !done )
+      {
+        DWORD wait_result =
+          WaitForMultipleObjects  (
+            ARRAYSIZE( events ), 
+            events, 
+            FALSE, 
+            INFINITE
+          );
+
+        CPC_LOG(
+          CPC_LOG_LEVEL_DEBUG,
+          "%s thread (%d) awoken: 0x%x.",
+          handler_info->label,
+          GetCurrentThreadId(),
+          wait_result
+        );
+
+        switch( wait_result )
+        {
         case WAIT_OBJECT_0:
           CPC_LOG(
             CPC_LOG_LEVEL_DEBUG,
-            "Capture thread (%d) awoken with data present.",
+            "%s thread (%d) awoken with data present.",
+            handler_info->label,
             GetCurrentThreadId()
           );
 
-          windows_handle_recorder_data( callback_info );
+          handler_routine( callback_info );
 
           break;
 
         case WAIT_OBJECT_0 + 1:
           CPC_LOG(
             CPC_LOG_LEVEL_DEBUG,
-            "Capture thread (%d) awoken with terminate event.",
+            "%s thread (%d) awoken with terminate event.",
+            handler_info->label,
             GetCurrentThreadId()
           );
 
@@ -1049,65 +1292,119 @@ windows_recorder_thread_entry (
           done = CPC_TRUE;
 
           break;
+        }
       }
+    }
+    else
+    {
+      CPC_ERROR (
+        "Callback (0x%x), platform data, or handler routine (0x%x) are null.", 
+        callback_info, 
+        handler_routine
+      );
+    }
+
+    if( NULL != in_handler_info )
+    {
+      cpc_safe_free( ( void** )&in_handler_info );
     }
   }
   else
   {
-    CPC_ERROR( "Callback (0x%x) or platform data are null.", callback_info );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Handler info is null." );
   }
 
   CPC_LOG (
     CPC_LOG_LEVEL_DEBUG, 
-    "Capture thread (%d) terminating.", 
+    "Thread (%d) terminating.", 
     GetCurrentThreadId()
-    );
+  );
 
   return( 1 );
 }
 
 HRESULT
-windows_initialize_recorder_event_thread  (
-  IAudioClient*         io_audio_client,
-  cahal_recorder_info*  in_callback_info
-                                          )
+windows_initialize_events_thread  (
+  IAudioClient*                 io_audio_client,
+  void*                         in_callback_info,
+  PHANDLE                       out_data_ready_event,
+  PHANDLE                       out_terminate_event,
+  PHANDLE                       out_thread,
+  windows_data_handler_routine  in_data_handler_routine,
+  CHAR*                         in_label
+                                  )
 {
   HRESULT result = S_OK;
 
-  if( NULL != in_callback_info && NULL != io_audio_client )
+  if(
+    NULL != in_callback_info 
+    && NULL != io_audio_client
+    && NULL != out_data_ready_event
+    && NULL != out_terminate_event
+    && NULL != out_thread
+    )
   {
-    g_recorder_data_ready_event = CreateEvent( NULL, FALSE, FALSE, NULL );
-    g_recorder_terminate_event  = CreateEvent( NULL, FALSE, FALSE, NULL );
+    *out_data_ready_event = CreateEvent( NULL, FALSE, FALSE, NULL );
+    *out_terminate_event  = CreateEvent( NULL, FALSE, FALSE, NULL );
 
     if(
-      NULL != g_recorder_data_ready_event
-      && NULL != g_recorder_terminate_event
+      NULL != *out_data_ready_event
+      && NULL != *out_terminate_event
       )
     {
       DWORD thread_id = 0;
 
-      result = io_audio_client->SetEventHandle( g_recorder_data_ready_event );
+      result = io_audio_client->SetEventHandle( *out_data_ready_event );
 
-      g_recorder_thread =
-        CreateThread(
-          NULL,
-          0,
-          windows_recorder_thread_entry,
-          ( LPVOID )in_callback_info,
-          0,
-          &thread_id
-        );
-
-      if( NULL == g_recorder_thread )
+      if( S_OK == result )
       {
-        result = GetLastError();
+        data_handler* handler_info = NULL;
 
-        CPC_ERROR( "Could not create recorder thread: 0x%x.", result );
+        if(
+          CPC_ERROR_CODE_NO_ERROR
+          == cpc_safe_malloc( ( void** )&handler_info, sizeof( data_handler ) )
+          )
+        {
+          handler_info->callback_info     = in_callback_info;
+          handler_info->data_ready_event  = out_data_ready_event;
+          handler_info->terminate_event   = out_terminate_event;
+          handler_info->data_handler      = in_data_handler_routine;
+
+          cpc_memcpy  (
+            handler_info->label, 
+            in_label, 
+            CPC_STRNLEN( in_label, 6 )
+          );
+
+          *out_thread =
+            CreateThread(
+              NULL,
+              0,
+              windows_thread_entry,
+              ( LPVOID )handler_info,
+              0,
+              &thread_id
+            );
+
+          if( NULL == *out_thread )
+          {
+            result = GetLastError();
+
+            CPC_ERROR( "Could not create recorder thread: 0x%x.", result );
+          }
+        }
+      }
+      else
+      {
+        CPC_ERROR( "Could not set event: 0x%x.", result );
       }
     }
     else
     {
       result = GetLastError();
+
+      *out_data_ready_event = NULL;
+      *out_terminate_event  = NULL;
 
       CPC_ERROR( "Could not create event: 0x%x.", result );
     }
@@ -1115,13 +1412,58 @@ windows_initialize_recorder_event_thread  (
   else
   {
     CPC_ERROR (
-      "Callback (0x%x) or audio client (0x%x) are null.", 
+      "Callback (0x%x), audio client (0x%x), data read event, (0x%x),"
+      " terminate event, or thread (0x%x) are null.", 
       in_callback_info, 
-      io_audio_client
+      io_audio_client,
+      out_data_ready_event,
+      out_terminate_event,
+      out_thread
     );
   }
 
   return( result );
+}
+
+void
+windows_configure_format  (
+  UINT32          in_number_of_channels,
+  FLOAT64         in_sample_rate,
+  UINT32          in_bit_depth,
+  WAVEFORMATEX**  out_format
+                          )
+{
+  if( NULL != out_format )
+  {
+    if( CPC_ERROR_CODE_NO_ERROR == cpc_safe_malloc( ( void** )out_format, sizeof( WAVEFORMATEX ) ) )
+    {
+      CPC_MEMSET( *out_format, 0x0, sizeof( WAVEFORMATEX ) );
+
+      ( *out_format )->wFormatTag     = WAVE_FORMAT_PCM;
+      ( *out_format )->nChannels      = in_number_of_channels;
+      ( *out_format )->nSamplesPerSec = ( DWORD )in_sample_rate;
+      ( *out_format )->wBitsPerSample = in_bit_depth;
+      ( *out_format )->nBlockAlign    =
+        ( ( *out_format )->nChannels * ( *out_format )->wBitsPerSample ) / 8;
+      ( *out_format )->nAvgBytesPerSec =
+        ( *out_format )->nSamplesPerSec * ( *out_format )->nBlockAlign;
+      ( *out_format )->cbSize          = 0;
+
+      CPC_LOG(
+        CPC_LOG_LEVEL_INFO,
+        "Set format info: f=0x%x, sr=%d, nc=0x%x, bd=0x%x, fs=0x%x",
+        ( *out_format )->wFormatTag,
+        ( *out_format )->nSamplesPerSec,
+        ( *out_format )->nChannels,
+        ( *out_format )->wBitsPerSample,
+        ( *out_format )->nBlockAlign
+        );
+    }
+  }
+  else
+  {
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Format is null." );
+  }
 }
 
 CPC_BOOL
@@ -1149,52 +1491,87 @@ cahal_start_recording (
     && NULL == g_recorder_callback_info
     )
   {
-    IAudioClient* audio_client = NULL;
+    IAudioClient* audio_client  = NULL;
+    WAVEFORMATEX* format = NULL;
 
-    HRESULT result =
-      windows_configure_capture_device  (
-        in_device, 
-        in_number_of_channels, 
-        in_sample_rate, 
-        in_bit_depth, 
-        &audio_client
-      );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Configuring for record." );
 
-    if( S_OK == result )
+    windows_configure_format  (
+      in_number_of_channels, 
+      in_sample_rate, 
+      in_bit_depth, 
+      &format
+    );
+
+    if( NULL != format )
     {
-      if( CPC_ERROR_CODE_NO_ERROR
-        == cpc_safe_malloc(
-            ( void ** )&( g_recorder_callback_info ),
-            sizeof( cahal_recorder_info )
-                          )
-        )
+      HRESULT result =
+        windows_configure_device(
+          in_device,
+          format,
+          &audio_client
+        );
+
+      if( S_OK == result )
       {
-        g_recorder_callback_info->recording_device    = in_device;
-        g_recorder_callback_info->recording_callback  = in_recorder;
-        g_recorder_callback_info->user_data           = in_callback_user_data;
-        g_recorder_callback_info->platform_data       = audio_client;
-
-        result =
-          windows_initialize_recorder_event_thread  (
-            audio_client,
-            g_recorder_callback_info
-          );
-
-        if( S_OK == result )
+        if( CPC_ERROR_CODE_NO_ERROR
+          == cpc_safe_malloc(
+              ( void ** )&( g_recorder_callback_info ),
+              sizeof( cahal_recorder_info )
+                            )
+          )
         {
-          result = audio_client->Start();
+          g_recorder_callback_info->recording_device    = in_device;
+          g_recorder_callback_info->recording_callback  = in_recorder;
+          g_recorder_callback_info->user_data           =
+            in_callback_user_data;
 
-          return_value = CPC_TRUE;
-        }
-        else
-        {
-          CPC_ERROR( "Could not set event: 0x%x.", result );
+          if(
+            CPC_ERROR_CODE_NO_ERROR 
+            == cpc_safe_malloc  (
+                ( void** )&( g_recorder_callback_info->platform_data ), 
+                sizeof( windows_context )
+               )
+             )
+          {
+            (
+              ( windows_context* )g_recorder_callback_info->platform_data
+            )->audio_client = audio_client;
+            (
+              ( windows_context* )g_recorder_callback_info->platform_data
+            )->format = format;
+
+            result =
+              windows_initialize_events_thread(
+                audio_client,
+                g_recorder_callback_info,
+                &g_recorder_data_ready_event,
+                &g_recorder_terminate_event,
+                &g_recorder_thread,
+                ( windows_data_handler_routine )windows_handle_recorder_data,
+                LABEL_CAPTURE
+              );
+
+            if( S_OK == result )
+            {
+              result = audio_client->Start();
+
+              return_value = CPC_TRUE;
+            }
+            else
+            {
+              CPC_ERROR(
+                "Could not initialize recorder threads and events: 0x%x.",
+                result
+              );
+            }
+          }
         }
       }
-    }
-    else
-    {
-      CPC_ERROR( "Could not configure capture device: 0x%x.", result );
+      else
+      {
+        CPC_ERROR( "Could not configure capture device: 0x%x.", result );
+      }
     }
   }
   else
@@ -1212,29 +1589,147 @@ cahal_start_recording (
 CPC_BOOL
 cahal_stop_recording( void )
 {
+  CPC_BOOL return_value =
+    windows_stop_thread( &g_recorder_terminate_event, &g_recorder_thread );
+
+  if( NULL != g_recorder_callback_info )
+  {
+    if( NULL != g_recorder_callback_info->platform_data )
+    {
+      if(
+          NULL
+          !=
+          (
+            ( windows_context* )
+            g_recorder_callback_info->platform_data
+          )->format
+        )
+      {
+        cpc_safe_free(
+            ( void** )
+            (
+              ( windows_context* )
+              g_recorder_callback_info->platform_data
+            )->format
+          );
+      }
+
+      cpc_safe_free( ( void** )g_recorder_callback_info->platform_data );
+    }
+
+    cpc_safe_free( ( void** )&g_recorder_callback_info );
+  }
+
+  if( NULL != g_recorder_data_ready_event )
+  {
+    CloseHandle( g_recorder_data_ready_event );
+
+    g_recorder_data_ready_event = NULL;
+  }
+
+  if( NULL != g_recorder_terminate_event )
+  {
+    CloseHandle( g_recorder_terminate_event );
+
+    g_recorder_terminate_event = NULL;
+  }
+
+  if( NULL != g_recorder_thread )
+  {
+    TerminateThread( g_recorder_thread, 0 );
+
+    g_recorder_thread = NULL;
+  }
+
+  return( return_value );
+}
+
+CPC_BOOL
+cahal_stop_playback( void )
+{
+  CPC_BOOL return_value =
+    windows_stop_thread( &g_playback_terminate_event, &g_playback_thread );
+
+  if( NULL != g_playback_callback_info )
+  {
+    if( NULL != g_playback_callback_info->platform_data )
+    {
+      if(
+        NULL
+        !=
+          (
+            ( windows_context* )
+            g_playback_callback_info->platform_data
+          )->format
+        )
+      {
+        cpc_safe_free (
+          ( void** )
+          ( ( windows_context* )
+            g_playback_callback_info->platform_data
+          )->format
+        );
+      }
+
+      cpc_safe_free( ( void** ) g_playback_callback_info->platform_data );
+    }
+
+    cpc_safe_free( ( void** )&g_playback_callback_info );
+  }
+
+  if( NULL != g_playback_data_ready_event )
+  {
+    CloseHandle( g_playback_data_ready_event );
+
+    g_playback_data_ready_event = NULL;
+  }
+
+  if( NULL != g_playback_terminate_event )
+  {
+    CloseHandle( g_playback_terminate_event );
+
+    g_playback_terminate_event = NULL;
+  }
+
+  if( NULL != g_playback_thread )
+  {
+    TerminateThread( g_playback_thread, 0 );
+
+    g_playback_thread = NULL;
+  }
+
+  return( return_value );
+}
+
+CPC_BOOL
+windows_stop_thread (
+  PHANDLE io_terminate_event,
+  PHANDLE io_thread
+                    )
+{
   CPC_BOOL return_value = CPC_FALSE;
 
-  if( INVALID_HANDLE_VALUE != g_recorder_terminate_event )
+  if( NULL != io_terminate_event && NULL != *io_terminate_event )
   {
     CPC_LOG (
         CPC_LOG_LEVEL_DEBUG, 
-        "Sending terminate signal to recorder thread."
+        "Sending terminate signal to thread."
       );
 
-    if( SetEvent( g_recorder_terminate_event ) )
+    if( SetEvent( *io_terminate_event ) )
     {
-      DWORD wait_result = WaitForSingleObject( g_recorder_thread, 1000 );
+      DWORD wait_result = WaitForSingleObject( *io_thread, INFINITE );
 
       switch( wait_result )
       {
         case WAIT_OBJECT_0:
           return_value = CPC_TRUE;
 
-          g_recorder_thread = INVALID_HANDLE_VALUE;
+          *io_thread = NULL;
 
           CPC_LOG_STRING  (
             CPC_LOG_LEVEL_DEBUG, 
-            "Capture thread successfully terminated."
+            "Thread successfully terminated."
             );
 
           break;
@@ -1247,27 +1742,21 @@ cahal_stop_recording( void )
           break;
       }
     }
+    else
+    {
+      CPC_ERROR (
+        "Could not set terminate event: 0x%x.", 
+        GetLastError()
+      );
+    }
   }
-
-  if( INVALID_HANDLE_VALUE != g_recorder_data_ready_event )
+  else
   {
-    CloseHandle( g_recorder_data_ready_event );
-
-    g_recorder_data_ready_event = INVALID_HANDLE_VALUE;
-  }
-
-  if( INVALID_HANDLE_VALUE != g_recorder_terminate_event )
-  {
-    CloseHandle( g_recorder_terminate_event );
-
-    g_recorder_terminate_event = INVALID_HANDLE_VALUE;
-  }
-
-  if( INVALID_HANDLE_VALUE != g_recorder_thread )
-  {
-    TerminateThread( g_recorder_thread, 0 );
-
-    g_recorder_thread = INVALID_HANDLE_VALUE;
+    CPC_ERROR (
+      "Terminate event (0x%x) or thread (0x%x) are null.", 
+      io_terminate_event, 
+      io_thread
+    );
   }
 
   return( return_value );
@@ -1279,4 +1768,125 @@ UINT32 in_sleep_time
 )
 {
   Sleep( in_sleep_time * 1000 );
+}
+
+CPC_BOOL
+cahal_start_playback(
+  cahal_device*            in_device,
+  cahal_audio_format_id    in_format_id,
+  UINT32                   in_number_of_channels,
+  FLOAT64                  in_sample_rate,
+  UINT32                   in_bit_depth,
+  cahal_playback_callback  in_playback,
+  void*                    in_callback_user_data,
+  cahal_audio_format_flag  in_format_flags
+                    )
+{
+  CPC_BOOL return_value = CPC_FALSE;
+
+  CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "In start playback!" );
+
+  if(
+    cahal_test_device_direction_support(
+      in_device,
+      CAHAL_DEVICE_OUTPUT_STREAM
+    )
+    && CAHAL_STATE_INITIALIZED == g_cahal_state
+    && NULL == g_recorder_callback_info
+    )
+  {
+    IAudioClient* audio_client  = NULL;
+    WAVEFORMATEX* format        = NULL;
+
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Configuring for playback." );
+
+    windows_configure_format(
+      in_number_of_channels,
+      in_sample_rate,
+      in_bit_depth,
+      &format
+    );
+
+    if( NULL != format )
+    {
+      HRESULT result =
+        windows_configure_device(
+          in_device,
+          format,
+          &audio_client
+        );
+
+      if( S_OK == result )
+      {
+        if( CPC_ERROR_CODE_NO_ERROR
+          == cpc_safe_malloc(
+          ( void ** )&( g_playback_callback_info ),
+          sizeof( cahal_playback_info )
+          )
+          )
+        {
+          g_playback_callback_info->playback_device   = in_device;
+          g_playback_callback_info->playback_callback = in_playback;
+          g_playback_callback_info->user_data         = in_callback_user_data;
+
+          if(
+            CPC_ERROR_CODE_NO_ERROR
+            == cpc_safe_malloc(
+            ( void** )&( g_playback_callback_info->platform_data ),
+            sizeof( windows_context )
+            )
+            )
+          {
+            (
+              ( windows_context* )g_playback_callback_info->platform_data
+              )->audio_client = audio_client;
+            (
+              ( windows_context* )g_playback_callback_info->platform_data
+              )->format = format;
+
+            result =
+              windows_initialize_events_thread(
+                audio_client,
+                g_playback_callback_info,
+                &g_playback_data_ready_event,
+                &g_playback_terminate_event,
+                &g_playback_thread,
+                ( windows_data_handler_routine )windows_handle_playback_data,
+                LABEL_RENDER
+              );
+
+            if( S_OK == result )
+            {
+              windows_handle_playback_data( g_playback_callback_info );
+
+              result = audio_client->Start( );
+
+              return_value = CPC_TRUE;
+            }
+            else
+            {
+              CPC_ERROR(
+                "Could not initialize playback threads and events: 0x%x.",
+                result
+              );
+            }
+          }
+        }
+      }
+      else
+      {
+        CPC_ERROR( "Could not configure playback device: 0x%x.", result );
+      }
+    }
+  }
+  else
+  {
+    CPC_ERROR(
+      "Direction (%d) not support by %s.",
+      CAHAL_DEVICE_OUTPUT_STREAM,
+      in_device->device_name
+    );
+  }
+
+  return( return_value );
 }
