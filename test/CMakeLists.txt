@@ -84,11 +84,26 @@ include_directories( ${CPCOMMON_INCLUDE_DIRECTORY} )
 include_directories( ${CAHAL_INCLUDE_DIRECTORY} )
 include_directories( ${PYTHON_INCLUDE} )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
+include_directories( ${INCLUDE_DIR} )
 
 message( STATUS "Python library: ${PYTHON_LIBRARIES}" )
 message( STATUS "Python includes: ${PYTHON_INCLUDE}" )
 
-swig_add_module( ${PROJECT_NAME} python "${PROJECT_NAME}.i" )
+set( SOURCES "${SOURCE_DIR}/cahal_wrapper.c" )
+
+set( HEADERS "${INCLUDE_DIR}/cahal_wrapper.h" )
+
+message( STATUS "C source files found: ${SOURCES}" )
+message( STATUS "C header files found: ${HEADERS}" )
+
+swig_add_module (
+  ${PROJECT_NAME}
+  python
+  "${PROJECT_NAME}.i"
+  ${SOURCES}
+  ${HEADERS}
+                )
+
 swig_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} cpcommon cahal )
 
 set( SCRIPTS "${PROJECT_SOURCE_DIR}/test_driver.py" )

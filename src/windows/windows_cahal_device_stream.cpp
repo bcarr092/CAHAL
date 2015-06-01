@@ -192,7 +192,7 @@ windows_determine_supported_formats(
           WAVEFORMATEX format;
 
           CPC_MEMSET( &format, 0x0, sizeof( WAVEFORMATEX ) );
-
+          
           format.wFormatTag       = WAVE_FORMAT_PCM;
           format.nChannels        = ( num_channels + 1 );
           format.nSamplesPerSec = supported_sample_rates[sample_rate_index];
