@@ -87,6 +87,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories( ${INCLUDE_DIR} )
 
 message( STATUS "Python library: ${PYTHON_LIBRARIES}" )
+message( STATUS "Python binary: ${PYTHON_BINARY}" )
 message( STATUS "Python includes: ${PYTHON_INCLUDE}" )
 
 set( SOURCES "${SOURCE_DIR}/cahal_wrapper.c" )

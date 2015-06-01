@@ -6,62 +6,62 @@
 #include <cahal.h>
 
 /*! \fn     void python_recorder_callback (
-cahal_device* in_recording_device,
-UCHAR*        in_data_buffer,
-UINT32        in_data_buffer_length,
-void*         in_user_data
-)
-\brief  This is the trampoline callback function that is called from the
-CAHAL library. It is responsible for converting the input
-parameters to Python objects and calling the python callback
-function.
+              cahal_device* in_recording_device,
+              UCHAR*        in_data_buffer,
+              UINT32        in_data_buffer_length,
+              void*         in_user_data
+            )
+    \brief  This is the trampoline callback function that is called from the
+            CAHAL library. It is responsible for converting the input
+            parameters to Python objects and calling the python callback
+            function.
 
-\param  in_recording_device The recording device being used to capture
-audio samples.
-\param  in_data_buffer  The data buffer containing the audio samples. Its
-length is in_data_buffer_length in bytes.
-\param  in_data_buffer_length The length (in bytes) of in_data_buffer.
-\param  in_user_data  A function pointer to the Python callback.
-\return True iff the callback was succesfully called and succesfully
-executed.
+    \param  in_recording_device The recording device being used to capture
+            audio samples.
+    \param  in_data_buffer  The data buffer containing the audio samples. Its
+            length is in_data_buffer_length in bytes.
+    \param  in_data_buffer_length The length (in bytes) of in_data_buffer.
+    \param  in_user_data  A function pointer to the Python callback.
+    \return True iff the callback was succesfully called and succesfully
+            executed.
 */
 CPC_BOOL
 python_recorder_callback(
-cahal_device* in_recording_device,
-UCHAR*        in_data_buffer,
-UINT32        in_data_buffer_length,
-void*         in_user_data
+  cahal_device* in_recording_device,
+  UCHAR*        in_data_buffer,
+  UINT32        in_data_buffer_length,
+  void*         in_user_data
 );
 
 /*! \fn     void python_playback_callback (
-cahal_device* in_playback_device,
-UCHAR*        out_data_buffer,
-UINT32*       io_data_buffer_length,
-void*         in_user_data
-)
-\brief  This is the trampoline callback function that is called from the
-CAHAL library. It is responsible for converting the input
-parameters to Python objects and calling the python callback
-function.
+              cahal_device* in_playback_device,
+              UCHAR*        out_data_buffer,
+              UINT32*       io_data_buffer_length,
+              void*         in_user_data
+            )
+    \brief  This is the trampoline callback function that is called from the
+            CAHAL library. It is responsible for converting the input
+            parameters to Python objects and calling the python callback
+            function.
 
-\param  in_playback_defivce The playback device being used to play
-audio samples.
-\param  in_data_buffer  The data buffer that is to populated with audio
-samples. Its maximum capacity is
-io_data_buffer_length in bytes.
-\param  io_data_buffer_length The capacity (in bytes) of in_data_buffer.
-This value is to be set in this function to
-the number of bytes placed in in_data_buffer.
-\param  in_user_data  A function pointer to the Python callback.
-\return True iff the callback was succesfully called and succesfully
-executed.
+    \param  in_playback_defivce The playback device being used to play
+                                audio samples.
+    \param  in_data_buffer  The data buffer that is to populated with audio
+                            samples. Its maximum capacity is
+                            io_data_buffer_length in bytes.
+    \param  io_data_buffer_length The capacity (in bytes) of in_data_buffer.
+                                  This value is to be set in this function to
+                                  the number of bytes placed in in_data_buffer.
+    \param  in_user_data  A function pointer to the Python callback.
+    \return True iff the callback was succesfully called and succesfully
+            executed.
 */
 CPC_BOOL
 python_playback_callback(
-cahal_device* in_playback_device,
-UCHAR*        out_data_buffer,
-UINT32*       io_data_buffer_length,
-void*         in_user_data
+  cahal_device* in_playback_device,
+  UCHAR*        out_data_buffer,
+  UINT32*       io_data_buffer_length,
+  void*         in_user_data
 );
 
 /*! \fn     cahal_device* cahal_device_list_get (
