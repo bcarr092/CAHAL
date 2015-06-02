@@ -41,6 +41,8 @@ cahal_terminate( void )
       );
     break;
   case CAHAL_STATE_INITIALIZED:
+    cahal_free_device_list();
+
     CoUninitialize();
 
     g_cahal_state = CAHAL_STATE_TERMINATED;

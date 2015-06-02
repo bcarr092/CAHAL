@@ -704,7 +704,7 @@ windows_initialize_device (
               in_format
             );
         }
-        else
+        else if( S_OK != result )
         {
           CPC_ERROR( "Could not intialize audio client: 0x%x.", result );
         }
@@ -1494,7 +1494,7 @@ cahal_start_recording (
     IAudioClient* audio_client  = NULL;
     WAVEFORMATEX* format = NULL;
 
-    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Configuring for record." );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "Configuring for record." );
 
     windows_configure_format  (
       in_number_of_channels, 
@@ -1798,7 +1798,7 @@ cahal_start_playback(
     IAudioClient* audio_client  = NULL;
     WAVEFORMATEX* format        = NULL;
 
-    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Configuring for playback." );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "Configuring for playback." );
 
     windows_configure_format(
       in_number_of_channels,

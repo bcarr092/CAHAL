@@ -26,7 +26,7 @@ extern "C"
  */
 enum cahal_device_stream_directions
 {
-  CAHAL_DEVICE_OUTPUT_STREAM  = 0,
+  CAHAL_DEVICE_OUTPUT_STREAM = 0,
   CAHAL_DEVICE_INPUT_STREAM
 };
 
