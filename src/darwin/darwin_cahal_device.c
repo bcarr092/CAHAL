@@ -71,12 +71,13 @@ darwin_playback_callback (
       
       if( result )
       {
-        CPC_ERROR (
-                   "Error enqueuing buffer: %d",
-                   result
-                   );
+        CPC_LOG (
+                 CPC_LOG_LEVEL_WARN,
+                 "Error enqueuing buffer: %d",
+                 result
+                 );
         
-        CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+        CPC_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
       }
       else
       {
@@ -188,7 +189,7 @@ darwin_recorder_callback  (
   }
   else
   {
-    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Invalid number of packets." );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_WARN, "Invalid number of packets." );
   }
   
   OSStatus result =
@@ -196,12 +197,13 @@ darwin_recorder_callback  (
   
   if( result )
   {
-    CPC_ERROR (
-               "Error re-enqueuing buffer: %d",
-               result
-               );
+    CPC_LOG (
+             CPC_LOG_LEVEL_WARN,
+             "Error re-enqueuing buffer: %d",
+             result
+             );
     
-    CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+    CPC_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
   }
 }
 
@@ -1055,13 +1057,14 @@ darwin_configure_asbd  (
 
     if( result )
     {
-      CPC_ERROR (
-                 "Error setting ASBD using property 0x%x: 0x%x.",
-                 kAudioFormatProperty_FormatInfo,
-                 result
-                 );
+      CPC_LOG (
+               CPC_LOG_LEVEL_WARN,
+               "Error setting ASBD using property 0x%x: 0x%x.",
+               kAudioFormatProperty_FormatInfo,
+               result
+               );
       
-      CPC_PRINT_CODE( CPC_LOG_LEVEL_ERROR, result );
+      CPC_PRINT_CODE( CPC_LOG_LEVEL_WARN, result );
     }
     else
     {

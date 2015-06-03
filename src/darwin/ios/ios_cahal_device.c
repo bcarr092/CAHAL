@@ -138,6 +138,11 @@ ios_set_device_stream (
 
         io_device->device_streams[ 0 ]->preferred_format  =
         CAHAL_AUDIO_FORMAT_LINEARPCM;
+        
+        ios_determine_supported_formats (
+                                         io_device->device_streams[ 0 ],
+                                         in_direction
+                                         );
       }
     }
   }
