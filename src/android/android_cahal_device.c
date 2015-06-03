@@ -1550,7 +1550,8 @@ android_playback_callback (
         }
         else
         {
-          CPC_ERROR (
+          CPC_LOG (
+              CPC_LOG_LEVEL_WARN,
               "Could not enqueue buffer: %d.",
               opensl_result
               );
