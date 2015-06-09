@@ -11,12 +11,15 @@ global_sample_rate        = 44100
 global_bit_depth          = 16
 global_flags              = 0
 
+recorded_samples  = []
+
 wave_write.setnchannels( global_number_of_channels )
 wave_write.setsampwidth( global_bit_depth / 8 )
 wave_write.setframerate( global_sample_rate )
 
 def playback( in_device, in_buffer_length ):                                    
   global wave_read
+  global recorded_samples
 
   #print "Buffer length", in_buffer_length
   
@@ -27,14 +30,24 @@ def playback( in_device, in_buffer_length ):
 
   data = wave_read.readframes( number_of_frames )
 
-  #print "Read length", len( data )
+  if( 0 < len( recorded_samples ) ):                                            
+    out_buffer = recorded_samples[ 0 ]                                          
+                                                                                
+    del recorded_samples[ 0 ]                                                   
+  else:                                                                         
+    out_buffer = ''                                                             
+                                                                                
+  #print "Read length", len( out_buffer )
 
-  return( data )
+  return( out_buffer )                                                          
 
 def recorder( in_device, in_buffer, in_buffer_length ):                         
   global wave_write
+  global recorded_samples
 
   wave_write.writeframes( in_buffer )
+
+  recorded_samples.append( in_buffer )                                          
 
 cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
 

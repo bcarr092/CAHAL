@@ -745,7 +745,7 @@ windows_reinitialize_device (
   {
     result = ( *io_audio_client )->GetBufferSize( &number_of_frames );
 
-    CPC_ERROR( "Buffer size is 0x%x.", number_of_frames );
+    CPC_LOG( CPC_LOG_LEVEL_DEBUG, "Buffer size is 0x%x.", number_of_frames );
 
     if( S_OK == result )
     {
@@ -789,11 +789,19 @@ windows_reinitialize_device (
         }
         else
         {
-          CPC_ERROR( "Client's latency is: 0x%x.", requested_latency );
+          CPC_LOG (
+            CPC_LOG_LEVEL_DEBUG, 
+            "Client's latency is: 0x%x.", 
+            requested_latency
+            );
 
           result = ( *io_audio_client )->GetBufferSize( &number_of_frames );
 
-          CPC_ERROR( "Buffer size is 0x%x.", number_of_frames );
+          CPC_LOG (
+            CPC_LOG_LEVEL_DEBUG, 
+            "Buffer size is 0x%x.", 
+            number_of_frames
+            );
         }
       }
       else
@@ -997,13 +1005,20 @@ windows_playback_send_data  (
           {
             CPC_ERROR( "Could not release buffer: 0x%x.", result );
           }
-
-          cpc_safe_free( ( void** )&buffer );
         }
         else
         {
-          CPC_ERROR( "Could not get buffer: 0x%x.", result );
+          CPC_LOG(
+            CPC_LOG_LEVEL_WARN,
+            "Could not get buffer: 0x%x.",
+            result
+            );
         }
+      }
+
+      if( NULL != buffer )
+      {
+        cpc_safe_free( ( void** )&buffer );
       }
     }
   }
@@ -1082,7 +1097,7 @@ windows_recorder_read_data(
         CPC_LOG_LEVEL_DEBUG, 
         "Sending 0x%x bytes of data to caller.", 
         buffer_length
-      );
+        );
 
       if(
           ! in_callback_info->recording_callback(
@@ -1607,14 +1622,14 @@ cahal_stop_recording( void )
       {
         cpc_safe_free(
             ( void** )
-            (
+            &(
               ( windows_context* )
               g_recorder_callback_info->platform_data
             )->format
           );
       }
 
-      cpc_safe_free( ( void** )g_recorder_callback_info->platform_data );
+      cpc_safe_free( ( void** ) &( g_recorder_callback_info->platform_data ) );
     }
 
     cpc_safe_free( ( void** )&g_recorder_callback_info );
@@ -1665,13 +1680,13 @@ cahal_stop_playback( void )
       {
         cpc_safe_free (
           ( void** )
-          ( ( windows_context* )
+          &( ( windows_context* )
             g_playback_callback_info->platform_data
           )->format
         );
       }
 
-      cpc_safe_free( ( void** ) g_playback_callback_info->platform_data );
+      cpc_safe_free( ( void** ) &( g_playback_callback_info->platform_data ) );
     }
 
     cpc_safe_free( ( void** )&g_playback_callback_info );

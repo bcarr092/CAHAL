@@ -136,8 +136,6 @@ python_recorder_callback(
     in_data_buffer_length
     );
 
-  free( in_data_buffer );
-
   if( NULL != argument_list )
   {
     result = PyEval_CallObject( python_callback, argument_list );

@@ -11,9 +11,14 @@ cahal_initialize( void )
   switch( g_cahal_state )
   {
   case CAHAL_STATE_NOT_INITIALIZED:
+    g_cahal_state = CAHAL_STATE_INITIALIZED;
+
     CoInitialize( NULL );
 
-    g_cahal_state = CAHAL_STATE_INITIALIZED;
+    if( ! cpc_is_initialized() )
+    {
+      cpc_initialize();
+    }
 
     break;
   case CAHAL_STATE_INITIALIZED:
@@ -41,11 +46,16 @@ cahal_terminate( void )
       );
     break;
   case CAHAL_STATE_INITIALIZED:
+    g_cahal_state = CAHAL_STATE_TERMINATED;
+
     cahal_free_device_list();
 
     CoUninitialize();
 
-    g_cahal_state = CAHAL_STATE_TERMINATED;
+    if( cpc_is_initialized() )
+    {
+      cpc_terminate();
+    }
 
     break;
   }
