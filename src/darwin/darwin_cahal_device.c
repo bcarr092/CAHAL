@@ -171,6 +171,11 @@ darwin_recorder_callback  (
             {
               CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Error returning buffer." );
             }
+            
+            if( NULL != buffer )
+            {
+              cpc_safe_free( ( void** ) &buffer );
+            }
           }
         }
         else
