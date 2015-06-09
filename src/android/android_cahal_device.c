@@ -1688,11 +1688,6 @@ android_recorder_callback (
                   platform_info->current_buffer_index
                   % platform_info->number_of_buffers
               );
-
-          if( NULL != buffer )
-          {
-            cpc_safe_free( ( void** ) &buffer );
-          }
         }
         else
         {

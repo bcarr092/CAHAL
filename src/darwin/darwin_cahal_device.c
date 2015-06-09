@@ -171,11 +171,6 @@ darwin_recorder_callback  (
             {
               CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Error returning buffer." );
             }
-            
-            if( NULL != buffer )
-            {
-              cpc_safe_free( ( void** ) &buffer );
-            }
           }
         }
         else
@@ -523,7 +518,7 @@ cahal_start_recording (
         
         if( noErr == result )
         {
-          AudioQueueRef audio_queue = { 0 };
+          AudioQueueRef audio_queue = NULL;
           
           CPC_LOG (
                    CPC_LOG_LEVEL_TRACE,
