@@ -431,6 +431,8 @@ cahal_stop_playback( void )
     }
     
     cpc_safe_free( ( void** ) &g_playback_callback_info );
+    
+    result = CPC_TRUE;
   }
   
   return( result );
