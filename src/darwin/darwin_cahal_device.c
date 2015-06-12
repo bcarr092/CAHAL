@@ -459,6 +459,8 @@ cahal_stop_recording( void )
     }
     
     cpc_safe_free( ( void** ) &g_recorder_callback_info );
+    
+    result = CPC_TRUE;
   }
   
   return( result );
