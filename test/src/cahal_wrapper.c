@@ -319,7 +319,7 @@ python_cahal_sleep  (
   
   state = PyThreadState_Get();
   
-  CPC_LOG( CPC_LOG_LEVEL_ERROR, "Reacquired GIL: 0x%x.", state->interp );
+  CPC_LOG( CPC_LOG_LEVEL_DEBUG, "Reacquired GIL: 0x%x.", state->interp );
 }
 
 CPC_BOOL
