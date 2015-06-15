@@ -328,6 +328,8 @@ cahal_stop_recording( void )
     }
 
     cpc_safe_free( ( void** ) &( g_recorder_callback_info ) );
+
+    result = CPC_TRUE;
   }
   else
   {
@@ -423,6 +425,8 @@ cahal_stop_playback( void )
       android_free_callback_buffers( callback_info );
 
       cpc_safe_free( ( void** ) &( callback_info ) );
+
+      result = CPC_TRUE;
     }
     else
     {

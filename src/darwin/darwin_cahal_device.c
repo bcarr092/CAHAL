@@ -363,7 +363,11 @@ darwin_free_context (
   
   if( NULL != io_context )
   {
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Stopping audio queue..." );
+    
     result = AudioQueueStop( io_context->audio_queue, true );
+    
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Stopped audio queue." );
     
     if( noErr == result )
     {

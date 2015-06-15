@@ -122,40 +122,59 @@ python_recorder_callback(
 {
   CPC_BOOL return_value = CPC_FALSE;
 
-  PyObject *python_callback;
-  PyObject *result;
-  PyObject *argument_list;
+  PyObject *python_callback = NULL;
+  PyObject *result          = NULL;
+  PyObject *argument_list   = NULL;
 
   python_callback = ( PyObject* )in_user_data;
-  argument_list =
-    Py_BuildValue(
-    "(Os#n)",
-    in_recording_device,
-    in_data_buffer,
-    in_data_buffer_length,
-    in_data_buffer_length
-    );
-
-  if( NULL != argument_list )
+  
+  if( PyCallable_Check(( python_callback ) ) )
   {
-    result = PyEval_CallObject( python_callback, argument_list );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Acquiring GIL." );
+    
+    PyGILState_STATE state = PyGILState_Ensure();
+    
+    CPC_LOG( CPC_LOG_LEVEL_ERROR, "Acquired GIL: 0x%x.", state );
+    
+    argument_list =
+      Py_BuildValue(
+                    "(Os#n)",
+                    in_recording_device,
+                    in_data_buffer,
+                    in_data_buffer_length,
+                    in_data_buffer_length
+                    );
 
-    Py_DECREF( argument_list );
-
-    if( NULL == result )
+    if( NULL != argument_list )
     {
-      PyErr_Print( );
+      result = PyEval_CallObject( python_callback, argument_list );
+
+      if( NULL == result )
+      {
+        PyErr_Print( );
+      }
+      else
+      {
+        return_value = CPC_TRUE;
+      }
     }
     else
     {
-      return_value = CPC_TRUE;
+      PyErr_Print( );
     }
-
+    
+    Py_XDECREF( argument_list );
     Py_XDECREF( result );
+    
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Releasing GIL." );
+    
+    PyGILState_Release( state );
+    
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Released GIL." );
   }
   else
   {
-    PyErr_Print( );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Callback is not callable." );
   }
 
   return( return_value );
@@ -203,58 +222,160 @@ python_playback_callback(
 {
   CPC_BOOL return_value = CPC_FALSE;
 
-  PyObject *python_callback;
-  PyObject *result;
-  PyObject *argument_list;
+  PyObject *python_callback = NULL;
+  PyObject *result          = NULL;
+  PyObject *argument_list   = NULL;
 
   python_callback = ( PyObject* )in_user_data;
+  
   argument_list =
-    Py_BuildValue(
-    "(On)",
-    in_playback_device,
-    *io_data_buffer_length
-    );
-
-  if( NULL != argument_list )
+  Py_BuildValue(
+                "(On)",
+                in_playback_device,
+                *io_data_buffer_length
+                );
+  
+  if( PyCallable_Check(( python_callback ) ) )
   {
-    result = PyEval_CallObject( python_callback, argument_list );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Acquiring GIL." );
+    
+    PyGILState_STATE state = PyGILState_Ensure();
+    
+    CPC_LOG( CPC_LOG_LEVEL_ERROR, "Acquired GIL: 0x%x.", state );
 
-    Py_DECREF( argument_list );
-
-    if( NULL != result && PyString_Check( result ) )
+    if( NULL != argument_list )
     {
-      Py_ssize_t length = PyString_Size( result );
-      char* buffer = PyString_AsString( result );
+      result = PyEval_CallObject( python_callback, argument_list );
 
-      if( length <= *io_data_buffer_length )
+      if( NULL != result && PyString_Check( result ) )
       {
-        *io_data_buffer_length = length;
+        Py_ssize_t length = PyString_Size( result );
+        char* buffer = PyString_AsString( result );
 
-        memcpy( out_data_buffer, buffer, length );
+        if( length <= *io_data_buffer_length )
+        {
+          *io_data_buffer_length = length;
 
-        return_value = CPC_TRUE;
+          memcpy( out_data_buffer, buffer, length );
+
+          return_value = CPC_TRUE;
+        }
+        else
+        {
+          CPC_ERROR (
+                     "Buffer is too small (size=%d) for data (size=%zd)\n",
+                     ( unsigned int )*io_data_buffer_length,
+                     length
+                     );
+        }
       }
       else
       {
-        fprintf(
-          stderr,
-          "Buffer is too small (size=%d) for data (size=%zd)\n",
-          ( unsigned int )*io_data_buffer_length,
-          length
-          );
+        PyErr_Print( );
       }
     }
     else
     {
       PyErr_Print( );
     }
-
+    
+    Py_XDECREF( argument_list );
     Py_XDECREF( result );
+    
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Releasing GIL." );
+    
+    PyGILState_Release( state );
+    
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Released GIL." );
   }
   else
   {
-    PyErr_Print( );
+    CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Callback is not callable." );
   }
 
   return( return_value );
+}
+
+void
+python_cahal_sleep  (
+                     UINT32 in_sleep_duration
+                     )
+{
+  PyThreadState *state = PyThreadState_Get();
+  
+  CPC_LOG( CPC_LOG_LEVEL_ERROR, "Releasing GIL: 0x%x.", state->interp );
+  
+  Py_BEGIN_ALLOW_THREADS
+  
+  CPC_LOG( CPC_LOG_LEVEL_ERROR, "Sleeping for 0x%x.", in_sleep_duration );
+  
+  cahal_sleep( in_sleep_duration );
+  
+  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Done sleeping." );
+  
+  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Reaquiring GIL." );
+  
+  Py_END_ALLOW_THREADS
+  
+  state = PyThreadState_Get();
+  
+  CPC_LOG( CPC_LOG_LEVEL_ERROR, "Reacquired GIL: 0x%x.", state->interp );
+}
+
+void
+python_cahal_stop_recording( void )
+{
+  PyThreadState *state = PyThreadState_Get();
+  
+  CPC_LOG( CPC_LOG_LEVEL_ERROR, "Releasing GIL: 0x%x.", state->interp );
+  
+  Py_BEGIN_ALLOW_THREADS
+  
+  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Stopping recording..." );
+  
+  cahal_stop_recording();
+  
+  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Recording stopped." );
+  
+  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Reaquiring GIL." );
+  
+  Py_END_ALLOW_THREADS
+  
+  state = PyThreadState_Get();
+  
+  CPC_LOG( CPC_LOG_LEVEL_ERROR, "Reacquired GIL: 0x%x.", state->interp );
+}
+
+void
+python_cahal_stop_playback( void )
+{
+  PyThreadState *state = PyThreadState_Get();
+  
+  CPC_LOG( CPC_LOG_LEVEL_ERROR, "Releasing GIL: 0x%x.", state->interp );
+  
+  Py_BEGIN_ALLOW_THREADS
+  
+  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Stopping playback..." );
+  
+  cahal_stop_playback();
+  
+  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Playback stopped." );
+  
+  CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Reaquiring GIL." );
+  
+  Py_END_ALLOW_THREADS
+  
+  state = PyThreadState_Get();
+  
+  CPC_LOG( CPC_LOG_LEVEL_ERROR, "Reacquired GIL: 0x%x.", state->interp );
+}
+
+
+void
+python_cahal_initialize( void )
+{
+  Py_Initialize();
+  PyEval_InitThreads();
+  
+  cahal_initialize();
 }

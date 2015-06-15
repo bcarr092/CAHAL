@@ -226,13 +226,27 @@ start_recording(
 */
 PyObject*
 start_playback(
-  cahal_device* in_device,
-  int           in_format_id,
-  int           in_number_of_channels,
-  double        in_sample_rate,
-  int           in_bit_depth,
-  PyObject*     in_callback_function,
-  int           in_format_flags
-);
+               cahal_device* in_device,
+               int           in_format_id,
+               int           in_number_of_channels,
+               double        in_sample_rate,
+               int           in_bit_depth,
+               PyObject*     in_callback_function,
+               int           in_format_flags
+               );
+
+void
+python_cahal_sleep  (
+                     UINT32 in_sleep_duration
+                     );
+
+void
+python_cahal_initialize( void );
+
+void
+python_cahal_stop_recording( void );
+
+void
+python_cahal_stop_playback( void );
 
 #endif  /*  __CAHAL_WRAPPER_H__ */
