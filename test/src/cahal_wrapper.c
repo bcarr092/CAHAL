@@ -322,10 +322,11 @@ python_cahal_sleep  (
   CPC_LOG( CPC_LOG_LEVEL_ERROR, "Reacquired GIL: 0x%x.", state->interp );
 }
 
-void
+CPC_BOOL
 python_cahal_stop_recording( void )
 {
-  PyThreadState *state = PyThreadState_Get();
+  CPC_BOOL return_value = CPC_FALSE;
+  PyThreadState *state  = PyThreadState_Get();
   
   CPC_LOG( CPC_LOG_LEVEL_ERROR, "Releasing GIL: 0x%x.", state->interp );
   
@@ -333,7 +334,7 @@ python_cahal_stop_recording( void )
   
   CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Stopping recording..." );
   
-  cahal_stop_recording();
+  return_value = cahal_stop_recording();
   
   CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Recording stopped." );
   
@@ -344,12 +345,15 @@ python_cahal_stop_recording( void )
   state = PyThreadState_Get();
   
   CPC_LOG( CPC_LOG_LEVEL_ERROR, "Reacquired GIL: 0x%x.", state->interp );
+  
+  return( return_value );
 }
 
-void
+CPC_BOOL
 python_cahal_stop_playback( void )
 {
-  PyThreadState *state = PyThreadState_Get();
+  CPC_BOOL return_value = CPC_FALSE;
+  PyThreadState *state  = PyThreadState_Get();
   
   CPC_LOG( CPC_LOG_LEVEL_ERROR, "Releasing GIL: 0x%x.", state->interp );
   
@@ -357,7 +361,7 @@ python_cahal_stop_playback( void )
   
   CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Stopping playback..." );
   
-  cahal_stop_playback();
+  return_value = cahal_stop_playback();
   
   CPC_LOG_STRING( CPC_LOG_LEVEL_ERROR, "Playback stopped." );
   
@@ -368,6 +372,8 @@ python_cahal_stop_playback( void )
   state = PyThreadState_Get();
   
   CPC_LOG( CPC_LOG_LEVEL_ERROR, "Reacquired GIL: 0x%x.", state->interp );
+
+  return( return_value );
 }
 
 void

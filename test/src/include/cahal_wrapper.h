@@ -263,8 +263,10 @@ python_cahal_initialize( void );
  
     \note The cahal_stop_recording is assumed to not return until all external
           threads have ceased.
+ 
+    \return The return value of cahal_stop_recording.
  */
-void
+CPC_BOOL
 python_cahal_stop_recording( void );
 
 /*! \fn     void python_cahal_stop_playback( void )
@@ -274,8 +276,10 @@ python_cahal_stop_recording( void );
  
     \note The cahal_stop_playback is assumed to not return until all external
           threads have ceased.
+ 
+    \return The return value of cahal_stop_playback
  */
-void
+CPC_BOOL
 python_cahal_stop_playback( void );
 
 #endif  /*  __CAHAL_WRAPPER_H__ */
