@@ -1,3 +1,8 @@
+try:
+  import threading as _threading
+except ImportError:
+  import dummy_threading as _threading
+
 import cahal_tests
 import wave
 
@@ -98,9 +103,9 @@ cahal_tests.start_recording (                   \
   global_flags                                  \
                             )
                                                                             
-cahal_tests.cahal_sleep( 3 )                                                
+cahal_tests.python_cahal_sleep( 3 )                                                
 
-cahal_tests.cahal_stop_recording()
+cahal_tests.python_cahal_stop_recording()
 
 wave_write.close()
 
@@ -120,9 +125,9 @@ cahal_tests.start_playback  (                   \
   global_flags                                  \
                             )                   \
                                                                                 
-cahal_tests.cahal_sleep( 3 )
+cahal_tests.python_cahal_sleep( 3 )
 
-cahal_tests.cahal_stop_playback()
+cahal_tests.pyton_cahal_stop_playback()
 
 wave_read.close()
 

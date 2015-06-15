@@ -1,3 +1,8 @@
+try:
+  import threading as _threading
+except ImportError:
+  import dummy_threading as _threading
+
 import cahal_tests                                                              
 import unittest                                                                 
                                                                                 
@@ -9,7 +14,7 @@ from test_cahal_audio_format_description  import  \
 
 cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_NO_LOGGING )
 
-cahal_tests.cahal_initialize()
+cahal_tests.python_cahal_initialize()
 
 alltests = unittest.TestSuite ( [                                                   \
  unittest.TestLoader().loadTestsFromTestCase( TestsCAHAL ),                         \

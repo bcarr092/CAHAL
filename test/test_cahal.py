@@ -32,9 +32,14 @@ class TestsCAHAL( unittest.TestCase ):
 
 
 if __name__ == '__main__':
+  try:
+    import threading as _threading
+  except ImportError:
+    import dummy_threading as _threading
+
   cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
 
-  cahal_tests.cahal_initialize()
+  cahal_tests.python_cahal_initialize()
 
   unittest.main()
   

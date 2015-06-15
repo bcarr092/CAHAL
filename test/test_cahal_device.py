@@ -147,9 +147,9 @@ class TestsCAHALDevice( unittest.TestCase ):
                                       )                   \
                     )                                     
                                                                                 
-    cahal_tests.cahal_sleep( 5 )                                                
+    cahal_tests.python_cahal_sleep( 5 )                                                
 
-    cahal_tests.cahal_stop_recording()
+    cahal_tests.python_cahal_stop_recording()
             
     self.assertTrue (                                     \
           cahal_tests.start_playback  (                   \
@@ -163,9 +163,9 @@ class TestsCAHALDevice( unittest.TestCase ):
                                       )                   \
                     )
                                                                                 
-    cahal_tests.cahal_sleep( 5 )
+    cahal_tests.python_cahal_sleep( 5 )
 
-    cahal_tests.cahal_stop_playback()
+    cahal_tests.python_cahal_stop_playback()
 
   def test_cahal_test_device_direction_support( self ):
     self.assertFalse(                                             \
@@ -368,9 +368,14 @@ class TestsCAHALDevice( unittest.TestCase ):
       device = cahal_tests.cahal_device_list_get( device_list, index )
 
 if __name__ == '__main__':
+  try:
+    import threading as _threading
+  except ImportError:
+    import dummy_threading as _threading
+
   cahal_tests.cpc_log_set_log_level( cahal_tests.CPC_LOG_LEVEL_ERROR )
 
-  cahal_tests.cahal_initialize()
+  cahal_tests.python_cahal_initialize()
 
   unittest.main()
   
