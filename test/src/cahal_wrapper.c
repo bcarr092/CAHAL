@@ -370,7 +370,6 @@ python_cahal_stop_playback( void )
   CPC_LOG( CPC_LOG_LEVEL_ERROR, "Reacquired GIL: 0x%x.", state->interp );
 }
 
-
 void
 python_cahal_initialize( void )
 {
