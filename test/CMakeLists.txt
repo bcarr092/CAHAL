@@ -27,6 +27,8 @@ set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
 
 include( ${SWIG_USE_FILE} )
 
+set( CMAKE_SWIG_FLAGS "-threads" )
+
 set( CPCOMMON_INCLUDE_DIRECTORY "${cpcommon_SOURCE_DIR}/src/include" )
 set( CAHAL_INCLUDE_DIRECTORY "${cahal_SOURCE_DIR}/src/include" )
 

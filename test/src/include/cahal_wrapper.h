@@ -235,19 +235,6 @@ start_playback(
                int           in_format_flags
                );
 
-/*! \fn     void python_cahal_sleep  (
-              UINT32 in_sleep_duration
-            )
-    \brief  Wrapper for the C call to cahal_sleep to ensure the GIL is properly
-            released.
-
-    \param  in_sleep_duration The amount of time (in seconds) to sleep for.
- */
-void
-python_cahal_sleep  (
-                     UINT32 in_sleep_duration
-                     );
-
 /*! \fn     void python_cahal_initialize( void )
     \brief  Wrapper for the cahal_initialize function to ensure the GIL is
             properly set up for threads to be iniitialized in external C
@@ -255,31 +242,5 @@ python_cahal_sleep  (
  */
 void
 python_cahal_initialize( void );
-
-/*! \fn     void python_cahal_stop_recording( void )
-    \brief  Wrapper for the cahal_stop_recording function to ensure the GIL is
-            released before making any blocking calls in the C stop_recording
-            function.
- 
-    \note The cahal_stop_recording is assumed to not return until all external
-          threads have ceased.
- 
-    \return The return value of cahal_stop_recording.
- */
-CPC_BOOL
-python_cahal_stop_recording( void );
-
-/*! \fn     void python_cahal_stop_playback( void )
-    \brief  Wrapper for the cahal_stop_playback function to ensure the GIL is
-            released before making any blocking calls in the C stop_playback
-            function.
- 
-    \note The cahal_stop_playback is assumed to not return until all external
-          threads have ceased.
- 
-    \return The return value of cahal_stop_playback
- */
-CPC_BOOL
-python_cahal_stop_playback( void );
 
 #endif  /*  __CAHAL_WRAPPER_H__ */
