@@ -103,7 +103,7 @@ cahal_tests.start_recording (                   \
   global_flags                                  \
                             )
                                                                             
-cahal_tests.python_cahal_sleep( 3 )                                                
+cahal_tests.python_cahal_sleep( 3000 )                                                
 
 cahal_tests.python_cahal_stop_recording()
 
@@ -125,7 +125,7 @@ cahal_tests.start_playback  (                   \
   global_flags                                  \
                             )                   \
                                                                                 
-cahal_tests.python_cahal_sleep( 3 )
+cahal_tests.python_cahal_sleep( 3000 )
 
 cahal_tests.pyton_cahal_stop_playback()
 

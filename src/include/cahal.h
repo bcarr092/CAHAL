@@ -91,8 +91,8 @@ cahal_terminate( void );
     \brief  Platform-specific call to the sleep function. This method is only
             ever used for testing.
 
-    \param  in_sleep_time The amount of time (in seconds) to put the thread to
-                          sleep for.
+    \param  in_sleep_time The amount of time (in milliseconds) to put the thread
+                          to sleep for.
  */
 void
 cahal_sleep (

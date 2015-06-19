@@ -147,7 +147,7 @@ class TestsCAHALDevice( unittest.TestCase ):
                                       )                   \
                     )                                     
                                                                                 
-    cahal_tests.cahal_sleep( 5 )                                                
+    cahal_tests.cahal_sleep( 5000 )                                                
 
     self.assertTrue( cahal_tests.cahal_stop_recording() )
             
@@ -163,7 +163,7 @@ class TestsCAHALDevice( unittest.TestCase ):
                                       )                   \
                     )
                                                                                 
-    cahal_tests.cahal_sleep( 5 )
+    cahal_tests.cahal_sleep( 5000 )
 
     self.assertTrue( cahal_tests.cahal_stop_playback() )
 

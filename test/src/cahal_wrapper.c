@@ -120,7 +120,7 @@ python_recorder_callback(
   void*         in_user_data
 )
 {
-  CPC_BOOL return_value = CPC_FALSE;
+  CPC_BOOL return_value     = CPC_FALSE;
 
   PyObject *python_callback = NULL;
   PyObject *result          = NULL;

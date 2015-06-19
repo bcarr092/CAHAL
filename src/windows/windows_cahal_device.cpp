@@ -672,46 +672,30 @@ windows_initialize_device (
 
     if( S_OK == result )
     {
-      REFERENCE_TIME requested_latency = 0;
+      REFERENCE_TIME requested_latency = WINDOWS_DEFAULT_RECORD_DURATION_IN_100_NANOS;
 
       result =
-        ( *io_audio_client )->GetDevicePeriod( NULL, &requested_latency );
+        ( *io_audio_client )->Initialize(
+          AUDCLNT_SHAREMODE_EXCLUSIVE,
+          AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+          requested_latency,
+          requested_latency,
+          in_format,
+          NULL
+        );
 
-      CPC_LOG(
-        CPC_LOG_LEVEL_DEBUG,
-        "Hardware sample rate: %lld.",
-        requested_latency
-      );
-
-      if( S_OK == result )
+      if( AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED == result )
       {
         result =
-          ( *io_audio_client )->Initialize(
-            AUDCLNT_SHAREMODE_EXCLUSIVE,
-            AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-            requested_latency,
-            requested_latency,
-            in_format,
-            NULL
+          windows_reinitialize_device(
+            in_device, 
+            io_audio_client, 
+            in_format
           );
-
-        if( AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED == result )
-        {
-          result =
-            windows_reinitialize_device(
-              in_device, 
-              io_audio_client, 
-              in_format
-            );
-        }
-        else if( S_OK != result )
-        {
-          CPC_ERROR( "Could not intialize audio client: 0x%x.", result );
-        }
       }
-      else
+      else if( S_OK != result )
       {
-        CPC_ERROR( "Could not get device period: 0x%x.", result );
+        CPC_ERROR( "Could not intialize audio client: 0x%x.", result );
       }
     }
     else
@@ -1782,7 +1766,7 @@ cahal_sleep(
 UINT32 in_sleep_time
 )
 {
-  Sleep( in_sleep_time * 1000 );
+  Sleep( in_sleep_time );
 }
 
 CPC_BOOL
