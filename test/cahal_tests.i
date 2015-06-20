@@ -8,6 +8,8 @@
 
 %}
 
+%nodefaultctor;
+
 %apply char       { CHAR  }
 %apply char       { INT8  }
 %apply short      { INT16 }

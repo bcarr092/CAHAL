@@ -76,7 +76,7 @@ python_playback_callback(
     \return The element at in_device_list[ in_index ]
 */
 cahal_device*
-  cahal_device_list_get(
+cahal_device_list_get(
   cahal_device**  in_device_list,
   int             in_index
 );
