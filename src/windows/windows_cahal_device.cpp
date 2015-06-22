@@ -672,7 +672,8 @@ windows_initialize_device (
 
     if( S_OK == result )
     {
-      REFERENCE_TIME requested_latency = WINDOWS_DEFAULT_RECORD_DURATION_IN_100_NANOS;
+      REFERENCE_TIME requested_latency =
+        WINDOWS_DEFAULT_RECORD_DURATION_IN_100_NANOS;
 
       result =
         ( *io_audio_client )->Initialize(

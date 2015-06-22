@@ -28,7 +28,7 @@ extern "C"
     \brief  The number of 100's of nanoseconds of audio to capture in each
             buffer (corresponds to 1 second).
  */
-#define WINDOWS_DEFAULT_RECORD_DURATION_IN_100_NANOS    10000000
+#define WINDOWS_DEFAULT_RECORD_DURATION_IN_100_NANOS    5000000
 
 /*! \def    cahal_device** windows_get_device_list( void );
     \brief  Enumerates the audio IO devices and creates the device list
