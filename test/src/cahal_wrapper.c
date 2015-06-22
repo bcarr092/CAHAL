@@ -132,8 +132,6 @@ python_recorder_callback(
   
   if( PyCallable_Check(( python_callback ) ) )
   {
-    PyGILState_STATE state = PyGILState_Ensure();
-    
     argument_list =
       Py_BuildValue(
                     "(Os#n)",

@@ -671,5 +671,12 @@ cahal_sleep (
              UINT32 in_sleep_time
              )
 {
-  sleep( in_sleep_time );
+  struct timespec sleep_info;
+  
+  memset( &sleep_info, 0x0, sizeof( struct timespec ) );
+  
+  sleep_info.tv_sec   = in_sleep_time / 1000;
+  sleep_info.tv_nsec  = ( in_sleep_time % 1000 ) * 1000000;
+  
+  nanosleep( &sleep_info, NULL );
 }

@@ -480,5 +480,8 @@ cahal_sleep (
              UINT32 in_sleep_time
              )
 {
-  CFRunLoopRunInMode(kCFRunLoopDefaultMode, in_sleep_time, CPC_FALSE );
+  CFTimeInterval sleep_duration =
+    ( ( CFTimeInterval ) in_sleep_time * 1.0 ) / 1000;
+  
+  CFRunLoopRunInMode(kCFRunLoopDefaultMode, sleep_duration, CPC_FALSE );
 }
