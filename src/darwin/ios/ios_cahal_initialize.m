@@ -43,7 +43,7 @@ void ios_initialize_recording()
   }
   
   [[AVAudioSession sharedInstance]
-   setMode:AVAudioSessionModeVideoRecording error:&err];
+   setMode:AVAudioSessionModeMeasurement error:&err];
   
   if( err )
   {
