@@ -4,42 +4,6 @@
  */
 #include "darwin/ios/ios_cahal_device.h"
 
-CPC_BOOL
-cahal_set_default_device (
-                          cahal_device*                 in_device,
-                          cahal_device_stream_direction in_direction
-                          )
-{
-  CPC_BOOL return_value = CPC_TRUE;
-  
-  if(
-     NULL != in_device
-     && cahal_test_device_direction_support  (
-                                              in_device,
-                                              in_direction
-                                              )
-     )
-  {
-    CPC_LOG (
-             CPC_LOG_LEVEL_INFO,
-             "Default device for direction %d set for %s.",
-             in_direction,
-             in_device->device_name
-             );
-  }
-  else
-  {
-    CPC_LOG_STRING  (
-                     CPC_LOG_LEVEL_ERROR,
-                     "Device is null or direction not supported."
-                     );
-    
-    return_value = CPC_FALSE;
-  }
-  
-  return( return_value );
-}
-
 cahal_device**
 ios_set_cahal_device_struct( void )
 {

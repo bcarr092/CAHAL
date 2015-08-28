@@ -11,6 +11,10 @@ void ios_initialize_recording()
 
 @implementation ios_cahal_initialize
 
+/*! \fn     ios_initialize_recording
+    \brief  Requests permission to access the microphone and exits if the binary 
+            doesn't have the necessary permissions.
+ */
 + (void) ios_initialize_recording
 {
   NSError *err = nil;
@@ -43,7 +47,7 @@ void ios_initialize_recording()
   }
   
   [[AVAudioSession sharedInstance]
-   setMode:AVAudioSessionModeMeasurement error:&err];
+   setMode:AVAudioSessionModeVideoRecording error:&err];
   
   if( err )
   {

@@ -15,20 +15,20 @@
 #include "cahal_audio_format_flags.h"
 
 /*! \fn     cahal_audio_format_flag darwin_convert_core_audio_format_flags_to_cahal_audio_format_flags (
-              UINT32 in_core_audio_format_flags
+              UINT32 core_audio_format_flags
             )
     \brief  Converts core audio format flags to platform agnostic CAHAL format
             flags. Note that the platform specific core audio flags are not a
             bit mask and therefore the constants are not orthogonal to one
             another. Therefore each flag needs to be tested for individually.
  
-    \param  in_core_audio_format_flags The core audio format flags to convert to
+    \param  core_audio_format_flags The core audio format flags to convert to
                                       a CAHAL format flags.
     \return The CAHAL representation of in_core_audio_format_flags.
  */
 cahal_audio_format_flag
 darwin_convert_core_audio_format_flags_to_cahal_audio_format_flags (
-                                               UINT32 in_core_audio_format_flags
+                                               UINT32 core_audio_format_flags
                                                                );
 
 /*! \fn     UINT32 darwin_convert_cahal_audio_format_flags_to_core_audio_format_flags (

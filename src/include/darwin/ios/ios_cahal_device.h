@@ -99,7 +99,7 @@ ios_get_device_float64_property (
 
 /*! \fn     OSStatus ios_get_device_property_value (
               AudioSessionPropertyID in_property,
-              UINT32*                in_device_property_value_size,
+              UINT32*                io_device_property_value_size,
               void*                  out_device_property_value
             )
     \brief  Generic function to extract the value for in_property from the audio
@@ -108,7 +108,7 @@ ios_get_device_float64_property (
             session.
 
     \param  in_property   The property to query on in_device_id
-    \param  in_device_property_value_size The number of bytes that will be
+    \param  io_device_property_value_size The number of bytes that will be
                                           stored in out_device_property_value.
     \param  out_device_property_value The location to store the extracted
                                       property value.
@@ -118,7 +118,7 @@ ios_get_device_float64_property (
 OSStatus
 ios_get_device_property_value (
                            AudioSessionPropertyID in_property,
-                           UINT32*                in_device_property_value_size,
+                           UINT32*                io_device_property_value_size,
                            void*                  out_device_property_value
                                );
 
@@ -162,7 +162,7 @@ ios_get_input_device_info (
                            );
 
 /*! \fn     BOOL ios_get_output_device_info (
-              cahal_device* out_output_device
+              cahal_device* io_output_device
             )
     \brief  Configures the only built in output device supported by iOS. This
             sets the minimum required fields (e.g. handle, device name, sample
@@ -171,13 +171,13 @@ ios_get_input_device_info (
     \note   CAHAL currently does not support USB microphones or speakers on the
             iOS platform.
 
-    \param  out_output_device  The input device to configure.
+    \param  io_output_device  The input device to configure.
     \return True iff the minimum fields are set, false otherwise. Note that if
             False is returned the device is unusable.
     */
 CPC_BOOL
 ios_get_output_device_info (
-                            cahal_device* out_output_device
+                            cahal_device* io_output_device
                             );
 
 /*! \fn     BOOL ios_set_device_stream (

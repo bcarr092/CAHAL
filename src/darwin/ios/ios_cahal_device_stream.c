@@ -4,10 +4,25 @@
  */
 #include "darwin/ios/ios_cahal_device_stream.h"
 
+/*! \def    NUM_CHANNELS_TO_TEST
+    \brief  The number of channels to test for support is in the range [ 1,
+            NUM_CHANNELS_TO_TEST ]
+ */
 #define NUM_CHANNELS_TO_TEST                2
+
+/*! \def    NUM_SUPPORTED_BITS_PER_SAMPLE
+    \brief  The length of the supported_bits_per_sample array.
+ */
 #define NUM_SUPPORTED_BITS_PER_SAMPLE       5
+
+/*! \def    NUM_SUPPORTED_SAMPLE_RATES
+    \brief  The length of the supported_sample_rates array.
+ */
 #define NUM_SUPPORTED_SAMPLE_RATES          13
 
+/*! \var    supported_bits_per_sample
+    \brief  The bit depths to test for support for.
+ */
 static UINT32 supported_bits_per_sample [
                                          NUM_SUPPORTED_BITS_PER_SAMPLE
                                          ] =
@@ -19,6 +34,9 @@ static UINT32 supported_bits_per_sample [
   32
 };
 
+/*! \var    supported_sample_rates
+    \brief  The sample rates to test for support for.
+ */
 static UINT32 supported_sample_rates[
                                      NUM_SUPPORTED_SAMPLE_RATES
                                      ] =
@@ -38,6 +56,27 @@ static UINT32 supported_sample_rates[
   192000
 };
 
+/*! \fn     cpc_error_code ios_add_format_description  (
+             UINT32                in_bits_per_sample,
+             UINT32                in_num_channels,
+             UINT32                in_sample_rate,
+             UINT32                in_num_supported_formats,
+             cahal_device_stream*  out_stream
+            )
+    \brief  Mallocs a new format description struct and populates it with the
+            the necessary parameters. One block is allocated per supported
+            format.
+ 
+    \param  in_bits_per_sample  The bit depth of the supported format.
+    \param  in_num_channels The number of channels supported in this format.
+    \param  in_sample_rate  The sample rate supported in this format.
+    \param  in_num_supported_formats  The number of supported formats currently
+                                      in out_stream.
+    \param  out_stream  The cahal_device_stream struct that holds the null
+                        terminated list of supported formats.
+    \return Returns NO_ERROR upon succesful execution
+            (see cpc_safe_malloc for other possible errors).
+ */
 cpc_error_code
 ios_add_format_description  (
                              UINT32                in_bits_per_sample,
