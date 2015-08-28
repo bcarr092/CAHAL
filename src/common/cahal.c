@@ -4,11 +4,6 @@
  */
 #include "cahal.h"
 
-#define MAJOR_VERSION 1U
-#define MINOR_VERSION 0U
-
-#define LIBRARY_NAME  "cahal"
-
 cahal_state g_cahal_state = CAHAL_STATE_NOT_INITIALIZED;
 
 UINT16 cahal_get_version( void )

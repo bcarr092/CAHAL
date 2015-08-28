@@ -213,57 +213,77 @@ typedef CPC_BOOL (*cahal_playback_callback) (
   void*         in_client_data
 );
 
-/*! \def    cahal_recorder_info_t
-   \brief  Structure that is passed to the platform-specific callback routine
-           when audio buffers populated with samples is made available by the
-           recording device. This structure stores the ultimate callback that
-           needs to be called after the data is copied from the OS' buffers
-           as well as the user supplied data that was provided when the
-           recording began.
-
-   \param  recording_device  The device that was used to record the samples.
-   \param  recording_callback  The ultimate function to be called once the
-                               recorded samples have been copied from the OS'
-                               buffers.
-   \param  user_data The data that was supplied by the caller when the
-                     recording was initiated.
- \param  platform_data   Platform-specific pointer used to store platform
-                         specific data that is required by the callback that
-                         is called when a buffer is full as well as to release
-                         control of the recording device back to the OS.
+/*! \def    cahal_recorder_info
+    \brief  Structure that is passed to the platform-specific callback routine
+            when audio buffers populated with samples is made available by the
+            recording device. This structure stores the ultimate callback that
+            needs to be called after the data is copied from the OS' buffers
+            as well as the user supplied data that was provided when the
+            recording began.
  */
 typedef struct cahal_recorder_info_t
 {
+  
+  /*! \var    recording_device
+      \brief  The device that was used to record the samples.
+   */
   cahal_device*           recording_device;
+  
+  /*! \fn     recording_callback
+      \brief  The ultimate function to be called once the recorded samples have
+              been copied from the OS' buffers.
+   */
   cahal_recorder_callback recording_callback;
+  
+  /*! \var    user_data
+      \brief  The data that was supplied by the caller when the recording was 
+              initiated.
+   */
   void*                   user_data;
+  
+  /*! \var    platform_data
+      \brief  Platform-specific pointer used to store platform specific data
+              that is required by the callback that is called when a buffer is 
+              full as well as to release control of the recording device back to
+              the OS.
+   */
   void*                   platform_data;
+  
 } cahal_recorder_info;
 
-/*! \def   cahal_playback_info_t
-   \brief  Structure that is passed to the platform-specific callback routine
-           when audio buffers need to be populated with samples. This structure
-           stores the ultimate callback that is called when data is required by
-           the OS' buffers.
-
-   \param  playback_device  The device that was used to playback the samples.
-   \param  playback_callback  The ultimate function to be called once the
-                               playback samples are required by the OS'
-                               buffers.
-   \param  user_data The data that was supplied by the caller when the
-                     playback was initiated.
-   \param  platform_data   Platform-specific pointer used to store platform
-                           specific data that is required by the callback that
-                           is called when a buffer needs to be filled. Contains
-                           the infop needed to to release control of the
-                           playback device back to the OS.
+/*! \var    cahal_playback_info
+    \brief  Structure that is passed to the platform-specific callback routine
+            when audio buffers need to be populated with samples. This structure
+            stores the ultimate callback that is called when data is required by
+            the OS' buffers.
  */
 typedef struct cahal_playback_info_t
 {
+  /*! \var    playback_device
+      \brief  The device that was used to playback the samples.
+   */
   cahal_device*             playback_device;
+  
+  /*! \fn     playback_callback
+      \brief  The ultimate function to be called once the playback samples are
+              required by the OS' buffers.
+   */
   cahal_playback_callback   playback_callback;
+  
+  /*! \var    user_data
+      \brief  The data that was supplied by the caller when the playback was
+              initiated.
+   */
   void*                     user_data;
+  
+  /*! \var    platform_data
+      \brief  Platform-specific pointer used to store platform specific data
+              that is required by the callback that is called when a buffer
+              needs to be filled. Contains the info needed to to release control
+              of the playback device back to the OS.
+   */
   void*                     platform_data;
+  
 } cahal_playback_info;
 
 /*! \fn     void cahal_print_device  (

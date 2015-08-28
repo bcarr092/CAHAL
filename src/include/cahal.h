@@ -21,6 +21,21 @@ extern "C"
 {
 #endif
 
+/*! \def    MAJOR_VERSION
+    \brief  The major version of the library.
+ */
+#define MAJOR_VERSION 1U
+  
+/*! \def    MINOR_VERSION
+    \brief  The minor version of the library.
+ */
+#define MINOR_VERSION 0U
+
+/*! \def    LIBRARY_NAME
+    \brief  The name of the library.
+ */
+#define LIBRARY_NAME  "cahal"
+
 /*! \enum   cahal_states
  *  \brief  The states that the library goes through. The state transition
  *          diagram is as follows NOT_INITIALIZED -> INITIALIZED -> TERMINATED.
@@ -47,7 +62,7 @@ typedef UINT32 cahal_state;
  */
 extern cahal_state g_cahal_state;
 
-/*! \fn     UINT16 get_version( void )
+/*! \fn     UINT16 cahal_get_version( void )
     \brief  Returns the version of the library in a SHORT. The top 8 MSBs are
             the major version and the 8 LSBs are the minor version.
  
@@ -57,7 +72,7 @@ extern cahal_state g_cahal_state;
 UINT16
 cahal_get_version( void );
 
-/*! \fn     CHAR* get_version_string( void )
+/*! \fn     CHAR* cahal_get_version_string( void )
     \brief  Returns a string containing the library name followed by the version
             of the library.
  

@@ -1,4 +1,4 @@
-/*! \file   osx_cahal_device.
+/*! \file   osx_cahal_device.c
     \brief  The OSX implementation of cahal devices.
  
     \author Brent Carrara

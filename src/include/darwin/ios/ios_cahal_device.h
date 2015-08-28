@@ -171,7 +171,7 @@ ios_get_input_device_info (
     \note   CAHAL currently does not support USB microphones or speakers on the
             iOS platform.
 
-    \param  out_input_device  The input device to configure.
+    \param  out_output_device  The input device to configure.
     \return True iff the minimum fields are set, false otherwise. Note that if
             False is returned the device is unusable.
     */

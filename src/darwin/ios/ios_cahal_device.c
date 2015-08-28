@@ -180,7 +180,7 @@ ios_get_output_device_info (
     
     initialized_output = CPC_FALSE;
   }
-  
+    
   if( ios_get_device_uint32_property (
                       kAudioSessionProperty_CurrentHardwareOutputNumberChannels,
                       &io_output_device->preferred_number_of_channels

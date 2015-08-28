@@ -155,7 +155,7 @@ typedef struct cahal_audio_format_description_t
   
 } cahal_audio_format_description;
 
-/*! \fn      CHAR* convert_cahal_audio_format_id_to_cstring  (
+/*! \fn      CHAR* cahal_convert_audio_format_id_to_cstring  (
               cahal_audio_format_id in_audio_format_id
             )
     \brief  Converts in_audio_format_id to its string representation and returns
@@ -171,7 +171,7 @@ cahal_convert_audio_format_id_to_cstring  (
                                        cahal_audio_format_id in_audio_format_id
                                            );
 
-/*! \fn     void print_cahal_audio_format_description  (
+/*! \fn     void cahal_print_audio_format_description  (
               cahal_audio_format_description* in_audio_format_description
             )
     \brief  Logs a string representation of in_audio_format_description by
@@ -186,7 +186,7 @@ cahal_print_audio_format_description  (
                      cahal_audio_format_description* in_audio_format_description
                                        );
 
-/*! \fn     void print_cahal_audio_format_id (
+/*! \fn     void cahal_print_audio_format_id (
               CHAR*                  in_label,
               cahal_audio_format_id  in_format_id
             )

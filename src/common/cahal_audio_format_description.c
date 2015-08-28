@@ -5,9 +5,9 @@
 #include "cahal_audio_format_description.h"
 
 /*! \fn     void log_cahal_audio_format  (
-              CPC_LOG_LEVEL          in_log_level,
-              CHAR*                  in_label,
-              cahal_audio_format_id  in_format_id
+             cpc_log_level          in_log_level,
+             CHAR*                  in_label,
+             cahal_audio_format_id  in_format_id
             )
     \brief  Logs a string representation of in_format_id using the logger. The
             log is logged at in_log_level and in_label is prepended to the

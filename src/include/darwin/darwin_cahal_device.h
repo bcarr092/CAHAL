@@ -19,7 +19,7 @@
 #include "darwin_cahal_audio_format_flags.h"
 #include "darwin_cahal_audio_format_description.h"
 
-/*! \def    darwin_context
+/*! \var    darwin_context
     \brief  This is the platform-specific struct that stores the references
             required to release the audio device back to the OS.
  */
@@ -194,10 +194,10 @@ darwin_configure_input_audio_queue (
                                  AudioQueueRef*                out_audio_queue
                                  );
 
-/*! \fn     OSStatus darwin_configure_input_audio_queue (
+/*! \fn     OSStatus darwin_configure_output_audio_queue (
               cahal_device*                 in_device,
-              cahal_recorder_info*          in_callback_info,
-              AudioStreamBasicDescription*  io_asbd,
+              cahal_playback_info*          in_callback_info,
+              AudioStreamBasicDescription*  in_asbd,
               AudioQueueRef*                out_audio_queue
             )
     \brief  Configures the platforms ouput (playback) audio queue.
@@ -219,6 +219,7 @@ darwin_configure_output_audio_queue (
 
 /*! \fn     OSStatus darwin_configure_input_audio_queue_buffer  (
               AudioStreamBasicDescription* in_asbd,
+              darwin_context*              out_context,
               AudioQueueRef                io_audio_queue
             )
     \brief  Allocates the necessary audio queue buffers and populates the queue
@@ -238,9 +239,10 @@ darwin_configure_input_audio_queue_buffer  (
                                             );
 
 /*! \fn     OSStatus darwin_configure_output_audio_queue_buffer  (
-              AudioStreamBasicDescription*  in_asbd,
-              cahal_playback_info*          in_playback,
-              AudioQueueRef                 io_audio_queue
+             AudioStreamBasicDescription*  in_asbd,
+             cahal_playback_info*          in_playback,
+             darwin_context*               out_context,
+             AudioQueueRef                 io_audio_queue
             )
     \brief  Allocates the necessary audio queue buffers and populates the queue
             with them. This function will call the playback callback to

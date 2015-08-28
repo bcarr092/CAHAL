@@ -4,6 +4,17 @@
  */
 #include "cahal_audio_format_flags.h"
 
+/*! \fn     void log_cahal_audio_format_flags  (
+             cpc_log_level            in_log_level,
+             CHAR*                    in_label,
+             cahal_audio_format_flag  in_format_flag
+            )
+    \brief  Pretty print hte audio format flags.
+ 
+    \param  in_log_level  The level to log the string at.
+    \param  in_label  The label to print before the flag.
+    \param  in_format_flag  The format flag to pretty print.
+ */
 void
 log_cahal_audio_format_flags  (
                                cpc_log_level            in_log_level,

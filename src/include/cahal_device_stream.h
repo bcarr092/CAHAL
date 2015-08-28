@@ -20,7 +20,7 @@ extern "C"
 {
 #endif
 
-/*! \enum   cahal_device_stream_direction
+/*! \enum   cahal_device_stream_directions
     \brief  Enum of the different directions supported in streams. Input is for
             recording (e.g. microphone), output is for playback (e.g. speaker).
  */
@@ -40,7 +40,7 @@ typedef UINT32 cahal_device_stream_direction;
  */
 typedef UINT32 cahal_device_stream_handle;
 
-/*! \var    cahal_device_stream_t
+/*! \var    cahal_device_stream
     \brief  Struct definition for device streams. A device stream represents
             either an input our output stream and can be opened using a
             specific format. Note that a device can have multiple streams, e.g.
