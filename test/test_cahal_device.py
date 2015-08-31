@@ -150,7 +150,7 @@ class TestsCAHALDevice( unittest.TestCase ):
     cahal_tests.cahal_sleep( 5000 )                                                
 
     self.assertTrue( cahal_tests.cahal_stop_recording() )
-            
+
     self.assertTrue (                                     \
           cahal_tests.start_playback  (                   \
             built_in_output_device,                       \
@@ -158,6 +158,7 @@ class TestsCAHALDevice( unittest.TestCase ):
             global_number_of_channels,                    \
             global_sample_rate,                           \
             global_bit_depth,                             \
+            1.0,                                          \
             playback,                                     \
             global_flags                                  \
                                       )                   \

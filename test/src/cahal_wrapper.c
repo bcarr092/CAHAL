@@ -179,6 +179,7 @@ start_playback(
   int           in_number_of_channels,
   double        in_sample_rate,
   int           in_bit_depth,
+  FLOAT32       in_volume,
   PyObject*     in_callback_function,
   int           in_format_flags
 )
@@ -189,6 +190,7 @@ start_playback(
     in_number_of_channels,
     in_sample_rate,
     in_bit_depth,
+    in_volume,
     python_playback_callback,
     in_callback_function,
     in_format_flags

@@ -200,6 +200,7 @@ start_recording(
               int                   in_number_of_channels,
               double                in_sample_rate,
               int                   in_bit_depth,
+              FLOAT32               in_volume,
               PyObject*             in_callback_function,
               int                   in_format_flags
             )
@@ -217,6 +218,8 @@ start_recording(
     \param  in_sample_rate  The desired sample rate to use in the playback.
     \param  in_bit_depth  The quantization level, i.e. number of bits per
                           sample, to use in the playback.
+    \parma  in_volume Output gain factor, value between 0.0 and 1.0 (1.0 being
+                      the maximum and constrained by the system maximum).
     \param  in_callback_function  The Python callback function to be called
                                   by the trampoline callback function when
                                   buffers of audio data are made available.
@@ -231,6 +234,7 @@ start_playback(
                int           in_number_of_channels,
                double        in_sample_rate,
                int           in_bit_depth,
+               FLOAT32       in_volume,
                PyObject*     in_callback_function,
                int           in_format_flags
                );

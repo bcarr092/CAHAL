@@ -436,6 +436,7 @@ cahal_start_recording (
               UINT32                   in_number_of_channels,
               FLOAT64                  in_sample_rate,
               UINT32                   in_bit_depth,
+              FLOAT32                  in_volume,
               cahal_playback_callback  in_playback,
               void*                    in_callback_user_data,
               cahal_audio_format_flag  in_format_flags
@@ -455,6 +456,9 @@ cahal_start_recording (
     \param  in_sample_rate  The sample rate to playback at.
     \param  in_bit_depth  The number of bits per sample to use (this is the
                           quantization level).
+    \param  in_volume Volume gain (value between 0 and 1). This attenuates the
+                      output signal but is still subject to the max volume of
+                      the device.
     \param  in_playback The caller-supplied callback to be called with empty
                         buffers that need to be filled.
     \param  in_callback_user_data The caller-supplied data to be passed back to
@@ -474,6 +478,7 @@ cahal_start_playback  (
                        UINT32                   in_number_of_channels,
                        FLOAT64                  in_sample_rate,
                        UINT32                   in_bit_depth,
+                       FLOAT32                  in_volume,
                        cahal_playback_callback  in_playback,
                        void*                    in_callback_user_data,
                        cahal_audio_format_flag  in_format_flags

@@ -219,6 +219,7 @@ cahal_start_playback  (
                        UINT32                   in_number_of_channels,
                        FLOAT64                  in_sample_rate,
                        UINT32                   in_bit_depth,
+                       FLOAT32                  in_volume,
                        cahal_playback_callback  in_playback,
                        void*                    in_callback_user_data,
                        cahal_audio_format_flag  in_format_flags
@@ -226,7 +227,11 @@ cahal_start_playback  (
 {
   CPC_BOOL return_value = CPC_FALSE;
   
-  if  (
+  if( 0.0 > in_volume || 1.0 < in_volume )
+  {
+    CPC_ERROR( "Volume (%.02f) must be in the range [ 0, 1 ].", in_volume );
+  }
+  else if  (
        cahal_test_device_direction_support  (
                                              in_device,
                                              CAHAL_DEVICE_OUTPUT_STREAM
@@ -290,6 +295,7 @@ cahal_start_playback  (
           darwin_configure_output_audio_queue  (
                                              in_device,
                                              g_playback_callback_info,
+                                             in_volume,
                                              &playback_description,
                                              &audio_queue
                                              );
@@ -810,6 +816,7 @@ OSStatus
 darwin_configure_output_audio_queue (
                                 cahal_device*                  in_device,
                                 cahal_playback_info*           in_callback_info,
+                                FLOAT32                        in_volume,
                                 AudioStreamBasicDescription*   in_asbd,
                                 AudioQueueRef*                 out_audio_queue
                                   )
@@ -853,6 +860,17 @@ darwin_configure_output_audio_queue (
                                &device_uid,
                                sizeof( device_uid )
                                );
+        
+        if( noErr == result )
+        {
+          result =
+          AudioQueueSetParameter  (
+                                   *out_audio_queue,
+                                   kAudioQueueParam_Volume,
+                                   in_volume
+                                   );
+        }
+        
         
         if( NULL != device_uid )
         {

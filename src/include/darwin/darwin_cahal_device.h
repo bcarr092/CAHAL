@@ -197,6 +197,7 @@ darwin_configure_input_audio_queue (
 /*! \fn     OSStatus darwin_configure_output_audio_queue (
               cahal_device*                 in_device,
               cahal_playback_info*          in_callback_info,
+              FLOAT32                       in_volume,
               AudioStreamBasicDescription*  in_asbd,
               AudioQueueRef*                out_audio_queue
             )
@@ -205,6 +206,9 @@ darwin_configure_input_audio_queue (
     \param  in_device The playback device.
     \param  in_callback_info  The callback that is called by the system when
                               a buffer of samples needs to be filled.
+    \param  in_volume Volume gain (value between 0 and 1). This attenuates the
+                      output signal but is still subject to the max volume of
+                      the device.
     \param  in_asbd The ASDB containing all the format and endocing information.
     \param  out_audio_queue The newly created platform-specific audio queue.
     \return noErr(0) if no error occurs or an appropriate error code.
@@ -213,6 +217,7 @@ OSStatus
 darwin_configure_output_audio_queue (
                                 cahal_device*                 in_device,
                                 cahal_playback_info*          in_callback_info,
+                                FLOAT32                       in_volume,
                                 AudioStreamBasicDescription*  in_asbd,
                                 AudioQueueRef*                out_audio_queue
                                   );
