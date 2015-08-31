@@ -16,33 +16,33 @@
 
 #include "android_cahal.h"
 
-/*! \var    android_callback_info_t
+/*! \var    android_callback_info
    \brief  Struct used to store buffer information required by the playback/
            record callbacks.
  */
 typedef struct android_callback_info_t
 {
-  /*! \def    current_buffer_index
+  /*! \var    current_buffer_index
    *  \brief  Pointer to the current buffer used in the playback/record callback
    */
   UINT32  current_buffer_index;
 
-  /*! \def    number_of_buffers
+  /*! \var    number_of_buffers
    *  \brief  The number of pointers in buffers.
    */
   UINT32  number_of_buffers;
 
-  /*! \def    buffer_size
+  /*! \var    buffer_size
    *  \brief  The size in bytes in each buffer in buffers.
    */
   UINT32  buffer_size;
 
-  /*! \def    buffers
+  /*! \var    buffers
    *  \brief  Buffers of audio data of size buffer_size.
    */
   UCHAR** buffers;
 
-  /*! \def    context
+  /*! \var    context
    *  \brief  Pointers to data structures used in the process of recording/
    *          playback. These pointers are required when tearing down and
    *          stopping playback/record.
@@ -51,46 +51,89 @@ typedef struct android_callback_info_t
 
 } android_callback_info;
 
-/*! \var    android_recorder_context_t
+/*! \var    android_recorder_context
  *  \brief  Platform-specific pointers to data structures required to record
  *          audio using the OpenSLES framework.
  */
 typedef struct android_recoder_context_t
 {
+  /*! \var    audio_format
+   *  \brief  Sample format used for recording, Pulse Code Modulation (PCM).
+   */
   SLDataFormat_PCM*             audio_format;
 
+  /*! \var    input_source
+   *  \brief  The input source for recording (physical microphone)
+   */
   SLDataSource*                 input_source;
+
+  /*! \var    input_sink
+   *  \brief  The sink for the recording (virtual queue)
+   */
   SLDataSink*                   input_sink;
 
+  /*! \var    recorder_object
+   *  \brief  OpenSLES interface object used for recoding.
+   */
   SLObjectItf                   recorder_object;
+
+  /*! \var    recorder_interface
+   *  \brief  Interface object for the recorder_object used to invoke commands
+   *          to the API.
+   */
   SLRecordItf                   recorder_interface;
 
+  /*! \var    buffer_interface
+   *  \brief  Interface to the audio queue used for recording.
+   */
   SLAndroidSimpleBufferQueueItf buffer_interface;
 
 } android_recorder_context;
 
-/*! \var    android_recorder_context_t
+/*! \var    android_playback_context
  *  \brief  Platform-specific pointers to data structures required to playbac
  *          audio using the OpenSLES framework.
  */
 typedef struct android_playback_context_t
 {
+  /*! \var    audio_format
+   *  \brief  Audio format used to encode samples for playback (Pulse Code
+   *          Modulation (PCM)).
+   */
   SLDataFormat_PCM*             audio_format;
 
+  /*! \var    input_source
+   *  \brief  The input source for playback (virtual queue)
+   */
   SLDataSource*                 input_source;
+
+  /*! \var    input_sink
+   *  \brief  The input sink for playback (physical speaker)
+   */
   SLDataSink*                   input_sink;
 
+  /*! \var    playback_object
+   *  \brief  Open SLES object used for playback.
+   */
   SLObjectItf                   playback_object;
+
+  /*! \var    playback_interface
+   *  \brief  Interface to the playback_object, used to invoke API calls.
+   */
   SLPlayItf                     playback_interface;
 
+  /*! \var    buffer_interface
+   *  \brief  Interface to the OpenSLES buffer used to queue samples for
+   *          playback.
+   */
   SLAndroidSimpleBufferQueueItf buffer_interface;
 
 } android_playback_context;
 
 /*! \fn     cpc_error_code android_save_playback_context  (
               SLDataFormat_PCM*             in_audio_format,
-              SLDataSource*                 in_output_source,
-              SLDataSink*                   in_output_sink,
+              SLDataSource*                 in_input_source,
+              SLDataSink*                   in_input_sink,
               SLObjectItf                   in_playback_object,
               SLPlayItf                     in_playback_interface,
               SLAndroidSimpleBufferQueueItf in_buffer_interface
@@ -99,8 +142,8 @@ typedef struct android_playback_context_t
             struct.
 
     \param  in_audio_format The format of the audio being playback.
-    \param  in_output_source The output source for the playback audio (queue)
-    \param  in_output_sink The output sink for the playback audio (speaker)
+    \param  in_input_source The output source for the playback audio (queue)
+    \param  in_input_sink The output sink for the playback audio (speaker)
     \param  in_playback_object The AudioPlaybackObject used to playback audio.
     \param  in_playback_interface The interface used to control the playback
                                   object.
@@ -112,8 +155,8 @@ typedef struct android_playback_context_t
 cpc_error_code
 android_save_playback_context  (
     SLDataFormat_PCM*             in_audio_format,
-    SLDataSource*                 in_output_source,
-    SLDataSink*                   in_output_sink,
+    SLDataSource*                 in_input_source,
+    SLDataSink*                   in_input_sink,
     SLObjectItf                   in_playback_object,
     SLPlayItf                     in_playback_interface,
     SLAndroidSimpleBufferQueueItf in_buffer_interface
@@ -195,8 +238,8 @@ android_playback_callback (
               FLOAT64           in_sample_rate,
               UINT32            in_bit_depth,
               SLDataFormat_PCM* out_audio_format,
-              SLDataSource*     out_input_source,
-              SLDataSink*       out_input_sink
+              SLDataSource*     out_output_source,
+              SLDataSink*       out_output_sink
                                       )
     \brief  Helper function to fill the neccessary data structures required
             by the OpenSLES framework for playback.
@@ -217,8 +260,8 @@ android_initialize_playback_structs  (
     FLOAT64           in_sample_rate,
     UINT32            in_bit_depth,
     SLDataFormat_PCM* out_audio_format,
-    SLDataSource*     out_input_source,
-    SLDataSink*       out_input_sink
+    SLDataSource*     out_output_source,
+    SLDataSink*       out_output_sink
                                       );
 
 /*! \fn     cpc_error_code android_initialize_recording_structs  (
@@ -289,7 +332,7 @@ android_register_playback (
               SLDataSource*                   in_input_source,
               SLDataSink*                     in_input_sink,
               SLObjectItf*                    io_recorder_object,
-              SLPlayItf*                      out_recorder_interface,
+              SLRecordItf*                    out_recorder_interface,
               SLAndroidSimpleBufferQueueItf*  out_buffer_interface
                           )
     \brief  Configures the OpenSLES recorder object, interface and output
@@ -334,6 +377,7 @@ android_register_recorder (
                                   callback (in_playback) when samples are
                                   required.
     \param  in_playback_interface The OpenSLES interface to the playback object
+    \param  in_buffer_interface The OpenSLES interface to the playback object
     \param  out_playback_callback_info  Configured callback info struct that
                                         contains pointers to all OpenSLES
                                         structures.
@@ -354,10 +398,10 @@ android_register_playback_callback  (
               cahal_device*                 in_device,
               cahal_recorder_callback       in_recorder,
               void*                         in_callback_user_data,
-              SLRecordItf                     in_recorder_interface,
+              SLRecordItf                   in_recorder_interface,
               SLAndroidSimpleBufferQueueItf in_buffer_interface,
-              cahal_playback_info**         out_playback_callback_info
-                                    )
+              cahal_recorder_info**         out_recorder_callback_info
+                                              )
     \brief  Registers a callback function to be called when a buffer is full.
 
     \param  in_device The device to record audio from
@@ -367,7 +411,8 @@ android_register_playback_callback  (
                                   callback (in_recorder) when samples are
                                   available.
     \param  in_recorder_interface The OpenSLES interface to the recorder object
-    \param  out_playback_callback_info  Configured callback info struct that
+    \param  in_buffer_interface The OpenSLES interface to the recorder buffer
+    \param  out_recorder_callback_info  Configured callback info struct that
                                         contains pointers to all OpenSLES
                                         structures.
     \return NO_ERROR if the structures have been configured, an error code

@@ -227,25 +227,29 @@ android_init_and_test_output_configuration (
     UINT32 in_bits_per_sample
                                             );
 
-/*! \fn     CPC_BOOL android_init_and_test_output_configuration (
+/*! \fn     CPC_BOOL android_init_and_test_input_configuration (
               UINT32 in_num_channels,
               UINT32 in_sample_rate,
-              UINT32 in_bits_per_sample
+              UINT32 in_bits_per_sample,
+              UINT32 in_configuration
                                             )
-    \brief  Function that simply sets up a test configuration and tests
+    \brief  Function that simply sets up a test input configuration and tests
             to see if it is supported in hardware.
 
     \param  in_num_channels The number of channels in the format to test.
     \param  in_sample_rate  The sample rate to test
     \param  in_bits_per_sample  The bit depth (quantization) to test
+    \param  in_configuration  The configuration that is tested (id into the
+                              input configuration array).
     \return True iff the format is supported, false otherwise.
  */
 CPC_BOOL
-android_init_and_test_output_configuration (
+android_init_and_test_input_configuration (
     UINT32 in_num_channels,
     UINT32 in_sample_rate,
-    UINT32 in_bits_per_sample
-                                            );
+    UINT32 in_bits_per_sample,
+    UINT32 in_configuration
+                                    );
 
 /*! \fn     cpc_error_code android_set_output_device (
               cahal_device*** io_device_list,
@@ -255,7 +259,7 @@ android_init_and_test_output_configuration (
             them to the list.
 
     \param  io_device_list  The list to add any supported audio devices to.
-    \param  io_num_devies The updated number of supported devices.
+    \param  io_num_devices The updated number of supported devices.
     \return NO_ERROR if the structures have been configured, an error code
             otherwise.
  */
@@ -273,7 +277,7 @@ android_set_output_device (
             them to the list.
 
     \param  io_device_list  The list to add any supported audio devices to.
-    \param  io_num_devies The updated number of supported devices.
+    \param  io_num_devices The updated number of supported devices.
     \return NO_ERROR if the structures have been configured, an error code
             otherwise.
  */

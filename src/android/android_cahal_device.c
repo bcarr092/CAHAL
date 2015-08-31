@@ -7,6 +7,19 @@
 cahal_recorder_info* g_recorder_callback_info = NULL;
 cahal_playback_info* g_playback_callback_info = NULL;
 
+/*! \fn     void android_free_callback_buffers (
+              android_callback_info*  io_callback_info
+            )
+
+    \brief  Safely frees all members of the callback struct.
+
+    \param  io_callback_info  Struct whos members need to be freed.
+ */
+void
+android_free_callback_buffers (
+    android_callback_info*  io_callback_info
+                              );
+
 CPC_BOOL
 cahal_start_playback  (
                        cahal_device*            in_device,

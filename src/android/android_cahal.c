@@ -4,18 +4,59 @@
  */
 #include "android/android_cahal.h"
 
+/*! \var    g_engine_object
+ *  \brief  Global member used to access the OpenSLES APIs. Used to gain access
+ *          to various supported interfaces.
+ */
 SLObjectItf g_engine_object     = NULL;
+
+/*! \var    g_engine_interface
+ *  \brief  Global interface to the OpenSLES engine (APIs).
+ */
 SLEngineItf g_engine_interface  = NULL;
 
+/*! \var    NUM_CHANNELS_TO_TEST
+    \brief  The number of channels to test for support is in the range [ 1,
+            NUM_CHANNELS_TO_TEST ]
+ */
 #define NUM_CHANNELS_TO_TEST                        2
+
+/*! \def    NUM_OPENSLES_SUPPORTED_BITS_PER_SAMPLE
+    \brief  The length of the supported_bits_per_sample array.
+ */
 #define NUM_OPENSLES_SUPPORTED_BITS_PER_SAMPLE      6
+
+/*! \def    NUM_OPENSLES_SUPPORTED_SAMPLE_RATES
+    \brief  The length of the supported_sample_rates array.
+ */
 #define NUM_OPENSLES_SUPPORTED_SAMPLE_RATES         8
+
+/*! \def    NUM_OPENSLES_SUPPORTED_INPUT_CONFIGURATIONS
+ *  \brief  OpenSLES uses preset profiles. This is the maximum number of preset
+ *          profiles.
+ */
 #define NUM_OPENSLES_SUPPORTED_INPUT_CONFIGURATIONS 5
+
+/*! \def    INPUT_CONFIGURATION_MAX_LENGTH
+ *  \brief  Maximum length for the names of the preset input configurations
+ *          supported by Android.
+ */
 #define INPUT_CONFIGURATION_MAX_LENGTH              0x20
+
+/*! \def    OUTPUT_CONFIGURATION_MAX_LENGTH
+ *  \brief  Maximum length for the name of the output configuration (hard coded)
+ */
 #define OUTPUT_CONFIGURATION_MAX_LENGTH             0x20
 
+/*! \def    DEFAULT_OUTPUT_DEVICE_NAME
+ *  \brief  Hard coded profile name for the output device.
+ */
 #define DEFAULT_OUTPUT_DEVICE_NAME                  "DefaultOutput"
 
+/*! \var    opensles_supported_bits_per_sample
+ *  \brief  List of possible supported bit depths (bits per sample). These are
+ *          defined in the OpenSLES.h file.
+ */
 static UINT32 opensles_supported_bits_per_sample  [
                                          NUM_OPENSLES_SUPPORTED_BITS_PER_SAMPLE
                                                    ] =
@@ -28,6 +69,13 @@ static UINT32 opensles_supported_bits_per_sample  [
   SL_PCMSAMPLEFORMAT_FIXED_32
 };
 
+/*! \var    opensles_supported_sample_rates
+ *  \brief  List of possible supported sample rates (samples per second). These
+ *          are defined in the OpenSLES.h.
+ *
+ *  \note   Some Android devices will produce a fault if certain sample rates
+ *          are configured.
+ */
 static UINT32 opensles_supported_sample_rates [
                                              NUM_OPENSLES_SUPPORTED_SAMPLE_RATES
                                              ]  =
@@ -52,6 +100,9 @@ static UINT32 opensles_supported_sample_rates [
 //  SL_SAMPLINGRATE_192
 };
 
+/*! \var    opensles_supported_input_configurations
+ *  \brief  The preset Android OpenSLES input profiles. Set in OpenSLES.h.
+ */
 static UINT32 opensles_supported_input_configurations [
                                      NUM_OPENSLES_SUPPORTED_INPUT_CONFIGURATIONS
                                      ]  =
@@ -63,6 +114,10 @@ static UINT32 opensles_supported_input_configurations [
   SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION,
 };
 
+/*! \var    input_configuration_strings
+ *  \brief  Strings for pretty printing the input configurations (used to make
+ *          the input configurations human readable).
+ */
 static CHAR* input_configuration_strings[ 5 ] =
 {
     "MicDefault",
@@ -71,6 +126,54 @@ static CHAR* input_configuration_strings[ 5 ] =
     "MicVoiceRecognition",
     "MicVoiceCommunication"
 };
+
+/*! \fn     cpc_error_code android_add_format_description  (
+              UINT32                            in_bits_per_sample,
+              UINT32                            in_num_channels,
+              UINT32                            in_sample_rate,
+              UINT32                            in_num_supported_formats,
+              cahal_device_stream*              io_device_stream
+            )
+    \brief  Adds the supported format to the cahal struct.
+
+    \param  in_bits_per_sample  The bit depth (number of bits per sample) of
+                                the supported format.
+    \param  in_num_channels The number of channels supported.
+    \param  in_sample_rate  The sample rate supported.
+    \param  in_num_supported_formats  The number of supported formats stored in
+                                      io_device_stream when this function is
+                                      called.
+    \param  io_device_stream  The device stream to add the suported format to.
+    \return NO_ERROR if the structures have been configured, an error code
+            otherwise.
+ */
+cpc_error_code
+android_add_format_description  (
+    UINT32                            in_bits_per_sample,
+    UINT32                            in_num_channels,
+    UINT32                            in_sample_rate,
+    UINT32                            in_num_supported_formats,
+    cahal_device_stream*              io_device_stream
+                                  );
+
+/*! \fn     cpc_error_code android_init_output_device_struct (
+              cahal_device**        out_device,
+              cahal_device_stream** out_stream
+            )
+    \brief  Initialize the list of configured output (speakers) devices and
+            their associated supported audio formats.
+
+    \param  out_device  The null-terminated list of devices supported by the
+                        hardware.
+    \param  out_stream  The list of supported audio formats.
+    \return NO_ERROR if the structures have been configured, an error code
+            otherwise.
+ */
+cpc_error_code
+android_init_output_device_struct (
+    cahal_device**        out_device,
+    cahal_device_stream** out_stream
+                                  );
 
 void
 cahal_terminate( void )
