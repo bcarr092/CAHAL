@@ -297,6 +297,7 @@ android_initialize_recording_structs  (
 
 /*! \fn     cpc_error_code android_register_playback (
               cahal_device*                   in_device,
+              FLOAT32                         in_volume,
               SLDataSource*                   in_output_source,
               SLDataSink*                     in_output_sink,
               SLObjectItf*                    io_playback_object,
@@ -307,6 +308,7 @@ android_initialize_recording_structs  (
             buffer queue.
 
     \param  in_device The device to playback audio to
+    \param  in_volume The volume to playback at. Value is in the range [ 0, 1 ].
     \param  in_output_source  The OpenSLES output source (queue)
     \param  in_output_sink  The OpenSLES output sink (speaker)
     \param  io_playback_object  The configured OpenSLES playback object
@@ -320,6 +322,7 @@ android_initialize_recording_structs  (
 cpc_error_code
 android_register_playback (
     cahal_device*                   in_device,
+    FLOAT32                         in_volume,
     SLDataSource*                   in_output_source,
     SLDataSink*                     in_output_sink,
     SLObjectItf*                    io_playback_object,

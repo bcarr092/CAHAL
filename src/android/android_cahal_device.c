@@ -7,6 +7,24 @@
 cahal_recorder_info* g_recorder_callback_info = NULL;
 cahal_playback_info* g_playback_callback_info = NULL;
 
+/*! \fn     cpc_error_code android_configure_volume_level  (
+              FLOAT32                         in_volume,
+              SLObjectItf*                    io_playback_object
+                                                            )
+    \brief  Sets the volume of the playback object to in_volume.
+
+    \param  in_volume Volume to set the playback device to. This is a value
+                      between 0 and 1 (inclusive). This function handles
+                      converting the in_volume parameter to millibels.
+    \param  in_playback_object  OpenSLES interface to the playback device.
+    \return Error code upon error, CPC_ERRROR_CODE_NO_ERROR upon success.
+ */
+cpc_error_code
+android_configure_volume_level  (
+    FLOAT32                         in_volume,
+    SLObjectItf*                    in_playback_object
+                                );
+
 /*! \fn     void android_free_callback_buffers (
               android_callback_info*  io_callback_info
             )
@@ -27,6 +45,7 @@ cahal_start_playback  (
                        UINT32                   in_number_of_channels,
                        FLOAT64                  in_sample_rate,
                        UINT32                   in_bit_depth,
+                       FLOAT32                  in_volume,
                        cahal_playback_callback  in_playback,
                        void*                    in_callback_user_data,
                        cahal_audio_format_flag  in_format_flags
@@ -43,7 +62,11 @@ cahal_start_playback  (
 
   CPC_LOG_STRING( CPC_LOG_LEVEL_TRACE, "In start playback!" );
 
-  if  (
+  if( 0.0 > in_volume || 1.0 < in_volume )
+  {
+    CPC_ERROR( "Volume (%.02f) must be in the range [ 0, 1 ].", in_volume );
+  }
+  else if  (
        cahal_test_device_direction_support  (
                                              in_device,
                                              CAHAL_DEVICE_OUTPUT_STREAM
@@ -77,6 +100,7 @@ cahal_start_playback  (
         result =
             android_register_playback (
               in_device,
+              in_volume,
               output_source,
               output_sink,
               &playback_object,
@@ -503,8 +527,85 @@ android_initialize_recording_structs  (
 }
 
 cpc_error_code
+android_configure_volume_level  (
+    FLOAT32                         in_volume,
+    SLObjectItf*                    in_playback_object
+                                )
+{
+  cpc_error_code result = CPC_ERROR_CODE_API_ERROR;
+
+  SLVolumeItf volume_interface;
+  SLmillibel max_volume;
+  SLmillibel current_volume;
+
+  SLmillibel min_volume = SL_MILLIBEL_MIN;
+
+  SLmillibel new_volume = SL_MILLIBEL_MIN;
+
+  if( 0.0 != in_volume )
+  {
+    new_volume = ( SLmillibel ) ( 1000 * CPC_LOG_10_FLOAT32( in_volume ) );
+  }
+
+  CPC_LOG (
+      CPC_LOG_LEVEL_TRACE,
+      "Converted volume %.02f to %d.",
+      in_volume,
+      new_volume
+          );
+
+  SLresult opensl_result =
+      ( **in_playback_object )->GetInterface  (
+          *in_playback_object,
+          SL_IID_VOLUME,
+          &volume_interface
+          );
+
+  if( SL_RESULT_SUCCESS == opensl_result )
+  {
+    result = CPC_ERROR_CODE_NO_ERROR;
+
+    ( *volume_interface )->GetMaxVolumeLevel( volume_interface, &max_volume );
+    ( *volume_interface )->GetVolumeLevel( volume_interface, &current_volume );
+
+    CPC_LOG (
+        CPC_LOG_LEVEL_TRACE,
+        "Volume range is [%d,%d].",
+        min_volume,
+        max_volume
+            );
+
+    CPC_LOG (
+        CPC_LOG_LEVEL_TRACE,
+        "Current volume is %d.",
+        current_volume
+            );
+
+    ( *volume_interface )->SetVolumeLevel( volume_interface, new_volume );
+    ( *volume_interface )->GetVolumeLevel( volume_interface, &current_volume );
+
+    CPC_LOG (
+        CPC_LOG_LEVEL_TRACE,
+        "Set volume to %d. Current volume is %d.",
+        new_volume,
+        current_volume
+            );
+  }
+  else
+  {
+    CPC_ERROR (
+        "Could not get volume interface: %d.",
+        opensl_result
+        );
+  }
+
+  return( result );
+}
+
+cpc_error_code
 android_register_playback (
     cahal_device*                   in_device,
+    FLOAT32                         in_volume,
     SLDataSource*                   in_output_source,
     SLDataSink*                     in_output_sink,
     SLObjectItf*                    io_playback_object,
@@ -587,7 +688,8 @@ android_register_playback (
               *out_buffer_interface
               );
 
-          result = CPC_ERROR_CODE_NO_ERROR;
+          result =
+              android_configure_volume_level( in_volume, io_playback_object );
         }
         else
         {
