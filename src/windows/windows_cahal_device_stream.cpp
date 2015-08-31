@@ -38,7 +38,7 @@ static UINT32 supported_sample_rates[
   192000
 };
 
-/*! \def    cpc_error_code  windows_add_format_description(
+/*! \fn     cpc_error_code  windows_add_format_description(
                               UINT32                in_bits_per_sample,
                               UINT32                in_num_channels,
                               UINT32                in_sample_rate,
@@ -68,7 +68,7 @@ windows_add_format_description(
   cahal_device_stream*  io_device_stream
 );
 
-/*! \def    HRESULT windows_set_device_stream_direction(
+/*! \fn     HRESULT windows_set_device_stream_direction(
                         cahal_device_stream*  out_stream,
                         IMMDevice*            in_endpoint
                       );
@@ -86,7 +86,7 @@ windows_set_device_stream_direction(
   IMMDevice*            in_endpoint
 );
 
-/*! \def    HRESULT windows_determine_supported_formats(
+/*! \fn     HRESULT windows_determine_supported_formats(
                       cahal_device_stream*  out_stream,
                       IMMDevice*            in_endpoint
                     );

@@ -7,46 +7,169 @@
 
 #include "windows/windows_cahal_device.hpp"
 
+/*! \def    LABEL_CAPTURE
+    \brief  Debug label for the capture (mic controlling) thread.
+    */
 #define LABEL_CAPTURE   "captur"
+
+/*! \def    LABEL_RENDER
+    \brief  Debug label for the capture (speaker controlling) thread.
+    */
 #define LABEL_RENDER    "render"
 
+/*! \var    g_recorder_callback_info
+    \brief  Global struct containing the recorder (mic) info. Set when recording
+            is taking place.
+    */
 cahal_recorder_info* g_recorder_callback_info = NULL;
+
+/*! \var    g_playback_callback_info
+    \brief  Global struct containing the playback (speadker) info. Set when
+            playback is taking place.
+    */
 cahal_playback_info* g_playback_callback_info = NULL;
 
+/*! \var    g_recorder_thread
+    \brief  Windows thread used for recording.
+    */
 HANDLE g_recorder_thread            = NULL;
+
+/*! \var    g_recorder_data_ready_event
+    \brief  Event set by the WASAPI when data is ready to be read.
+    */
 HANDLE g_recorder_data_ready_event  = NULL;
+
+/*! \var    g_recorder_terminate_event
+    \brief  Event set by CAHAL when the recording thread should terminate.
+    */
 HANDLE g_recorder_terminate_event   = NULL;
 
+/*! \var    g_playback_thread
+    \brief  Windows thread used for playback.
+*/
 HANDLE g_playback_thread            = NULL;
+
+/*! \var    g_playback_data_ready_event
+    \brief  Event set by the WASAPI when data is required for playback.
+*/
 HANDLE g_playback_data_ready_event  = NULL;
+
+/*! \var    g_recorder_terminate_event
+    \brief  Event set by CAHAL when the playback thread should terminate.
+*/
 HANDLE g_playback_terminate_event   = NULL;
 
+/*! \var    windows_context
+    \brief  Context struct for Windows. Contains a pointer to the WASAPI object
+            required to manipulate the audio device (audio_client) as well as
+            format information on the format of the audio being recorded or
+            played back.
+            */
 typedef struct windows_context_t
 {
+  /*! \var    audio_client
+      \brief  The WASAPI interface to the underlying audio hardware.
+      */
   IAudioClient* audio_client;
 
+  /*! \var    format
+      \brief  Struct containing information of the underlying audio sample format.
+      */
   WAVEFORMATEX* format;
 
 } windows_context;
 
+/*! \fn     windows_data_handler_routine
+    \brief  Callback called when data is available for recording or data is required
+            for playback.
+
+    \param  in_callback_info  Context containing the info required by the handler.
+    */
 typedef void( *windows_data_handler_routine ) (
   void* in_callback_info
 );
 
+/*! \var    data_handler
+    \brief  Struct used to pass information to the windows_data_handler_routine.
+  */
 typedef struct data_handler_t
 {
+  /*! \var    callback_info
+      \brief  Information about the callback to call when data is available for
+              processing or data is required for playback.
+              */
   void* callback_info;
 
+  /*! \var    data_ready_event
+      \brief  Pointer to the appropriate data read event (record or playback)
+      */
   PHANDLE data_ready_event;
 
+  /*! \var    terminate_event
+      \brief  Pointer to the appropriate terminate event (record or playback).
+      */
   PHANDLE terminate_event;
 
+  /*! \var    data_handler
+      \brief  Function pointer to the appropriate handling routine (record or playback).
+              This function is called by the CAHAL library when WASAPI lets CAHAL known
+              action is required.
+              */
   windows_data_handler_routine  data_handler;
 
+  /*! \var    label
+      \brief  Debug label (render, captur) for the thread.
+      */
   UCHAR label[7];
 
 } data_handler;
 
+/*! \fn     cahal_device** windows_get_device_list(void)
+    \brief  Gather the list of cahal devices on the system (in and out) and return
+            a null-temrinated list.
+
+    \return A null-terminated list of CAHAL devices.
+    */
+cahal_device**
+windows_get_device_list(void);
+
+/*! \fn   void windows_playback_send_data(
+            IAudioClient*         in_audio_client,
+            IAudioRenderClient*   in_render_client,
+            WAVEFORMATEX*         in_format,
+            cahal_playback_info*  in_callback_info
+          )
+    \brief  Calls the callback to get a buffer of data and passes the data
+            to the render client.
+
+    \param  in_audio_client Interface to the WASAPI audio client.
+    \param  in_render_client  Interface to the WASAPI render client (speaker).
+    \param  in_format The format of the samples that are to be put in the render
+                      clients buffer.
+    \param  in_callback_info  The callback to call to get the data to render.
+ */
+void
+windows_playback_send_data(
+IAudioClient*         in_audio_client,
+IAudioRenderClient*   in_render_client,
+WAVEFORMATEX*         in_format,
+cahal_playback_info*  in_callback_info
+);
+
+/*! \fn     void windows_configure_format(
+              UINT32          in_number_of_channels,
+              FLOAT64         in_sample_rate,
+              UINT32          in_bit_depth,
+              WAVEFORMATEX**  out_format
+            )
+    \brief  Malloc's a new format struct (out_format) and appropriately sets its parameters.
+
+    \param  in_number_of_channels The number of formats in the new format.
+    \param  in_sample_rate  The sample rate of the new format.
+    \param  in_bit_depth  The bit depth (bits per sample)in the new format.
+    \param  out_format  A newly created WAVEFORMATEX struct (must be freed) or NULL if an
+                        error occurred.
+ */
 void
 windows_configure_format(
 UINT32          in_number_of_channels,
@@ -55,18 +178,38 @@ UINT32          in_bit_depth,
 WAVEFORMATEX**  out_format
 );
 
+/*! \fn    void  windows_handle_playback_data(
+            cahal_playback_info* in_callback_info
+            )
+    \brief  Called by the playback thread when signaled that a new capture
+            buffer is required. This function will get the capture client and
+            have to set a buffer full of data as set by the callback in
+            in_callback_info.
+
+    \param  in_callback_info  The callback to call with a to get a buffer of data.
+*/
 void
 windows_handle_playback_data(
 cahal_playback_info* in_callback_info
 );
 
+/*! \fn     CPC_BOOL windows_stop_thread(
+              PHANDLE io_terminate_event,
+              PHANDLE io_thread
+            )
+    \brief  Sets the terminate event and waits for io_thread to complete.
+
+    \param  io_terminate_event  The event to signal for the thread to stop.
+    \param  io_thread The thread to wait for completion.
+    \return CPC_TRUE if the thread was successfully terminated. False otherwise.
+    */
 CPC_BOOL
 windows_stop_thread(
 PHANDLE io_terminate_event,
 PHANDLE io_thread
 );
 
-/*! \def    DWORD WINAPI  windows_thread_entry  (
+/*! \fn    DWORD WINAPI  windows_thread_entry  (
                             LPVOID in_handler_info
                                                 )
     \brief  Entry point for the processing threads. This function will block
@@ -85,7 +228,7 @@ windows_thread_entry  (
   LPVOID in_handler_info
                       );
 
-/*! \def    void  windows_recorder_read_data  (
+/*! \fn    void  windows_recorder_read_data  (
                       IAudioCaptureClient*  in_capture_client,
                       WAVEFORMATEX*         in_format,
                       cahal_recorder_info*  in_callback_info
@@ -104,7 +247,7 @@ windows_recorder_read_data  (
   cahal_recorder_info*  in_callback_info
                             );
 
-/*! \def    HRESULT windows_initialize_events_thread  (
+/*! \fn     HRESULT windows_initialize_events_thread  (
                       IAudioClient*           io_audio_client,
                       void*                   in_callback_info
                       PHANDLE                 out_data_ready_event,
@@ -130,8 +273,8 @@ windows_recorder_read_data  (
                                 called.
     \param  out_thread  The newly created thread, either a recorder or playback
                         thread.
-    \param  in_thread_entry The handler that is called when out_thread is 
-                            awoken with data to process.
+    \param  in_data_handler_routine The handler that is called when out_thread is 
+                                    awoken with data to process.
     \param  in_label  Label to be given to the thread (eitehr captur or render)
     \return S_OK iff the audio_client is configured to call the data ready
             event. An error code otherwise.
@@ -147,7 +290,7 @@ windows_initialize_events_thread  (
   CHAR*                         in_label
                                   );
 
-/*! \def    void  windows_handle_recorder_data(
+/*! \fn    void  windows_handle_recorder_data(
                     cahal_recorder_info* in_callback_info
                                               )
     \brief  Called by the recording thread when signaled that a new capture
@@ -162,12 +305,12 @@ windows_handle_recorder_data(
   cahal_recorder_info* in_callback_info
                             );
 
-/*! \def    HRESULT windows_configure_device  (
+/*! \fn    HRESULT windows_configure_device  (
                       cahal_device*   in_device,
                       WAVEFORMATEX*   in_format,
                       IAudioClient**  out_audio_client
                                               )
-    \breif  Entry point to configure the WASAPI to process audio samples. This
+    \brief  Entry point to configure the WASAPI to process audio samples. This
             function will enumerate the audio devices, select the appropriate
             device (using in_device->handle) and initialize an audio client
             to use for capture or render.
@@ -187,7 +330,7 @@ windows_configure_device  (
   IAudioClient**  out_audio_client
                           );
 
-/*! \def    HRESULT windows_initialize_device (
+/*! \fn     HRESULT windows_initialize_device (
                       IMMDevice*      in_device,
                       IAudioClient**  io_audio_client,
                       WAVEFORMATEX*   in_format
@@ -209,12 +352,12 @@ windows_initialize_device (
   WAVEFORMATEX*   in_format
                           );
 
-/*! \def    HRESULT windows_reinitialize_device (
+/*! \fn     HRESULT windows_reinitialize_device (
                       IMMDevice*      in_device,
                       IAudioClient**  io_audio_client,
                       WAVEFORMATEX*   in_format
                                                 )
-    \breif  Reinitializes the audio_client with a buffer size that is aligned
+    \brief  Reinitializes the audio_client with a buffer size that is aligned
             to the block size in the format. This is required when devices are
             opened in exclusive mode (it is required to align the expected
             buffer size with the hardware buffer size).
@@ -236,7 +379,7 @@ windows_reinitialize_device (
   WAVEFORMATEX*   in_format
                             );
 
-/*! \def    HRESULT windows_set_device_info(
+/*! \fn     HRESULT windows_set_device_info(
               cahal_device* out_device,
               IMMDevice*    in_endpoint
             );
@@ -257,7 +400,7 @@ windows_set_device_info(
   IMMDevice*    in_endpoint
 );
 
-/*! \def    HRESULT windows_set_device_defaults(
+/*! \fn     HRESULT windows_set_device_defaults(
               cahal_device* out_device,
               IMMDevice*    in_endpoint
             );
@@ -276,7 +419,7 @@ windows_set_device_defaults(
   IMMDevice*    in_endpoint
 );
 
-/*! \def    HRESULT windows_set_device_id(
+/*! \fn     HRESULT windows_set_device_id(
               cahal_device* out_device,
               IMMDevice*    in_endpoint
             );
@@ -294,7 +437,7 @@ windows_set_device_id(
   IMMDevice*    in_endpoint
 );
 
-/*! \def    HRESULT windows_set_device_state(
+/*! \fn     HRESULT windows_set_device_state(
               cahal_device* out_device,
               IMMDevice*    in_endpoint
             );
@@ -312,7 +455,7 @@ windows_set_device_state(
   IMMDevice*    in_endpoint
 );
 
-/*! \def    HRESULT windows_set_device_name(
+/*! \fn     HRESULT windows_set_device_name(
               cahal_device* out_device,
               IMMDevice*    in_endpoint
             );
@@ -1702,7 +1845,8 @@ cahal_stop_playback( void )
 }
 
 CPC_BOOL
-windows_stop_thread (
+windows_stop_thread
+(
   PHANDLE io_terminate_event,
   PHANDLE io_thread
                     )
@@ -1777,6 +1921,7 @@ cahal_start_playback(
   UINT32                   in_number_of_channels,
   FLOAT64                  in_sample_rate,
   UINT32                   in_bit_depth,
+  FLOAT32				   in_volume,
   cahal_playback_callback  in_playback,
   void*                    in_callback_user_data,
   cahal_audio_format_flag  in_format_flags
@@ -1786,7 +1931,11 @@ cahal_start_playback(
 
   CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "In start playback!" );
 
-  if(
+  if (0.0 > in_volume || 1.0 < in_volume)
+  {
+	  CPC_ERROR("Volume (%.02f) must be in the range [ 0, 1 ].", in_volume);
+  }
+  else if(
     cahal_test_device_direction_support(
       in_device,
       CAHAL_DEVICE_OUTPUT_STREAM
