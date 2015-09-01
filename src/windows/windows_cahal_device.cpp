@@ -795,6 +795,150 @@ windows_get_device_list( void )
 }
 
 HRESULT
+windows_set_volume(
+  cahal_device* in_device,
+  FLOAT32       in_volume
+                  )
+{
+  HRESULT result                          = S_OK;
+  IMMDeviceEnumerator *enumerator         = NULL;
+  IMMDeviceCollection *device_collection  = NULL;
+
+  if( NULL != in_device )
+  {
+    result =
+      CoCreateInstance(
+      __uuidof( MMDeviceEnumerator ),
+      NULL,
+      CLSCTX_ALL,
+      __uuidof( IMMDeviceEnumerator ),
+      ( void** ) &enumerator
+      );
+
+    if( S_OK == result )
+    {
+      result =
+        enumerator->EnumAudioEndpoints(
+        eAll,
+        DEVICE_STATE_ACTIVE,
+        &device_collection
+        );
+
+      if( S_OK == result )
+      {
+        IMMDevice* device = NULL;
+
+        result = device_collection->Item( in_device->handle, &device );
+
+        if( S_OK == result )
+        {
+          IAudioEndpointVolume*volume_control;
+
+          result =
+            device->Activate(
+            __uuidof( IAudioEndpointVolume ),
+            CLSCTX_ALL,
+            NULL,
+            ( void** ) &volume_control
+            );
+
+          if( S_OK == result )
+          {
+            FLOAT32 min_volume;
+            FLOAT32 max_volume;
+            FLOAT32 current_volume;
+            FLOAT32 new_volume;
+            FLOAT32 increment;
+
+            result = volume_control->GetVolumeRange( &min_volume, &max_volume, &increment );
+
+            if( S_OK == result )
+            {
+              CPC_LOG (
+                CPC_LOG_LEVEL_TRACE,
+                "Min volume: %.02f\tMax volume: %.02f\tIncrement: %.02f.", 
+                min_volume, 
+                max_volume, 
+                increment
+                );
+
+              if( 0.0 == in_volume )
+              {
+                new_volume = min_volume;
+              }
+              else if( 1.0 == in_volume )
+              {
+                new_volume = max_volume;
+              }
+              else
+              {
+                new_volume = 10 * CPC_LOG_10_FLOAT32( in_volume );
+                
+                INT32 factor = ( INT32 ) ( new_volume / increment );
+
+                new_volume = ( factor * 1.0 ) * increment;
+              }
+
+              CPC_LOG( CPC_LOG_LEVEL_TRACE, "New volume is %.02f.", new_volume );
+
+              result = volume_control->SetMasterVolumeLevel( new_volume, NULL );
+            }
+            else
+            {
+              CPC_ERROR( "Could not get volume interface: 0x%x.", result );
+            }
+
+            if( NULL != volume_control )
+            {
+              volume_control->Release();
+            }
+          }
+          else
+          {
+            CPC_ERROR( "Could not activate volume: 0x%x.", result );
+          }
+        }
+        else
+        {
+          CPC_ERROR(
+            "Could not find item 0x%x in collection: 0x%x.",
+            in_device->handle,
+            result
+            );
+        }
+      }
+      else
+      {
+        CPC_ERROR( "Could not enumerate endpoints: 0x%x.", result );
+      }
+    }
+    else
+    {
+      CPC_ERROR( "Could not create COM object: 0x%x.", result );
+    }
+  }
+  else
+  {
+    CPC_ERROR(
+      "Device (0x%x) is null.",
+      in_device
+      );
+  }
+
+  if( NULL != enumerator )
+  {
+    enumerator->Release( );
+  }
+
+  if( NULL != device_collection )
+  {
+    device_collection->Release( );
+  }
+  
+  return( result );
+}
+
+HRESULT
 windows_initialize_device (
   IMMDevice*      in_device,
   IAudioClient**  io_audio_client,
@@ -1921,7 +2065,7 @@ cahal_start_playback(
   UINT32                   in_number_of_channels,
   FLOAT64                  in_sample_rate,
   UINT32                   in_bit_depth,
-  FLOAT32				   in_volume,
+  FLOAT32				           in_volume,
   cahal_playback_callback  in_playback,
   void*                    in_callback_user_data,
   cahal_audio_format_flag  in_format_flags
@@ -1967,6 +2111,8 @@ cahal_start_playback(
 
       if( S_OK == result )
       {
+        windows_set_volume( in_device, in_volume );
+
         if( CPC_ERROR_CODE_NO_ERROR
           == cpc_safe_malloc(
           ( void ** )&( g_playback_callback_info ),

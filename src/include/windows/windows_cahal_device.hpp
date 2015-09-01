@@ -11,6 +11,7 @@
 #include <mmdeviceapi.h>
 
 #include <Audioclient.h>
+#include <Endpointvolume.h>
 #include <Functiondiscoverykeys_devpkey.h>
 #include <Propvarutil.h>
 
