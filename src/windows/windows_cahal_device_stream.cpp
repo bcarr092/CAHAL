@@ -7,10 +7,24 @@
 
 #include "windows/windows_cahal_device_stream.hpp"
 
+/*! \def    NUM_CHANNELS_TO_TEST
+    \brief  Maximum number of channels to test. Will test in the range [ 0, 2 ]
+    */
 #define NUM_CHANNELS_TO_TEST                2
+
+/*! \def    NUM_SUPPORTED_BITS_PER_SAMPLE
+    \brief  The number of supported bit depths to test.
+    */
 #define NUM_SUPPORTED_BITS_PER_SAMPLE       2
+
+/*! \def    NUM_SUPPORTED_SAMPLE_RATES
+    \brief  The number of supported sample rates to test.
+    */
 #define NUM_SUPPORTED_SAMPLE_RATES          13
 
+/*! \def    supported_bits_per_sample
+    \brief  Bit depths to test for support.
+    */
 static UINT32 supported_bits_per_sample [
   NUM_SUPPORTED_BITS_PER_SAMPLE
                                         ] =
@@ -19,6 +33,9 @@ static UINT32 supported_bits_per_sample [
   16
 };
 
+/*! \def    supported_sample_rates
+    \brief  Sample rates to test for support.
+    */
 static UINT32 supported_sample_rates[
   NUM_SUPPORTED_SAMPLE_RATES
                                       ] =

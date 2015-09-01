@@ -22,7 +22,7 @@
  */
 #define WINDOWS_DEVICE_STREAM_DEFAULT_HANDLE  1
 
-/*! \def    HRESULT windows_set_device_streams(
+/*! \fn     HRESULT windows_set_device_streams(
               cahal_device* out_device,
               IMMDevice*    in_endpoint
             );

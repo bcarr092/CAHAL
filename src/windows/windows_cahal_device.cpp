@@ -54,7 +54,7 @@ HANDLE g_playback_thread            = NULL;
 */
 HANDLE g_playback_data_ready_event  = NULL;
 
-/*! \var    g_recorder_terminate_event
+/*! \var    g_playback_terminate_event
     \brief  Event set by CAHAL when the playback thread should terminate.
 */
 HANDLE g_playback_terminate_event   = NULL;
@@ -253,7 +253,7 @@ windows_recorder_read_data  (
                       PHANDLE                 out_data_ready_event,
                       PHANDLE                 out_terminate_event,
                       PHANDLE                 out_thread,
-                      LPTHREAD_START_ROUTINE  in_thread_entry,
+                      windows_data_handler_routine  in_data_handler_routine,
                       CHAR*                   in_label
                                                       )
     \brief  Creates the events (data ready, terminate), a thread and adds the
