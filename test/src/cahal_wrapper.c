@@ -260,8 +260,6 @@ python_playback_callback(
                 *io_data_buffer_length
                 );
   
-  printf( "In callback.\n" );
-  
   if( PyCallable_Check(( python_callback ) ) )
   {
     if( NULL != argument_list )
