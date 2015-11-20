@@ -91,18 +91,32 @@ start_recording(
   int           in_format_flags
 )
 {
-  int result = cahal_start_recording(
-    in_device,
-    in_format_id,
-    in_number_of_channels,
-    in_sample_rate,
-    in_bit_depth,
-    python_recorder_callback,
-    in_callback_function,
-    in_format_flags
-    );
+  CPC_BOOL result = CPC_FALSE;
+  
+  if( ! PyCallable_Check( in_callback_function ) )
+  {
+    CPC_LOG_STRING  (
+                     CPC_LOG_LEVEL_ERROR,
+                     "Callback passed to start_recording is not callable."
+                     );
+  }
+  else
+  {
+    Py_XINCREF( in_callback_function );
+  
+    result = cahal_start_recording(
+      in_device,
+      in_format_id,
+      in_number_of_channels,
+      in_sample_rate,
+      in_bit_depth,
+      python_recorder_callback,
+      in_callback_function,
+      in_format_flags
+      );
+  }
 
-  if( 1 == result )
+  if( result )
   {
     Py_RETURN_TRUE;
   }
@@ -144,28 +158,29 @@ python_recorder_callback(
     if( NULL != argument_list )
     {
       result = PyEval_CallObject( python_callback, argument_list );
-
-      if( NULL == result )
-      {
-        PyErr_Print( );
-      }
-      else
-      {
-        return_value = CPC_TRUE;
-      }
+      
+      Py_DECREF( argument_list );
     }
     else
     {
       PyErr_Print( );
+    }
+
+    if( NULL == result )
+    {
+      PyErr_Print( );
+    }
+    else
+    {
+      Py_DECREF( result );
+      
+      return_value = CPC_TRUE;
     }
   }
   else
   {
     CPC_LOG_STRING( CPC_LOG_LEVEL_DEBUG, "Callback is not callable." );
   }
-
-  Py_XDECREF( argument_list );
-  Py_XDECREF( result );
 
   PyGILState_Release( state );
 
@@ -184,19 +199,33 @@ start_playback(
   int           in_format_flags
 )
 {
-  int result = cahal_start_playback(
-    in_device,
-    in_format_id,
-    in_number_of_channels,
-    in_sample_rate,
-    in_bit_depth,
-    in_volume,
-    python_playback_callback,
-    in_callback_function,
-    in_format_flags
-    );
+  CPC_BOOL result = CPC_FALSE;
+  
+  if( ! PyCallable_Check( in_callback_function ) )
+  {
+    CPC_LOG_STRING  (
+                     CPC_LOG_LEVEL_ERROR,
+                     "Callback passed to start_playback is not callable."
+                     );
+  }
+  else
+  {
+    Py_XINCREF( in_callback_function );
+    
+    result = cahal_start_playback(
+      in_device,
+      in_format_id,
+      in_number_of_channels,
+      in_sample_rate,
+      in_bit_depth,
+      in_volume,
+      python_playback_callback,
+      in_callback_function,
+      in_format_flags
+      );
+  }
 
-  if( 1 == result )
+  if( result )
   {
     Py_RETURN_TRUE;
   }
@@ -230,6 +259,8 @@ python_playback_callback(
                 in_playback_device,
                 *io_data_buffer_length
                 );
+  
+  printf( "In callback.\n" );
   
   if( PyCallable_Check(( python_callback ) ) )
   {
@@ -285,8 +316,8 @@ python_playback_callback(
 void
 python_cahal_initialize( void )
 {
-  Py_Initialize();
-  PyEval_InitThreads();
+//  Py_Initialize();
+//  PyEval_InitThreads();
   
   cahal_initialize();
 }
