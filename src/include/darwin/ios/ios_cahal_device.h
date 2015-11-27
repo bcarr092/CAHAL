@@ -210,4 +210,10 @@ ios_set_device_stream (
 void
 ios_initialize_recording( void );
 
+/*! \fn     void ios_terminate_recording()
+    \brief  Terminates the AVAudioSession session by setting the device to
+            inactive.
+ */
+void ios_terminate_recording( void );
+
 #endif  /*  __IOS_CAHAL_DEVICE_H__  */

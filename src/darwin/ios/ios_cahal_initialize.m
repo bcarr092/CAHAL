@@ -9,7 +9,35 @@ void ios_initialize_recording()
   [ios_cahal_initialize ios_initialize_recording];
 }
 
+void ios_terminate_recording()
+{
+  [ios_cahal_initialize ios_terminate_recording];
+}
+
 @implementation ios_cahal_initialize
+
++ (void) ios_terminate_recording
+{
+  NSError *err = nil;
+  
+  [[AVAudioSession sharedInstance] setActive:NO error:&err];
+  
+  if( err )
+  {
+    CPC_ERROR (
+               "audioSession: %s %d %s",
+               [err domain],
+               [err code],
+               [[err userInfo] description]
+               );
+    
+    cpc_exit( CPC_ERROR_CODE_INVALID_PERMISSIONS );
+  }
+  else
+  {
+    CPC_LOG_STRING( CPC_LOG_LEVEL_INFO, "Session terminated successfully." );
+  }
+}
 
 /*! \fn     ios_initialize_recording
     \brief  Requests permission to access the microphone and exits if the binary 
@@ -63,8 +91,6 @@ void ios_initialize_recording()
   
   [[AVAudioSession sharedInstance] setActive:YES error:&err];
   
-  err = nil;
-  
   if( err )
   {
     CPC_ERROR (
@@ -83,10 +109,37 @@ void ios_initialize_recording()
   {
     CPC_LOG_STRING  (
                       CPC_LOG_LEVEL_ERROR,
-                     "Audio input hardware is not avilable"
+                     "Audio input hardware is not avilable. Sleeping..."
                      );
     
-    cpc_exit( CPC_ERROR_CODE_INVALID_PERMISSIONS );
+    [NSThread sleepForTimeInterval:1];
+    
+    NSArray* available_inputs =
+      [[AVAudioSession sharedInstance] availableInputs];
+    
+    if( 0 == available_inputs.count )
+    {
+      CPC_LOG_STRING  (
+                       CPC_LOG_LEVEL_ERROR,
+                       "Audio input hardware is still not avilable. Sleeping..."
+                       );
+      
+      [NSThread sleepForTimeInterval:5];
+      
+      NSArray* available_inputs =
+        [[AVAudioSession sharedInstance] availableInputs];
+      
+      if( 0 == available_inputs.count )
+      {
+        CPC_LOG_STRING  (
+                         CPC_LOG_LEVEL_ERROR,
+                         "Audio input hardware is still"
+                         " not avilable. Sleeping..."
+                         );
+        
+        cpc_exit( CPC_ERROR_CODE_INVALID_PERMISSIONS );
+      }
+    }
   }
 }
 

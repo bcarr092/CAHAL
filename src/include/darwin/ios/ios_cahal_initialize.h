@@ -25,6 +25,11 @@
  */
 + (void) ios_initialize_recording;
 
+/*  \method (void) ios_terminate_recording
+    \brief  Performs the ios-specific termination of the hardware.
+ */
++ (void) ios_terminate_recording;
+
 @end
 
 #endif  /*  __IOS_CAHAL_INITIALIZE_H__  */

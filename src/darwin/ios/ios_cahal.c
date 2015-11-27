@@ -28,6 +28,8 @@ cahal_initialize( void )
 void
 cahal_terminate( void )
 {
+  CPC_LOG( CPC_LOG_LEVEL_INFO, "In terminate: %d!", g_cahal_state );
+  
   switch( g_cahal_state )
   {
     case CAHAL_STATE_NOT_INITIALIZED:
@@ -40,6 +42,8 @@ cahal_terminate( void )
                        );
       break;
     case CAHAL_STATE_INITIALIZED:
+      ios_terminate_recording();
+      
       g_cahal_state = CAHAL_STATE_TERMINATED;
       
       break;
