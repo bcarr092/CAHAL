@@ -5,6 +5,7 @@ except ImportError:
 
 import cahal_tests                                                              
 import unittest                                                                 
+import sys
                                                                                 
 from test_cahal                           import TestsCAHAL
 from test_cahal_device                    import TestsCAHALDevice
@@ -25,6 +26,11 @@ alltests = unittest.TestSuite ( [                                               
                                               )                                     \
                                 ] )
 
-unittest.TextTestRunner( verbosity=2 ).run( alltests )
+result = unittest.TextTestRunner( verbosity=2 ).run( alltests )
 
 cahal_tests.cahal_terminate()
+
+if( len( result.errors ) == 0 and len( result.failures ) == 0 ):
+    sys.exit( 0 )
+else:
+    sys.exit( -1 )
