@@ -10,6 +10,10 @@ message( STATUS "Project directory: ${PROJECT_SOURCE_DIR}" )
 set( SOURCE_DIR "${PROJECT_SOURCE_DIR}/src" )
 set( INCLUDE_DIR "${SOURCE_DIR}/include" )
 set( INSTALL_DIR "${CMAKE_INSTALL_PREFIX}" )
+set (
+    INSTALL_LIB_DIR
+    "${INSTALL_DIR}/lib/${PLATFORM}/${TARGET}/${ARCHITECTURE}"
+    )
 
 message( STATUS "Source directory: ${SOURCE_DIR}" )
 message( STATUS "Include directory: ${INCLUDE_DIR}" )
@@ -237,8 +241,8 @@ endif()
 
 install (
           TARGETS ${PROJECT_NAME}
-          ARCHIVE DESTINATION "${INSTALL_DIR}/lib"
-          LIBRARY DESTINATION "${INSTALL_DIR}/lib"
+          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+          LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
         )
 install( FILES ${HEADERS} DESTINATION "${INSTALL_DIR}/include/${PROJECT_NAME}" )
 
